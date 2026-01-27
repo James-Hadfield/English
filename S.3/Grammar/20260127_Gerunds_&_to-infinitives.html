@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerund & Infinitive Master</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Custom Scrollbar for better visibility */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .btn-hover-effect:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // --- DATA CONSTANTS ---
+
+        const VERB_EXAMPLES = {
+            // Gerunds
+            "admit": "He admitted stealing the money.",
+            "avoid": "Try to avoid hitting the curb.",
+            "consider": "We are considering moving to Canada.",
+            "deny": "She denied breaking the vase.",
+            "dislike": "I dislike waiting in line.",
+            "enjoy": "We enjoy playing chess.",
+            "finish": "Have you finished cleaning?",
+            "imagine": "Imagine living on the moon.",
+            "keep": "Keep trying!",
+            "mind": "Do you mind closing the window?",
+            "miss": "I miss chatting with you.",
+            "practise": "She practises playing piano daily.",
+            "suggest": "I suggest taking a taxi.",
+            // Infinitives
+            "agree": "They agreed to help us.",
+            "choose": "I chose to stay home.",
+            "decide": "We decided to go out.",
+            "hope": "I hope to see you soon.",
+            "learn": "He is learning to drive.",
+            "need": "I need to buy milk.",
+            "offer": "She offered to drive me.",
+            "plan": "We plan to visit Italy.",
+            "promise": "He promised to call.",
+            "refuse": "She refused to pay.",
+            "seem": "It seems to be broken.",
+            "want": "I want to be a doctor.",
+            "wish": "I wish to speak to the manager.",
+            // Object + Infinitive
+            "advise": "He advised me to stop.",
+            "allow": "They allowed us to enter.",
+            "ask": "She asked him to leave.",
+            "enable": "This tool enables you to work faster.",
+            "encourage": "He encouraged me to try.",
+            "invite": "They invited us to stay.",
+            "persuade": "She persuaded him to go.",
+            "remind": "Remind me to call Mom.",
+            "teach": "He taught me to swim.",
+            "tell": "Tell him to wait.",
+            "warn": "I warned you not to touch it.",
+            // Both
+            "begin": "It began raining. / It began to rain.",
+            "continue": "He continued talking. / He continued to talk.",
+            "hate": "I hate waiting. / I hate to wait.",
+            "like": "I like swimming. / I like to swim.",
+            "love": "I love reading. / I love to read.",
+            "prefer": "I prefer walking. / I prefer to walk.",
+            "start": "It started snowing. / It started to snow."
+        };
+
+        const GERUND_VERBS = ["admit", "avoid", "consider", "deny", "dislike", "enjoy", "finish", "imagine", "keep", "mind", "miss", "practise", "suggest"];
+        const INFINITIVE_VERBS = ["agree", "choose", "decide", "hope", "learn", "need", "offer", "plan", "promise", "refuse", "seem", "want", "wish"];
+        const OBJ_INFINITIVE_VERBS = ["advise", "allow", "ask", "enable", "encourage", "invite", "persuade", "remind", "teach", "tell", "warn"];
+        const BOTH_VERBS = ["begin", "continue", "hate", "like", "love", "prefer", "start"];
+
+        const QUIZ_QUESTIONS = [
+            // Module 1: Gerunds
+            { m: 1, id: 101, q: "___ is a good form of exercise.", a: "Swimming", opts: ["Swimming", "To swim", "Swim", "Swam"], expl: "When a verb acts as the subject of a sentence, we use the Gerund form (-ing)." },
+            { m: 1, id: 102, q: "Would you like to go ___ with us this weekend?", a: "camping", opts: ["camping", "to camp", "camp", "camped"], expl: "We use 'go + gerund' for many sports and leisure activities." },
+            { m: 1, id: 103, q: "My parents are considering ___ to Kowloon.", a: "moving", opts: ["moving", "to move", "move", "moved"], expl: "'Consider' is always followed by a gerund (-ing)." },
+            { m: 1, id: 104, q: "Do you mind ___ the door?", a: "closing", opts: ["closing", "to close", "close", "closed"], expl: "'Mind' is always followed by a gerund (-ing)." },
+            { m: 1, id: 105, q: "Are you interested in ___ this course?", a: "joining", opts: ["joining", "to join", "join", "joined"], expl: "We use Gerunds after prepositions (in, by, at, etc.)." },
+            { m: 1, id: 106, q: "My father finally decided to give up ___.", a: "smoking", opts: ["smoking", "to smoke", "smoke", "smoked"], expl: "'Give up' is a phrasal verb. Phrasal verbs are followed by gerunds." },
+            { m: 1, id: 107, q: "Amber admitted ___ the door when she left.", a: "not locking", opts: ["not locking", "locking not", "to not lock", "not to lock"], expl: "The negative form of a gerund is 'not + gerund'." },
+            { m: 1, id: 108, q: "John got used to ___ spicy food in Thailand.", a: "eating", opts: ["eating", "eat", "to eat", "eaten"], expl: "'Get used to' describes familiarity and is followed by a gerund." },
+            { m: 1, id: 109, q: "We ___ to school together, but now we take the bus.", a: "used to walk", opts: ["used to walk", "are used to walking", "used to walking", "walked"], expl: "'Used to' (without 'be') refers to a past habit that no longer happens." },
+
+            // Module 2: Infinitives
+            { m: 2, id: 201, q: "Paul has agreed ___ fix my computer.", a: "to help", opts: ["to help", "helping", "help", "helped"], expl: "'Agree' is always followed by a to-infinitive." },
+            { m: 2, id: 202, q: "The nutritionist advised me ___ my eating habits.", a: "to change", opts: ["to change", "changing", "change", "changed"], expl: "'Advise' follows the pattern: Verb + Object + To-infinitive." },
+            { m: 2, id: 203, q: "Have you thought of any ways ___ the problem?", a: "to solve", opts: ["to solve", "solving", "solve", "solved"], expl: "We use to-infinitives after nouns (ways, time, etc.)." },
+            { m: 2, id: 204, q: "I've got something ___ you.", a: "to show", opts: ["to show", "showing", "show", "shown"], expl: "To-infinitives follow indefinite pronouns like 'something' or 'anything'." },
+            { m: 2, id: 205, q: "I'm glad ___ that you can come.", a: "to know", opts: ["to know", "knowing", "know", "known"], expl: "We use to-infinitives after adjectives describing feelings (glad, nice, happy)." },
+            { m: 2, id: 206, q: "Grandma has just learnt ___ buy meals online.", a: "how to", opts: ["how to", "how", "how buying", "how for"], expl: "We use to-infinitives after wh-words (except 'why')." },
+            { m: 2, id: 207, q: "Teddy promised ___ in the exam again.", a: "not to cheat", opts: ["not to cheat", "to not cheat", "not cheating", "cheating not"], expl: "The negative infinitive is 'not + to-infinitive'." },
+            { m: 2, id: 208, q: "Mum always tells me ___ with strangers.", a: "not to talk", opts: ["not to talk", "to not talk", "not talking", "not talk"], expl: "For object patterns, the negative is: Object + not + to-infinitive." },
+
+            // Module 3: Both
+            { m: 3, id: 301, q: "It started ___ when we arrived.", a: "raining / to rain", opts: ["raining / to rain", "only raining", "only to rain", "rain"], expl: "'Start' can be followed by either form with no difference in meaning." },
+            { m: 3, id: 302, q: "Ken would like ___ noodles for lunch.", a: "to have", opts: ["to have", "having", "have", "had"], expl: "While 'like' takes both, 'would like' MUST take a to-infinitive." },
+            { m: 3, id: 303, q: "More and more people are beginning ___ online.", a: "to shop", opts: ["to shop", "shopping", "shop", "shopped"], expl: "When 'begin/start' are in the continuous form (-ing), we use a to-infinitive to avoid double -ing." },
+
+            // Module 4: Meaning Change
+            { m: 4, id: 401, q: "I forgot ___ my camera with me. I have no photos!", a: "to bring", opts: ["to bring", "bringing", "bring", "brought"], expl: "Forget + to-infinitive means you failed to do a task." },
+            { m: 4, id: 402, q: "Have you forgotten ___ Carmen at the party last week?", a: "meeting", opts: ["meeting", "to meet", "meet", "met"], expl: "Forget + gerund means you did the action, but don't remember it now." },
+            { m: 4, id: 403, q: "Remember ___ off the computer before you leave.", a: "to switch", opts: ["to switch", "switching", "switch", "switched"], expl: "Remember + to-infinitive refers to a task you still need to do." },
+            { m: 4, id: 404, q: "Grandpa remembers ___ across the harbour in 1972.", a: "swimming", opts: ["swimming", "to swim", "swim", "swam"], expl: "Remember + gerund refers to a memory of a past event." },
+            { m: 4, id: 405, q: "We were hungry, so we stopped ___ some sandwiches.", a: "to eat", opts: ["to eat", "eating", "eat", "ate"], expl: "Stop + to-infinitive means pausing one action in order to do another." },
+            { m: 4, id: 406, q: "Jean stopped ___ and put the book away.", a: "reading", opts: ["reading", "to read", "read", "readed"], expl: "Stop + gerund means to end an activity permanently or temporarily." },
+            { m: 4, id: 407, q: "I didn't like the room, so I tried ___ it yellow.", a: "painting", opts: ["painting", "to paint", "paint", "painted"], expl: "Try + gerund means to experiment to see if a result is good." },
+            { m: 4, id: 408, q: "Please try ___ on time tomorrow.", a: "to arrive", opts: ["to arrive", "arriving", "arrive", "arrived"], expl: "Try + to-infinitive means to make an effort to do something difficult." }
+        ];
+
+        // --- COMPONENTS ---
+
+        const Icon = ({ name, size = 28, className = "" }) => {
+            const ref = useRef(null);
+            useEffect(() => {
+                if (window.lucide && ref.current) {
+                    ref.current.innerHTML = '';
+                    const icon = document.createElement('i');
+                    icon.setAttribute('data-lucide', name);
+                    ref.current.appendChild(icon);
+                    window.lucide.createIcons({
+                        root: ref.current,
+                        attrs: { width: size, height: size, class: className }
+                    });
+                }
+            }, [name, size, className]);
+            return <span ref={ref} className="inline-flex items-center justify-center"></span>;
+        };
+
+        const Button = ({ onClick, children, variant = "primary", className = "", disabled = false, size = "md" }) => {
+            const styles = {
+                primary: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md",
+                secondary: "bg-white text-indigo-700 border-2 border-indigo-100 hover:bg-indigo-50",
+                outline: "bg-transparent text-slate-600 border-2 border-slate-200 hover:bg-slate-100",
+                danger: "bg-red-500 text-white hover:bg-red-600 shadow-md",
+                success: "bg-green-600 text-white hover:bg-green-700 shadow-md"
+            };
+            const sizes = {
+                sm: "px-3 py-1 text-sm",
+                md: "px-6 py-3 text-xl",
+                lg: "px-8 py-4 text-2xl"
+            };
+            return (
+                <button
+                    disabled={disabled}
+                    onClick={onClick}
+                    className={`rounded-xl font-bold transition-all flex items-center justify-center gap-3 btn-hover-effect disabled:opacity-50 disabled:pointer-events-none ${styles[variant]} ${sizes[size]} ${className}`}
+                >
+                    {children}
+                </button>
+            );
+        };
+
+        const ProgressBar = ({ current, total, color = "bg-indigo-500" }) => (
+            <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                <div
+                    className={`${color} h-full transition-all duration-500 ease-out`}
+                    style={{ width: `${(current / total) * 100}%` }}
+                ></div>
+            </div>
+        );
+
+        // --- INTERACTIVE COMPONENTS ---
+
+        const InteractiveWordList = ({ words }) => {
+            const [selectedWord, setSelectedWord] = useState(null);
+
+            return (
+                <div className="flex flex-col gap-4">
+                    <p className="text-slate-500 italic text-lg text-center mb-2 flex items-center justify-center gap-2">
+                        <Icon name="mouse-pointer-click" size={20} /> Click a word to see how it is used
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-3">
+                        {words.map(word => (
+                            <button
+                                key={word}
+                                onClick={() => setSelectedWord(word)}
+                                className={`px-4 py-2 rounded-lg text-lg font-bold border-2 transition-all ${selectedWord === word ? 'bg-indigo-600 text-white border-indigo-600 scale-105 shadow-lg' : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'}`}
+                            >
+                                {word}
+                            </button>
+                        ))}
+                    </div>
+
+                    {selectedWord && (
+                        <div className="mt-4 p-6 bg-indigo-50 border-l-8 border-indigo-500 rounded-r-xl shadow-sm fade-in">
+                            <h4 className="text-indigo-900 font-bold text-xl uppercase tracking-wider mb-2">{selectedWord}</h4>
+                            <p className="text-2xl text-indigo-800 font-serif leading-relaxed">
+                                "{VERB_EXAMPLES[selectedWord] || "Example not available."}"
+                            </p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const WorkedExample = ({ type, parts }) => (
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm my-4">
+                <div className="flex items-center gap-2 mb-4">
+                    <span className="bg-slate-800 text-white px-3 py-1 rounded text-sm font-bold uppercase tracking-wide">{type}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xl sm:text-2xl font-medium justify-center sm:justify-start">
+                    {parts.map((part, i) => (
+                        <React.Fragment key={i}>
+                            <div className={`px-4 py-2 rounded-lg border-2 ${part.highlight ? 'bg-indigo-100 border-indigo-300 text-indigo-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                                {part.text}
+                                <div className="text-xs text-center font-normal uppercase tracking-tighter mt-1 opacity-60">{part.label}</div>
+                            </div>
+                            {i < parts.length - 1 && <Icon name="plus" size={20} className="text-slate-300" />}
+                        </React.Fragment>
+                    ))}
+                </div>
+            </div>
+        );
+
+        // --- STUDY SLIDE ---
+
+        const StudySlide = ({ title, content, onNext, onPrev, current, total }) => (
+            <div className="bg-white rounded-3xl shadow-xl overflow-hidden w-full max-w-4xl border border-slate-200 slide-in-right mx-auto">
+                <div className="bg-slate-50 p-6 sm:p-8 flex justify-between items-center border-b border-slate-200">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 hidden sm:block">
+                            <Icon name="book-open" size={32} className="text-indigo-600" />
+                        </div>
+                        <div>
+                            <span className="text-indigo-600 font-bold text-sm sm:text-base uppercase tracking-widest">Module Part {current}/{total}</span>
+                            <h2 className="text-2xl sm:text-4xl font-black text-slate-800 mt-1">{title}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div className="p-6 sm:p-10 min-h-[400px] flex flex-col justify-center">
+                    <div className="text-slate-700 leading-relaxed text-lg sm:text-xl space-y-6">
+                        {content}
+                    </div>
+                </div>
+                <div className="p-6 sm:p-8 bg-slate-50 flex justify-between gap-4 border-t border-slate-200">
+                    <Button variant="outline" onClick={onPrev} disabled={current === 1} size="md">
+                        <Icon name="arrow-left" /> Back
+                    </Button>
+                    <Button variant="primary" onClick={onNext} size="md">
+                        {current === total ? "Start Practice" : "Next"} <Icon name={current === total ? "play" : "arrow-right"} />
+                    </Button>
+                </div>
+            </div>
+        );
+
+        // --- QUIZ INTERFACE (UPDATED) ---
+
+        const QuizInterface = ({ questions, onComplete }) => {
+            // mode: 'quiz' | 'review'
+            const [mode, setMode] = useState('quiz');
+            // activeQuestions: the list of questions to go through
+            const [activeQuestions, setActiveQuestions] = useState(questions);
+            const [idx, setIdx] = useState(0);
+
+            // history: maps question ID to { selected: string, correct: boolean }
+            const [history, setHistory] = useState({});
+
+            // Current question state
+            const [answered, setAnswered] = useState(false);
+            const [selectedOption, setSelectedOption] = useState(null);
+
+            const q = activeQuestions[idx];
+
+            const handleAnswer = (choice) => {
+                if (answered) return;
+                const isCorrect = choice === q.a;
+                setSelectedOption(choice);
+                setAnswered(true);
+
+                // Record history
+                setHistory(prev => ({
+                    ...prev,
+                    [q.id]: { q: q, selected: choice, isCorrect: isCorrect }
+                }));
+            };
+
+            const next = () => {
+                setAnswered(false);
+                setSelectedOption(null);
+                if (idx < activeQuestions.length - 1) {
+                    setIdx(idx + 1);
+                } else {
+                    setMode('review');
+                }
+            };
+
+            const getScore = () => {
+                return Object.values(history).filter(h => h.isCorrect).length;
+            };
+
+            const handleRetryMistakes = () => {
+                const mistakes = Object.values(history).filter(h => !h.isCorrect).map(h => h.q);
+                setActiveQuestions(mistakes);
+                setHistory({}); // Reset history for new round (or keep old? Let's reset for simplicity of tracking)
+                setIdx(0);
+                setMode('quiz');
+                setAnswered(false);
+                setSelectedOption(null);
+            };
+
+            const handleRetryAll = () => {
+                setActiveQuestions(questions);
+                setHistory({});
+                setIdx(0);
+                setMode('quiz');
+                setAnswered(false);
+                setSelectedOption(null);
+            };
+
+            if (mode === 'review') {
+                const score = getScore();
+                const total = Object.keys(history).length; // Count unique answered
+                const mistakes = Object.values(history).filter(h => !h.isCorrect);
+
+                return (
+                    <div className="w-full max-w-3xl mx-auto fade-in bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
+                        <div className="bg-indigo-900 p-10 text-center text-white">
+                            <h2 className="text-4xl font-black mb-4">Module Complete!</h2>
+                            <div className="text-6xl font-black mb-2 text-yellow-400">{score}/{total}</div>
+                            <p className="text-xl text-indigo-200">
+                                {score === total ? "Perfect! You're a master!" : "Good effort! Let's review."}
+                            </p>
+                        </div>
+
+                        <div className="p-8">
+                            {mistakes.length > 0 && (
+                                <div className="mb-8">
+                                    <h3 className="text-2xl font-bold text-red-500 mb-4 flex items-center gap-2">
+                                        <Icon name="alert-circle" /> Areas for Improvement
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {mistakes.map((m, i) => (
+                                            <div key={i} className="bg-red-50 p-4 rounded-xl border border-red-100">
+                                                <p className="text-lg font-bold text-slate-800 mb-2">{m.q.q}</p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-lg">
+                                                    <div className="text-red-600 flex items-center gap-2"><Icon name="x" size={20} /> You said: <span className="font-bold">{m.selected}</span></div>
+                                                    <div className="text-green-700 flex items-center gap-2"><Icon name="check" size={20} /> Correct: <span className="font-bold">{m.q.a}</span></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {mistakes.length > 0 && (
+                                    <Button onClick={handleRetryMistakes} variant="secondary" className="w-full">
+                                        Retry Mistakes
+                                    </Button>
+                                )}
+                                <Button onClick={handleRetryAll} variant="outline" className="w-full">
+                                    Retry All
+                                </Button>
+                                <Button onClick={() => onComplete(score, questions.length)} variant="primary" className="w-full sm:col-span-2">
+                                    Finish & Exit
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="w-full max-w-4xl mx-auto fade-in px-2">
+                    <div className="mb-6 flex justify-between items-end">
+                        <div className="bg-white px-4 py-2 rounded-lg shadow-sm font-bold text-slate-500 text-lg border border-slate-200">
+                            Question {idx + 1} / {activeQuestions.length}
+                        </div>
+                        <div className="bg-indigo-50 px-4 py-2 rounded-lg text-indigo-700 font-bold text-xl border border-indigo-100">
+                            Current Score: {getScore()}
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-3xl shadow-xl border border-slate-200 relative overflow-hidden">
+                        <ProgressBar current={idx + 1} total={activeQuestions.length} />
+
+                        <div className="p-8 sm:p-12">
+                            <h3 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-10 leading-snug">
+                                {q.q.split('___').map((part, i, arr) => (
+                                    <React.Fragment key={i}>
+                                        {part}
+                                        {i < arr.length - 1 && <span className="inline-block min-w-[100px] border-b-4 border-indigo-400 mx-2"></span>}
+                                    </React.Fragment>
+                                ))}
+                            </h3>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                                {q.opts.map((opt, i) => {
+                                    let btnClass = "bg-white border-2 border-slate-200 text-slate-700 hover:border-indigo-400 hover:bg-indigo-50";
+                                    let icon = <Icon name="circle" size={24} className="text-slate-300" />;
+
+                                    if (answered) {
+                                        if (opt === q.a) {
+                                            btnClass = "bg-green-100 border-green-500 text-green-800"; // Correct answer style
+                                            icon = <Icon name="check-circle" size={24} className="text-green-600" />;
+                                        } else if (opt === selectedOption && opt !== q.a) {
+                                            btnClass = "bg-red-50 border-red-400 text-red-800 opacity-60"; // Wrong selected style
+                                            icon = <Icon name="x-circle" size={24} className="text-red-500" />;
+                                        } else {
+                                            btnClass = "bg-slate-50 border-slate-100 text-slate-400 opacity-50"; // Other options
+                                        }
+                                    }
+
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => handleAnswer(opt)}
+                                            disabled={answered}
+                                            className={`p-6 text-left rounded-2xl transition-all font-bold text-xl flex justify-between items-center ${btnClass}`}
+                                        >
+                                            {opt}
+                                            {icon}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* INLINE FEEDBACK AREA */}
+                            {answered && (
+                                <div className="fade-in bg-slate-50 rounded-2xl p-6 sm:p-8 border-l-8 border-indigo-500 mb-6">
+                                    <h4 className={`text-2xl font-black mb-2 flex items-center gap-2 ${selectedOption === q.a ? 'text-green-600' : 'text-slate-700'}`}>
+                                        {selectedOption === q.a ? "Correct!" : "Explanation"}
+                                    </h4>
+                                    <p className="text-xl text-slate-600 leading-relaxed">
+                                        {q.expl}
+                                    </p>
+                                </div>
+                            )}
+
+                            {answered && (
+                                <div className="flex justify-end fade-in">
+                                    <Button onClick={next} variant="primary" size="lg" className="w-full sm:w-auto">
+                                        {idx < activeQuestions.length - 1 ? "Next Question" : "View Results"} <Icon name="arrow-right" />
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN APP COMPONENT ---
+
+        const App = () => {
+            const [screen, setScreen] = useState('menu');
+            const [moduleStep, setModuleStep] = useState(0);
+            const [quizResults, setQuizResults] = useState({});
+
+            const startModule = (id) => {
+                setScreen(id);
+                setModuleStep(1);
+            };
+
+            const finishQuiz = (score, total, moduleId) => {
+                setQuizResults(prev => ({ ...prev, [moduleId]: { score, total } }));
+                setScreen('menu');
+            };
+
+            const renderMenu = () => (
+                <div className="max-w-5xl w-full mx-auto p-4 fade-in min-h-screen flex flex-col justify-center">
+                    <header className="text-center mb-16">
+                        <div className="inline-flex p-8 bg-indigo-100 text-indigo-700 rounded-full mb-6 shadow-sm">
+                            <Icon name="graduation-cap" size={80} />
+                        </div>
+                        <h1 className="text-6xl font-black text-slate-900 mb-4 tracking-tight">Gerund & Infinitive<br /><span className="text-indigo-600">Mastery</span></h1>
+                        <p className="text-slate-500 text-2xl max-w-2xl mx-auto">Interactive Grammar Training for Unit 14</p>
+                    </header>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {[
+                            { id: 'm1', title: "1. The Gerund", icon: "pen-tool", color: "bg-emerald-500", desc: "Using -ing forms as nouns" },
+                            { id: 'm2', title: "2. To-Infinitives", icon: "terminal", color: "bg-sky-500", desc: "Verbs followed by to + verb" },
+                            { id: 'm3', title: "3. Both Forms", icon: "repeat", color: "bg-violet-500", desc: "Verbs taking either form" },
+                            { id: 'm4', title: "4. Meaning Shifts", icon: "help-circle", color: "bg-amber-500", desc: "Stop, Try, Remember, Forget" },
+                        ].map(mod => (
+                            <button
+                                key={mod.id}
+                                onClick={() => startModule(mod.id)}
+                                className="bg-white p-8 rounded-[2rem] shadow-sm border-2 border-slate-100 hover:border-indigo-200 hover:shadow-xl hover:-translate-y-1 transition-all text-left flex items-center gap-6 group"
+                            >
+                                <div className={`${mod.color} text-white p-5 rounded-2xl shadow-lg group-hover:scale-110 transition-transform`}>
+                                    <Icon name={mod.icon} size={40} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-black text-slate-800 text-2xl mb-1">{mod.title}</h3>
+                                    <p className="text-slate-500 text-lg font-medium">{mod.desc}</p>
+                                    {quizResults[mod.id] && (
+                                        <div className="mt-3 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full inline-block">
+                                            Last Score: {quizResults[mod.id].score}/{quizResults[mod.id].total}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="bg-slate-50 p-2 rounded-full group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                                    <Icon name="chevron-right" size={32} className="text-slate-300 group-hover:text-indigo-600" />
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="mt-8 bg-slate-900 rounded-[2.5rem] p-12 text-white relative overflow-hidden shadow-2xl group cursor-pointer" onClick={() => startModule('m5')}>
+                        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div>
+                                <h2 className="text-4xl font-black mb-2 text-yellow-400">Final Proficiency Challenge</h2>
+                                <p className="text-slate-300 text-xl font-medium">Test your mastery with a comprehensive 30-question exam.</p>
+                            </div>
+                            <Button variant="success" size="lg" className="shrink-0 bg-yellow-500 text-slate-900 hover:bg-yellow-400 border-none">
+                                Start Final Exam
+                            </Button>
+                        </div>
+                        <Icon name="award" size={200} className="absolute -right-8 -bottom-8 text-white/5 rotate-12 group-hover:scale-110 transition-transform duration-700" />
+                    </div>
+                </div>
+            );
+
+            const renderModule1 = () => {
+                const slides = [
+                    {
+                        title: "Gerunds as Nouns",
+                        content: (
+                            <div className="space-y-8">
+                                <p>A gerund is the <strong>-ing</strong> form of a verb. We often use them as nouns to talk about activities.</p>
+
+                                <WorkedExample
+                                    type="Subject of Sentence"
+                                    parts={[
+                                        { text: "Swimming", label: "Gerund (Subject)", highlight: true },
+                                        { text: "is", label: "Verb (Singular)" },
+                                        { text: "good exercise", label: "Complement" }
+                                    ]}
+                                />
+
+                                <div className="bg-emerald-50 p-6 rounded-2xl border-l-8 border-emerald-500">
+                                    <h4 className="font-bold text-emerald-900 text-xl mb-4">Key Rules:</h4>
+                                    <ul className="space-y-3 font-medium text-emerald-800 text-lg">
+                                        <li className="flex gap-3"><Icon name="check" className="shrink-0" /> When a gerund is the subject, use a <strong>singular verb</strong>.</li>
+                                        <li className="flex gap-3"><Icon name="check" className="shrink-0" /> Use <strong>Go + Gerund</strong> for activities (e.g., Go camping, Go shopping).</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        )
+                    },
+                    {
+                        title: "Verbs + Gerunds",
+                        content: (
+                            <div className="space-y-6">
+                                <p>Some verbs are <strong>always</strong> followed by a gerund when another verb follows. You must memorize these!</p>
+                                <InteractiveWordList words={GERUND_VERBS} />
+                            </div>
+                        )
+                    },
+                    {
+                        title: "Used to vs Be used to",
+                        content: (
+                            <div className="space-y-8">
+                                <p>These two phrases look similar but have completely different meanings.</p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="bg-amber-50 p-6 rounded-3xl border-2 border-amber-200">
+                                        <div className="bg-amber-200 text-amber-900 font-black px-4 py-2 rounded-lg inline-block mb-4 text-sm uppercase">Past Habit</div>
+                                        <h4 className="font-black text-amber-900 text-2xl mb-2">Used to + Base Verb</h4>
+                                        <p className="text-lg text-amber-800 mb-4">Something you did in the past but don't do now.</p>
+                                        <div className="bg-white p-4 rounded-xl text-xl font-medium text-slate-700 shadow-sm">
+                                            "I <strong>used to walk</strong> to school."
+                                            <div className="text-sm text-slate-400 mt-1">(I don't walk now)</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-emerald-50 p-6 rounded-3xl border-2 border-emerald-200">
+                                        <div className="bg-emerald-200 text-emerald-900 font-black px-4 py-2 rounded-lg inline-block mb-4 text-sm uppercase">Familiarity</div>
+                                        <h4 className="font-black text-emerald-900 text-2xl mb-2">Be used to + Gerund</h4>
+                                        <p className="text-lg text-emerald-800 mb-4">Something that is normal or familiar to you.</p>
+                                        <div className="bg-white p-4 rounded-xl text-xl font-medium text-slate-700 shadow-sm">
+                                            "I <strong>am used to walking</strong>."
+                                            <div className="text-sm text-slate-400 mt-1">(It's normal for me)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+                ];
+
+                if (moduleStep <= slides.length) {
+                    return (
+                        <StudySlide
+                            title={slides[moduleStep - 1].title}
+                            content={slides[moduleStep - 1].content}
+                            current={moduleStep}
+                            total={slides.length}
+                            onPrev={() => setModuleStep(s => s - 1)}
+                            onNext={() => setModuleStep(s => s + 1)}
+                        />
+                    );
+                }
+                return <QuizInterface
+                    questions={QUIZ_QUESTIONS.filter(q => q.m === 1)}
+                    onComplete={(s, t) => finishQuiz(s, t, 'm1')}
+                />;
+            };
+
+            const renderModule2 = () => {
+                const slides = [
+                    {
+                        title: "To-Infinitive Basics",
+                        content: (
+                            <div className="space-y-6">
+                                <p>A to-infinitive is <strong>to + base form</strong>. These verbs act as a bridge to the next action.</p>
+
+                                <InteractiveWordList words={INFINITIVE_VERBS} />
+
+                                <div className="mt-8">
+                                    <WorkedExample
+                                        type="Standard Pattern"
+                                        parts={[
+                                            { text: "Paul", label: "Subject" },
+                                            { text: "agreed", label: "Verb" },
+                                            { text: "to help", label: "Infinitive", highlight: true }
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+                        )
+                    },
+                    {
+                        title: "Verb + Object + To",
+                        content: (
+                            <div className="space-y-6">
+                                <p>For these verbs, you must specify <strong>who</strong> receives the action before the infinitive.</p>
+
+                                <InteractiveWordList words={OBJ_INFINITIVE_VERBS} />
+
+                                <div className="mt-8">
+                                    <WorkedExample
+                                        type="Object Pattern"
+                                        parts={[
+                                            { text: "She", label: "Subject" },
+                                            { text: "advised", label: "Verb" },
+                                            { text: "me", label: "Object (Person)", highlight: true },
+                                            { text: "to stop", label: "Infinitive", highlight: true }
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+                        )
+                    },
+                    {
+                        title: "Adjectives & Wh-words",
+                        content: (
+                            <div className="space-y-8">
+                                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                                    <h4 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
+                                        <div className="p-2 bg-pink-100 text-pink-600 rounded-lg"><Icon name="heart" /></div>
+                                        Adjectives (Feelings)
+                                    </h4>
+                                    <p className="text-lg text-slate-600 mb-4">Use to-infinitives after adjectives describing feelings.</p>
+                                    <div className="text-xl font-medium text-slate-700 pl-4 border-l-4 border-pink-300">
+                                        "I am <span className="text-pink-600 font-bold">glad</span> <strong>to see</strong> you."
+                                    </div>
+                                </div>
+
+                                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                                    <h4 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
+                                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Icon name="help-circle" /></div>
+                                        Wh-Words
+                                    </h4>
+                                    <p className="text-lg text-slate-600 mb-4">Use to-infinitives after what, where, how, when (but NOT why).</p>
+                                    <div className="text-xl font-medium text-slate-700 pl-4 border-l-4 border-blue-300">
+                                        "I don't know <span className="text-blue-600 font-bold">how</span> <strong>to swim</strong>."
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+                ];
+                if (moduleStep <= slides.length) {
+                    return (
+                        <StudySlide
+                            title={slides[moduleStep - 1].title}
+                            content={slides[moduleStep - 1].content}
+                            current={moduleStep}
+                            total={slides.length}
+                            onPrev={() => setModuleStep(s => s - 1)}
+                            onNext={() => setModuleStep(s => s + 1)}
+                        />
+                    );
+                }
+                return <QuizInterface
+                    questions={QUIZ_QUESTIONS.filter(q => q.m === 2)}
+                    onComplete={(s, t) => finishQuiz(s, t, 'm2')}
+                />;
+            };
+
+            const renderModule3 = () => {
+                const slides = [
+                    {
+                        title: "Double Agents",
+                        content: (
+                            <div className="space-y-6">
+                                <p>These verbs are flexible. You can use <strong>either</strong> form with no major change in meaning.</p>
+                                <InteractiveWordList words={BOTH_VERBS} />
+
+                                <div className="bg-yellow-50 p-6 rounded-2xl border-l-8 border-yellow-400 mt-6">
+                                    <h4 className="font-bold text-yellow-900 text-xl mb-2 flex items-center gap-2">
+                                        <Icon name="alert-triangle" /> Important Exception
+                                    </h4>
+                                    <p className="text-lg text-yellow-800">
+                                        If you use <strong>"would"</strong> ('d), you MUST use the <strong>to-infinitive</strong>.
+                                    </p>
+                                    <div className="mt-4 bg-white/50 p-4 rounded-xl text-xl">
+                                        <p className="flex items-center gap-2 mb-2 text-green-700"><Icon name="check" /> I would like <strong>to go</strong>.</p>
+                                        <p className="flex items-center gap-2 text-red-500 opacity-60"><Icon name="x" /> I would like <strong>going</strong>.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+                ];
+                if (moduleStep <= slides.length) {
+                    return (
+                        <StudySlide
+                            title={slides[moduleStep - 1].title}
+                            content={slides[moduleStep - 1].content}
+                            current={moduleStep}
+                            total={slides.length}
+                            onPrev={() => setModuleStep(s => s - 1)}
+                            onNext={() => setModuleStep(s => s + 1)}
+                        />
+                    );
+                }
+                return <QuizInterface
+                    questions={QUIZ_QUESTIONS.filter(q => q.m === 3)}
+                    onComplete={(s, t) => finishQuiz(s, t, 'm3')}
+                />;
+            };
+
+            const renderModule4 = () => {
+                const slides = [
+                    {
+                        title: "Stop & Remember",
+                        content: (
+                            <div className="space-y-8">
+                                <p>For these verbs, the form changes the meaning completely.</p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="bg-white p-6 rounded-3xl border shadow-lg border-t-8 border-t-amber-500">
+                                        <h4 className="text-3xl font-black text-slate-800 mb-4">STOP</h4>
+                                        <div className="space-y-4">
+                                            <div className="bg-slate-50 p-4 rounded-xl">
+                                                <div className="font-bold text-emerald-600 mb-1">Stop + Gerund</div>
+                                                <p className="text-lg">Quit an activity forever.</p>
+                                                <p className="italic text-slate-500">"Stop smoking."</p>
+                                            </div>
+                                            <div className="bg-slate-50 p-4 rounded-xl">
+                                                <div className="font-bold text-sky-600 mb-1">Stop + To-Infinitive</div>
+                                                <p className="text-lg">Pause to do something else.</p>
+                                                <p className="italic text-slate-500">"Stop (driving) to eat."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white p-6 rounded-3xl border shadow-lg border-t-8 border-t-violet-500">
+                                        <h4 className="text-3xl font-black text-slate-800 mb-4">REMEMBER</h4>
+                                        <div className="space-y-4">
+                                            <div className="bg-slate-50 p-4 rounded-xl">
+                                                <div className="font-bold text-emerald-600 mb-1">Remember + Gerund</div>
+                                                <p className="text-lg">A memory of the past.</p>
+                                                <p className="italic text-slate-500">"I remember meeting you."</p>
+                                            </div>
+                                            <div className="bg-slate-50 p-4 rounded-xl">
+                                                <div className="font-bold text-sky-600 mb-1">Remember + To-Infinitive</div>
+                                                <p className="text-lg">A task to do.</p>
+                                                <p className="italic text-slate-500">"Remember to lock the door."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    },
+                    {
+                        title: "Forget & Try",
+                        content: (
+                            <div className="space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="bg-white p-6 rounded-3xl border shadow-lg border-t-8 border-t-rose-500">
+                                        <h4 className="text-3xl font-black text-slate-800 mb-4">FORGET</h4>
+                                        <div className="space-y-4">
+                                            <div className="bg-slate-50 p-4 rounded-xl">
+                                                <div className="font-bold text-emerald-600 mb-1">Forget + Gerund</div>
+                                                <p className="text-lg">No memory of a past event.</p>
+                                                <p className="italic text-slate-500">"I forgot meeting him."</p>
+                                            </div>
+                                            <div className="bg-slate-50 p-4 rounded-xl">
+                                                <div className="font-bold text-sky-600 mb-1">Forget + To-Infinitive</div>
+                                                <p className="text-lg">Failed to do a duty.</p>
+                                                <p className="italic text-slate-500">"I forgot to call."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white p-6 rounded-3xl border shadow-lg border-t-8 border-t-blue-500">
+                                        <h4 className="text-3xl font-black text-slate-800 mb-4">TRY</h4>
+                                        <div className="space-y-4">
+                                            <div className="bg-slate-50 p-4 rounded-xl">
+                                                <div className="font-bold text-emerald-600 mb-1">Try + Gerund</div>
+                                                <p className="text-lg">Experiment/Test.</p>
+                                                <p className="italic text-slate-500">"Try adding salt."</p>
+                                            </div>
+                                            <div className="bg-slate-50 p-4 rounded-xl">
+                                                <div className="font-bold text-sky-600 mb-1">Try + To-Infinitive</div>
+                                                <p className="text-lg">Attempt something difficult.</p>
+                                                <p className="italic text-slate-500">"Try to lift this."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+                ];
+                if (moduleStep <= slides.length) {
+                    return (
+                        <StudySlide
+                            title={slides[moduleStep - 1].title}
+                            content={slides[moduleStep - 1].content}
+                            current={moduleStep}
+                            total={slides.length}
+                            onPrev={() => setModuleStep(s => s - 1)}
+                            onNext={() => setModuleStep(s => s + 1)}
+                        />
+                    );
+                }
+                return <QuizInterface
+                    questions={QUIZ_QUESTIONS.filter(q => q.m === 4)}
+                    onComplete={(s, t) => finishQuiz(s, t, 'm4')}
+                />;
+            };
+
+            const renderModule5 = () => {
+                const shuffled = useMemo(() => [...QUIZ_QUESTIONS].sort(() => 0.5 - Math.random()), []);
+                return <QuizInterface
+                    questions={shuffled}
+                    onComplete={(s, t) => finishQuiz(s, t, 'm5')}
+                />;
+            };
+
+            const getContent = () => {
+                switch (screen) {
+                    case 'menu': return renderMenu();
+                    case 'm1': return renderModule1();
+                    case 'm2': return renderModule2();
+                    case 'm3': return renderModule3();
+                    case 'm4': return renderModule4();
+                    case 'm5': return renderModule5();
+                    default: return renderMenu();
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 font-sans">
+                    {screen !== 'menu' && (
+                        <button
+                            onClick={() => setScreen('menu')}
+                            className="fixed top-6 left-6 p-4 bg-white rounded-full shadow-lg hover:shadow-xl text-slate-400 hover:text-slate-800 transition-all z-20 border border-slate-200"
+                        >
+                            <Icon name="home" size={32} />
+                        </button>
+                    )}
+                    {getContent()}
+                    <footer className="mt-12 text-slate-400 text-lg font-medium py-4">
+                        S.3 English
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
