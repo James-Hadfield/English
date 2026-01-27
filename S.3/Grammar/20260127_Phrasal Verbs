@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phrasal Verb Master</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0fdf4;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in-right {
+            animation: slideInRight 0.4s ease-out;
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        /* Custom scrollbar for the dictionary list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // --- ENRICHED DATA FROM USER TEXT ---
+
+        const PHRASAL_VERBS_LIST = [
+            { id: 1, verb: "Stay up", meaning: "remain awake", example: "stayed up all night playing computer games", type: "Intransitive", separable: false, pattern: "Verb + Adverb" },
+            { id: 2, verb: "Put away", meaning: "store, place in proper location", example: "put away your books", type: "Transitive", separable: true, pattern: "Verb + Adverb" },
+            { id: 3, verb: "Talk into", meaning: "persuade", example: "talked into it by Simon", type: "Transitive", separable: false, pattern: "Verb + Preposition" },
+            { id: 4, verb: "Wait for", meaning: "remain until something happens", example: "waiting for the bus", type: "Transitive", separable: false, pattern: "Verb + Preposition" },
+            { id: 5, verb: "Look forward to", meaning: "anticipate with pleasure", example: "looking forward to the weekend", type: "Transitive", separable: false, pattern: "Verb + Adv + Prep" },
+            { id: 6, verb: "Get on with", meaning: "have a good relationship", example: "get on with her sister", type: "Transitive", separable: false, pattern: "Verb + Adv + Prep" },
+            { id: 7, verb: "Call off", meaning: "cancel", example: "called off because of the rain", type: "Transitive", separable: true, pattern: "Verb + Adverb" },
+            { id: 8, verb: "Pick on", meaning: "treat unfairly", example: "pick on Lisa", type: "Transitive", separable: false, pattern: "Verb + Preposition" },
+            { id: 9, verb: "Make up", meaning: "prepare/create OR fabricate/pretend", example: "make up a list / making the whole thing up", type: "Transitive", separable: true, pattern: "Verb + Adverb", doubleMeaning: true },
+            { id: 10, verb: "Get up", meaning: "rise from bed", example: "What time did you get up?", type: "Intransitive", separable: false, pattern: "Verb + Adverb" },
+            { id: 11, verb: "Work out", meaning: "exercise", example: "works out every day", type: "Intransitive", separable: false, pattern: "Verb + Adverb" },
+            { id: 12, verb: "Bump into", meaning: "meet by chance", example: "bumped into Roy", type: "Transitive", separable: false, pattern: "Verb + Preposition" },
+            { id: 13, verb: "Clean up", meaning: "make tidy", example: "clean the place up", type: "Transitive", separable: true, pattern: "Verb + Adverb" },
+            { id: 14, verb: "Look after", meaning: "take care of", example: "look after my goldfish", type: "Transitive", separable: false, pattern: "Verb + Preposition" },
+            { id: 15, verb: "Put up with", meaning: "tolerate", example: "put up with it anymore", type: "Transitive", separable: false, pattern: "Verb + Adv + Prep" },
+            { id: 16, verb: "Blow up", meaning: "inflate OR become angry", example: "blow them up / blew up when he saw", type: "Context Dependent", separable: true, pattern: "Verb + Adverb", doubleMeaning: true },
+            { id: 17, verb: "Break down", meaning: "force entry OR stop functioning", example: "broke the door down / broke down yesterday", type: "Context Dependent", separable: true, pattern: "Verb + Adverb", doubleMeaning: true },
+            { id: 18, verb: "Look into", meaning: "investigate", example: "looking into the murder case", type: "Transitive", separable: false, pattern: "Verb + Preposition" },
+            { id: 19, verb: "Find out", meaning: "discover", example: "find out more", type: "Transitive", separable: true, pattern: "Verb + Adverb" }, 
+            { id: 20, verb: "Turn down", meaning: "reject/refuse", example: "turned down a job offer", type: "Transitive", separable: true, pattern: "Verb + Adverb" },
+            { id: 21, verb: "Sort out", meaning: "resolve", example: "sort the problem out", type: "Transitive", separable: true, pattern: "Verb + Adverb" },
+            { id: 22, verb: "Give in", meaning: "finally agree/accept", example: "gave in and bought", type: "Intransitive", separable: false, pattern: "Verb + Adverb" },
+            { id: 23, verb: "Give up", meaning: "stop doing something", example: "gave up drinking", type: "Transitive", separable: true, pattern: "Verb + Adverb" },
+            { id: 24, verb: "Look for", meaning: "search for", example: "looking for Cathy", type: "Transitive", separable: false, pattern: "Verb + Preposition" },
+            { id: 25, verb: "Look up", meaning: "search for information in reference", example: "look the word up", type: "Transitive", separable: true, pattern: "Verb + Adverb" },
+            { id: 26, verb: "Show around", meaning: "give a tour", example: "show my friends around", type: "Transitive", separable: true, pattern: "Verb + Adverb" },
+            { id: 27, verb: "Ask out", meaning: "invite on a date", example: "ask Jenny out", type: "Transitive", separable: true, pattern: "Verb + Adverb" },
+            { id: 28, verb: "Pick up", meaning: "lift/take from surface", example: "pick up those books", type: "Transitive", separable: true, pattern: "Verb + Adverb" }
+        ];
+
+        const FORMAL_INFORMAL_PAIRS = [
+            { informal: "Looking into", formal: "Investigating" },
+            { informal: "Find out", formal: "Discover" },
+            { informal: "Turned down", formal: "Refused" },
+            { informal: "Sort out", formal: "Resolve" }
+        ];
+
+        // --- FINAL QUIZ DATA (100 Questions with Scaffolding & Explanations) ---
+        const FINAL_QUIZ_DATA = [
+            // 1. STAY UP (Remain awake)
+            { q: "I was exhausted at school because I ____ all night playing video games.", a: "stayed up", options: ["stayed up", "gave up", "looked up", "got up"], expl: "'Stay up' means to remain awake, often late into the night." },
+            { q: "You have an exam tomorrow, so don't ____ too late watching TV.", a: "stay up", options: ["stay up", "give up", "look up", "make up"], expl: "You need sleep, so do not 'stay up' (remain awake) late." },
+            { q: "We ____ until dawn to see the sunrise.", a: "stayed up", options: ["stayed up", "put away", "called off", "went out"], expl: "To see the sun rise, they had to 'stay up' (remain awake) all night." },
+            // 2. PUT AWAY (Store in proper place)
+            { q: "Your room is a mess! Please ____ your toys in the box.", a: "put away", options: ["put away", "put up with", "give up", "look for"], expl: "'Put away' means to store items in their proper location (the box)." },
+            { q: "After reading, he ____ the dictionary on the shelf.", a: "put away", options: ["put away", "looked after", "asked out", "stayed up"], expl: "He returned the object to its place, which is to 'put away'." },
+            { q: "She cleaned the kitchen and ____ the clean dishes.", a: "put away", options: ["put away", "sort out", "call off", "look into"], expl: "Storing clean dishes in cupboards is 'putting them away'." },
+            // 3. TALK INTO (Persuade)
+            { q: "I didn't want to go to the party, but Simon ____ going.", a: "talked me into", options: ["talked me into", "looked me up", "broke me down", "gave me up"], expl: "'Talk into' means to persuade someone to do something they might not want to do." },
+            { q: "He is very convincing; he ____ buying a car I couldn't afford.", a: "talked me into", options: ["talked me into", "waited for", "bumped into", "looked for"], expl: "He persuaded me, or 'talked me into', the purchase." },
+            // 4. WAIT FOR (Remain until event)
+            { q: "I am standing at the stop ____ the bus.", a: "waiting for", options: ["waiting for", "looking for", "asking out", "picking up"], expl: "'Wait for' means to remain in a place until something (the bus) arrives." },
+            { q: "Don't leave yet! Please ____ me.", a: "wait for", options: ["wait for", "look after", "call off", "give in"], expl: "Stay here until I am ready - 'wait for' me." },
+            // 5. LOOK FORWARD TO (Anticipate with pleasure)
+            { q: "I haven't seen you in ages! I really ____ our meeting.", a: "look forward to", options: ["look forward to", "look for", "look after", "look up"], expl: "'Look forward to' means to feel happy and excited about a future event." },
+            { q: "The students are ____ the summer holidays.", a: "looking forward to", options: ["looking forward to", "putting up with", "running out of", "getting on with"], expl: "They are anticipating the holidays with pleasure." },
+            // 6. GET ON WITH (Good relationship)
+            { q: "Do you ____ your neighbors, or do you argue?", a: "get on with", options: ["get on with", "get up", "look down on", "put away"], expl: "'Get on with' means to have a friendly relationship." },
+            { q: "He is very friendly and ____ everyone in the office.", a: "gets on with", options: ["gets on with", "gives up", "looks into", "breaks down"], expl: "He has good relationships, so he 'gets on with' people." },
+            // 7. CALL OFF (Cancel)
+            { q: "It started raining heavily, so they had to ____ the picnic.", a: "call off", options: ["call off", "tell off", "go off", "put off"], expl: "'Call off' means to cancel an event." },
+            { q: "The meeting was ____ because the boss was sick.", a: "called off", options: ["called off", "looked up", "found out", "turned down"], expl: "The event did not happen; it was cancelled or 'called off'." },
+            // 8. PICK ON (Treat unfairly)
+            { q: "The bully used to ____ the smaller children.", a: "pick on", options: ["pick on", "pick up", "look for", "call off"], expl: "'Pick on' means to treat someone unfairly or unkindly repeatedly." },
+            { q: "Stop ____ him! It's not fair to make fun of his glasses.", a: "picking on", options: ["picking on", "looking after", "waiting for", "getting on with"], expl: "Treating him unfairly is 'picking on' him." },
+            // 9. MAKE UP (Create/Fabricate)
+            { q: "We need to go shopping. Let's ____ a list.", a: "make up", options: ["make up", "do up", "set up", "bring up"], expl: "Here, 'make up' means to prepare or create something (a list)." },
+            { q: "That story isn't true! You ____ it ____.", a: "made / up", options: ["made / up", "looked / up", "gave / up", "turned / down"], expl: "'Make up' can mean to invent or fabricate a story/lie." },
+            { q: "Stop ____ excuses for being late.", a: "making up", options: ["making up", "looking into", "putting away", "waiting for"], expl: "Inventing excuses is 'making them up'." },
+            // 10. GET UP (Rise from bed)
+            { q: "My alarm clock rang at 7 AM, but I didn't ____ until 8 AM.", a: "get up", options: ["get up", "stay up", "look up", "give up"], expl: "'Get up' means to physically rise from bed." },
+            { q: "I hate ____ early on cold mornings.", a: "getting up", options: ["getting up", "giving in", "working out", "turning down"], expl: "Leaving bed is 'getting up'." },
+            // 11. WORK OUT (Exercise)
+            { q: "He wants to build muscle, so he ____ at the gym.", a: "works out", options: ["works out", "finds out", "sorts out", "looks out"], expl: "'Work out' means to exercise." },
+            { q: "I need to ____ to get fit for the marathon.", a: "work out", options: ["work out", "stay up", "give in", "make up"], expl: "To get fit, you must exercise or 'work out'." },
+            // 12. BUMP INTO (Meet by chance)
+            { q: "I didn't expect to see John, but I ____ him at the supermarket.", a: "bumped into", options: ["bumped into", "crashed into", "looked into", "talked into"], expl: "'Bump into' means to meet someone unexpectedly." },
+            { q: "Guess who I ____ today? Your cousin!", a: "bumped into", options: ["bumped into", "found out", "picked up", "gave up"], expl: "Meeting by chance is 'bumping into' someone." },
+            // 13. CLEAN UP (Make tidy)
+            { q: "The party is over. Now we have to ____ the mess.", a: "clean up", options: ["clean up", "give up", "look up", "make up"], expl: "'Clean up' means to make a place tidy." },
+            { q: "Please ____ your room before your friends arrive.", a: "clean up", options: ["clean up", "put up with", "look forward to", "stay up"], expl: "Making the room tidy is 'cleaning up'." },
+            // 14. LOOK AFTER (Take care of)
+            { q: "Can you ____ my cat while I am on vacation?", a: "look after", options: ["look after", "look for", "look into", "look up"], expl: "'Look after' means to take care of someone or something." },
+            { q: "Nurses ____ patients in the hospital.", a: "look after", options: ["look after", "look forward to", "look out", "look round"], expl: "Caring for patients is 'looking after' them." },
+            // 15. PUT UP WITH (Tolerate)
+            { q: "The neighbors are so noisy! I can't ____ it anymore.", a: "put up with", options: ["put up with", "put away", "put on", "put off"], expl: "'Put up with' means to tolerate an unpleasant situation." },
+            { q: "He is very rude. I don't know how you ____ him.", a: "put up with", options: ["put up with", "get on with", "look forward to", "bump into"], expl: "Tolerating his rudeness is 'putting up with' him." },
+            // 16. BLOW UP (Inflate/Explode/Angry)
+            { q: "The soldiers used dynamite to ____ the bridge.", a: "blow up", options: ["blow up", "break down", "clean up", "give up"], expl: "Here, 'blow up' means to destroy with an explosion." },
+            { q: "We need to ____ fifty balloons for the party.", a: "blow up", options: ["blow up", "put away", "sort out", "pick up"], expl: "Here, 'blow up' means to inflate with air." },
+            { q: "My dad ____ when he saw the scratch on his car.", a: "blew up", options: ["blew up", "gave in", "found out", "looked after"], expl: "Here, 'blew up' means he became suddenly very angry." },
+            // 17. BREAK DOWN (Stop working/Force entry)
+            { q: "We were late because our car ____ on the highway.", a: "broke down", options: ["broke down", "blew up", "worked out", "gave up"], expl: "When a machine stops functioning, it 'breaks down'." },
+            { q: "The firefighters had to ____ the door to save them.", a: "break down", options: ["break down", "break up", "break into", "break off"], expl: "To force a door open/destroy it is to 'break it down'." },
+            // 18. LOOK INTO (Investigate)
+            { q: "The police are ____ the mysterious crime.", a: "looking into", options: ["looking into", "looking for", "looking after", "looking up"], expl: "'Look into' is the informal equivalent of 'investigate'." },
+            { q: "I complained to the manager, and he promised to ____ the matter.", a: "look into", options: ["look into", "find out", "give up", "put away"], expl: "He will investigate or 'look into' the problem." },
+            // 19. FIND OUT (Discover)
+            { q: "Did you ____ what time the train leaves?", a: "find out", options: ["find out", "look into", "figure out", "make up"], expl: "'Find out' is the informal equivalent of 'discover' information." },
+            { q: "I need to ____ the truth about what happened.", a: "find out", options: ["find out", "sort out", "call off", "clean up"], expl: "To discover the truth is to 'find it out'." },
+            // 20. TURN DOWN (Reject/Refuse)
+            { q: "The company ____ his job application.", a: "turned down", options: ["turned down", "turned up", "turned off", "turned over"], expl: "'Turn down' is the informal equivalent of 'reject' or 'refuse'." },
+            { q: "He invited her to the dance, but she ____ him ____.", a: "turned / down", options: ["turned / down", "put / away", "gave / in", "broke / down"], expl: "She refused him, or 'turned him down'." },
+            // 21. SORT OUT (Resolve)
+            { q: "There is a mistake in the schedule. We need to ____ it ____.", a: "sort / out", options: ["sort / out", "sort / in", "clean / up", "make / up"], expl: "'Sort out' is the informal equivalent of 'resolve' a problem." },
+            { q: "I have too many papers. I need to ____ them.", a: "sort out", options: ["sort out", "look into", "find out", "wait for"], expl: "To organize or resolve the mess is to 'sort out' the papers." },
+            // 22. GIVE IN (Agree/Accept)
+            { q: "My son begged for a sweet, and finally I ____.", a: "gave in", options: ["gave in", "gave up", "gave out", "gave off"], expl: "'Give in' means to finally agree after initially refusing." },
+            { q: "The boy didn't ____ to the pressure, and kept going.", a: "give in", options: ["give in", "give up", "turn down", "call off"], expl: "They refused to accept/agree, or 'give in'." },
+            // 23. GIVE UP (Stop doing)
+            { q: "It's bad for your health. You should ____ smoking.", a: "give up", options: ["give up", "give in", "give out", "give away"], expl: "'Give up' means to stop doing a habit." },
+            { q: "The puzzle was too hard, so he ____.", a: "gave up", options: ["gave up", "gave in", "stayed up", "look up"], expl: "He stopped trying, so he 'gave up'." },
+            // 24. LOOK FOR (Search for object)
+            { q: "I lost my keys. Can you help me ____ them?", a: "look for", options: ["look for", "look up", "look into", "look at"], expl: "'Look for' means to search for a lost physical object." },
+            { q: "He is ____ a new job.", a: "looking for", options: ["looking for", "looking after", "finding out", "picking up"], expl: "Searching for something (a job) is 'looking for' it." },
+            // 25. LOOK UP (Search reference)
+            { q: "If you don't know the word's meaning, ____ it ____ in a dictionary.", a: "look / up", options: ["look / up", "look / for", "look / into", "look / after"], expl: "'Look up' means to search for information in a reference source." },
+            { q: "I need to ____ the train schedule online.", a: "look up", options: ["look up", "find out", "sort out", "make up"], expl: "Checking reference information is 'looking up'." },
+            // 26. SHOW AROUND (Give a tour)
+            { q: "Welcome to our city! Let me ____ you ____.", a: "show / around", options: ["show / around", "show / off", "show / up", "show / in"], expl: "'Show around' means to act as a guide or give a tour." },
+            { q: "We visited the new house and they ____ us ____.", a: "showed / around", options: ["showed / around", "looked / around", "walked / around", "moved / around"], expl: "They gave us a tour, or 'showed us around'." },
+            // 27. ASK OUT (Invite on date)
+            { q: "He likes her, so he wants to ____ her ____.", a: "ask / out", options: ["ask / out", "go / out", "take / out", "call / out"], expl: "'Ask out' means to invite someone on a romantic date." },
+            { q: "They have been dating since he ____ her ____ last year.", a: "asked / out", options: ["asked / out", "asked / in", "asked / over", "asked / round"], expl: "He invited her on a date, or 'asked her out'." },
+            // 28. PICK UP (Lift/Collect)
+            { q: "The phone is ringing. Can you ____ it ____?", a: "pick / up", options: ["pick / up", "pick / on", "pick / out", "pick / at"], expl: "'Pick up' means to lift (the receiver) or answer." },
+            { q: "Your clothes are on the floor. Please ____ them ____.", a: "pick / up", options: ["pick / up", "clean / up", "put / away", "sort / out"], expl: "To lift them from the surface is to 'pick them up'." },
+            
+            // FILLERS & VARIATIONS (Reinforcing Rules)
+            { q: "Pronoun Rule: 'I dropped the pen. I need to ____.'", a: "pick it up", options: ["pick it up", "pick up it", "pick on it", "pick it on"], expl: "Pronouns (it) MUST go between the verb and particle (pick ... up)." },
+            { q: "Pronoun Rule: 'The radio is too loud. Turn ____.'", a: "it down", options: ["it down", "down it", "it off", "off it"], expl: "Pronouns (it) must be sandwiched: 'Turn IT down'." },
+            { q: "Inseparable Rule: 'I have to ____ my sister.'", a: "look after", options: ["look after", "look my sister after", "look after of", "look for"], expl: "'Look after' is inseparable. The object follows the verb." },
+            { q: "She ____ smoking last year.", a: "gave up", options: ["gave up", "gave in", "held up", "made up"], expl: "Stopping a habit is 'giving up'." },
+            { q: "The concert was ____ due to the storm.", a: "called off", options: ["called off", "put away", "stayed up", "blown up"], expl: "Cancelled = called off." },
+            { q: "He ____ a story to avoid punishment.", a: "made up", options: ["made up", "did up", "set up", "put up"], expl: "Fabricated/Invented = made up." },
+            { q: "I can't ____ the answer to this math problem.", a: "work out", options: ["work out", "make out", "find out", "look out"], expl: "To calculate or solve = work out." },
+            { q: "He ____ his father in the street.", a: "bumped into", options: ["bumped into", "hit into", "knocked into", "crashed into"], expl: "Met by chance = bumped into." },
+            { q: "I will ____ the matter immediately.", a: "look into", options: ["look into", "look onto", "look at", "look for"], expl: "Investigate = look into." },
+            { q: "Can you ____ the time of the flight?", a: "find out", options: ["find out", "know out", "get out", "take out"], expl: "Discover info = find out." },
+            { q: "He ____ the offer because the pay was low.", a: "turned down", options: ["turned down", "turned off", "turned out", "turned away"], expl: "Refused/Rejected = turned down." },
+            { q: "We must ____ this problem before tomorrow.", a: "sort out", options: ["sort out", "find out", "work out", "clean up"], expl: "Resolve = sort out." },
+            { q: "He didn't want to buy it, but he ____ eventually.", a: "gave in", options: ["gave in", "gave up", "gave on", "gave at"], expl: "Agreed after refusing = gave in." },
+            { q: "I'm ____ my keys. Have you seen them?", a: "looking for", options: ["looking for", "looking at", "looking to", "looking by"], expl: "Searching for object = looking for." },
+            { q: "____ the word in the dictionary.", a: "Look up", options: ["Look up", "See up", "Find up", "Watch up"], expl: "Reference search = look up." },
+            { q: "I'll ____ you around the factory.", a: "show", options: ["show", "take", "bring", "carry"], expl: "Give a tour = show around." },
+            { q: "He ____ her out to the movies.", a: "asked", options: ["asked", "told", "said", "spoke"], expl: "Invite on date = ask out." },
+            { q: "Please ____ up the trash from the floor.", a: "pick", options: ["pick", "take", "get", "hold"], expl: "Lift/Collect = pick up." },
+            { q: "I ____ up until 2 AM.", a: "stayed", options: ["stayed", "waited", "stood", "sat"], expl: "Remained awake = stayed up." },
+            { q: "____ away your clothes.", a: "Put", options: ["Put", "Lay", "Set", "Get"], expl: "Store = put away." },
+            { q: "He ____ me into going to the party.", a: "talked", options: ["talked", "said", "told", "asked"], expl: "Persuaded = talked into." },
+            { q: "I'm ____ for the bus to arrive.", a: "waiting", options: ["waiting", "staying", "expecting", "hoping"], expl: "Remain for event = wait for." },
+            { q: "I look ____ to seeing you.", a: "forward", options: ["forward", "front", "ahead", "before"], expl: "Anticipate with pleasure = look forward to." },
+            { q: "I ____ on well with my boss.", a: "get", options: ["get", "go", "keep", "stay"], expl: "Good relationship = get on with." },
+            { q: "They ____ off the game.", a: "called", options: ["called", "said", "told", "made"], expl: "Cancelled = called off." },
+            { q: "Don't ____ on your little sister.", a: "pick", options: ["pick", "take", "call", "pull"], expl: "Treat unfairly = pick on." },
+            { q: "He ____ up a lie about his homework.", a: "made", options: ["made", "did", "got", "took"], expl: "Fabricated = made up." },
+            { q: "I ____ up at 6 AM.", a: "get", options: ["get", "rise", "stand", "wake"], expl: "Rise from bed = get up." },
+            { q: "He ____ out at the gym daily.", a: "works", options: ["works", "does", "makes", "acts"], expl: "Exercise = works out." },
+            { q: "I ____ into my teacher.", a: "bumped", options: ["bumped", "hit", "struck", "beat"], expl: "Met by chance = bumped into." },
+            { q: "____ up your mess.", a: "Clean", options: ["Clean", "Clear", "Wash", "Wipe"], expl: "Tidy = clean up." },
+            { q: "____ after the dog.", a: "Look", options: ["Look", "See", "Watch", "View"], expl: "Take care of = look after." },
+            { q: "I can't ____ up with the noise.", a: "put", options: ["put", "get", "set", "let"], expl: "Tolerate = put up with." },
+            { q: "The balloon ____ up.", a: "blew", options: ["blew", "grew", "flew", "threw"], expl: "Inflated/Exploded = blew up." },
+            { q: "The bus ____ down.", a: "broke", options: ["broke", "cracked", "smashed", "stopped"], expl: "Stopped working = broke down." },
+            { q: "____ into the mystery.", a: "Look", options: ["Look", "See", "Watch", "Peer"], expl: "Investigate = look into." },
+            { q: "____ out the location.", a: "Find", options: ["Find", "Search", "Seek", "Hunt"], expl: "Discover = find out." }
+        ];
+
+        // --- HELPERS ---
+
+        const getRandomSubset = (arr, n) => {
+            const shuffled = [...arr].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, n);
+        };
+
+        const Icon = ({ name, size = 24, className }) => {
+            const ref = useRef(null);
+
+            useEffect(() => {
+                if (ref.current) {
+                    // Manually create the element that Lucide looks for
+                    const iconElement = document.createElement('i');
+                    iconElement.setAttribute('data-lucide', name);
+                    
+                    // Clear the container (managed by this ref, ignored by React)
+                    ref.current.innerHTML = '';
+                    ref.current.appendChild(iconElement);
+
+                    // Trigger Lucide to replace the <i> with <svg> inside our container
+                    if (window.lucide) {
+                        window.lucide.createIcons({
+                            root: ref.current,
+                            attrs: {
+                                width: size,
+                                height: size,
+                                class: "lucide-icon-svg" // marker class
+                            }
+                        });
+                    }
+                }
+            }, [name, size]);
+
+            // We apply the className to the wrapper to handle layout (margins, colors, etc)
+            // 'inline-flex' is a good default for icons to align with text.
+            return <span ref={ref} className={`inline-flex items-center justify-center ${className || ''}`}></span>;
+        };
+
+        const Button = ({ onClick, children, variant = "primary", className = "", disabled = false }) => {
+            const baseStyle = "px-6 py-3 rounded-xl font-bold transition-all transform active:scale-95 shadow-md flex items-center justify-center gap-2";
+            const variants = {
+                primary: "bg-indigo-600 text-white hover:bg-indigo-700",
+                secondary: "bg-white text-indigo-600 border-2 border-indigo-100 hover:bg-indigo-50",
+                correct: "bg-green-500 text-white",
+                wrong: "bg-red-500 text-white",
+                disabled: "bg-gray-300 text-gray-500 cursor-not-allowed"
+            };
+            return (
+                <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
+                    {children}
+                </button>
+            );
+        };
+
+        const LessonView = ({ title, slides, onComplete }) => {
+            const [currentSlide, setCurrentSlide] = useState(0);
+
+            const nextSlide = () => {
+                if (currentSlide < slides.length - 1) {
+                    setCurrentSlide(curr => curr + 1);
+                } else {
+                    onComplete();
+                }
+            };
+
+            const prevSlide = () => {
+                if (currentSlide > 0) {
+                    setCurrentSlide(curr => curr - 1);
+                }
+            };
+
+            const slide = slides[currentSlide];
+
+            return (
+                <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full fade-in flex flex-col min-h-[500px]">
+                    <div className="bg-indigo-50 p-6 rounded-t-2xl border-b border-indigo-100">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-indigo-800 flex items-center gap-2">
+                                <Icon name="book-open" size={20} className="text-indigo-600"/> 
+                                {title}
+                            </h2>
+                            <span className="text-sm font-semibold text-indigo-400 bg-white px-3 py-1 rounded-full">
+                                Part {currentSlide + 1} of {slides.length}
+                            </span>
+                        </div>
+                        <div className="w-full bg-indigo-200 h-2 rounded-full mt-4">
+                            <div className="bg-indigo-600 h-2 rounded-full transition-all duration-300" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
+                        </div>
+                    </div>
+                    <div className="p-8 flex-grow flex flex-col slide-in-right" key={currentSlide}>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-6">{slide.title}</h3>
+                        <div className="text-lg text-gray-600 leading-relaxed space-y-4 w-full">
+                            {slide.content}
+                        </div>
+                    </div>
+                    <div className="p-6 border-t border-gray-100 flex justify-between bg-gray-50 rounded-b-2xl">
+                        <Button onClick={prevSlide} variant="secondary" disabled={currentSlide === 0} className={currentSlide === 0 ? "opacity-50" : ""}>
+                            <Icon name="arrow-left" size={18}/> Back
+                        </Button>
+                        <Button onClick={nextSlide} variant="primary">
+                            {currentSlide === slides.length - 1 ? "Start Game" : "Next"} 
+                            {currentSlide === slides.length - 1 ? <Icon name="play" size={18}/> : <Icon name="arrow-right" size={18}/>}
+                        </Button>
+                    </div>
+                </div>
+            );
+        };
+
+        const FeedbackModal = ({ isCorrect, correctDetails, onNext }) => (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                <div className={`bg-white rounded-2xl p-6 max-w-md w-full text-center shadow-2xl transform scale-100 transition-all border-b-8 ${isCorrect ? 'border-green-500' : 'border-red-500'}`}>
+                    <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isCorrect ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                        <Icon name={isCorrect ? "check" : "x"} size={32} />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2">{isCorrect ? "Correct!" : "Incorrect"}</h3>
+                    <p className="text-gray-600 mb-6 text-sm">{correctDetails}</p>
+                    <Button onClick={onNext} variant={isCorrect ? "primary" : "secondary"}>Next Question</Button>
+                </div>
+            </div>
+        );
+
+        // --- MODULES ---
+
+        const Module1 = ({ onComplete }) => {
+            const [step, setStep] = useState('study');
+            const [qIndex, setQIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [lastCorrect, setLastCorrect] = useState(false);
+            const [feedbackText, setFeedbackText] = useState("");
+
+            const VerbListSlide = () => (
+                <div className="h-64 overflow-y-auto custom-scrollbar border rounded-xl p-2 bg-gray-50 text-sm">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b bg-gray-100 text-gray-600">
+                                <th className="p-2">Verb</th>
+                                <th className="p-2">Meaning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {PHRASAL_VERBS_LIST.map(v => (
+                                <tr key={v.id} className="border-b last:border-0">
+                                    <td className="p-2 font-bold text-indigo-700">{v.verb.toUpperCase()}</td>
+                                    <td className="p-2 text-gray-600">{v.meaning}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            );
+
+            const lessons = [
+                {
+                    title: "1. The Magic Equation ✨",
+                    content: (
+                        <div className="space-y-4">
+                            <p className="text-lg">Phrasal verbs are like math equations for words. If you add a small word (particle) to a verb, the meaning changes completely!</p>
+                            
+                            <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200 text-center">
+                                <div className="flex items-center justify-center gap-2 text-xl font-bold mb-2">
+                                    <span className="text-indigo-600">GET</span> 
+                                    <span className="text-gray-400">+</span>
+                                    <span className="text-indigo-600">UP</span>
+                                    <span className="text-gray-400">=</span>
+                                    <span className="text-green-600">RISE FROM BED</span>
+                                </div>
+                                <p className="text-sm text-gray-500">"Get" usually means 'receive'. <br/>But "Get UP" means to wake up and leave your bed! 🛌</p>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    title: "2. Secret Codes 🕵️‍♀️",
+                    content: (
+                        <div className="space-y-4">
+                            <p>You cannot always guess the meaning just by looking at the words. They are like secret codes.</p>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-gray-100 p-4 rounded-xl text-center">
+                                    <div className="text-2xl mb-1">📞</div>
+                                    <div className="font-bold text-gray-700">CALL</div>
+                                    <div className="text-xs text-gray-500">To phone someone</div>
+                                </div>
+                                <div className="bg-red-50 p-4 rounded-xl text-center border border-red-200">
+                                    <div className="text-2xl mb-1">🚫</div>
+                                    <div className="font-bold text-red-700">CALL OFF</div>
+                                    <div className="text-xs text-red-500">To CANCEL an event</div>
+                                </div>
+                            </div>
+                            <p className="text-sm italic text-gray-500 text-center">"The game was called off (cancelled) due to rain."</p>
+                        </div>
+                    )
+                },
+                {
+                    title: "3. Words with Two Faces 🎭",
+                    content: (
+                        <div className="space-y-3">
+                            <p>Be careful! Some phrasal verbs have <strong>two different meanings</strong> depending on the story.</p>
+                            
+                            <div className="bg-white border-l-4 border-yellow-400 p-3 shadow-sm">
+                                <h4 className="font-bold text-yellow-700 text-lg">Make Up</h4>
+                                <ul className="mt-1 space-y-2 text-sm">
+                                    <li className="flex items-center gap-2"><span className="text-xl">📝</span> <span><strong>Create:</strong> "Make up a list."</span></li>
+                                    <li className="flex items-center gap-2"><span className="text-xl">🤥</span> <span><strong>Invent/Lie:</strong> "Make up a story."</span></li>
+                                </ul>
+                            </div>
+
+                            <div className="bg-white border-l-4 border-red-400 p-3 shadow-sm">
+                                <h4 className="font-bold text-red-700 text-lg">Blow Up</h4>
+                                <ul className="mt-1 space-y-2 text-sm">
+                                    <li className="flex items-center gap-2"><span className="text-xl">🎈</span> <span><strong>Inflate:</strong> "Blow up balloons."</span></li>
+                                    <li className="flex items-center gap-2"><span className="text-xl">😡</span> <span><strong>Get Angry:</strong> "He blew up at me."</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    title: "4. Your Reference List 📚",
+                    content: (
+                        <div>
+                            <p className="mb-4 text-sm text-gray-500">We will learn 28 verbs in this course. You can check this list anytime!</p>
+                            <VerbListSlide />
+                        </div>
+                    )
+                }
+            ];
+
+            // Specific questions for multiple meaning phrasal verbs
+            const questions = useMemo(() => {
+                const multiMeaningQs = [
+                    {
+                        question: "Read carefully:\n\"I need to MAKE UP a list of guests for the party.\"\n\nWhat does 'MAKE UP' mean here?",
+                        options: ["To Prepare / Create 📝", "To Lie / Invent 🤥", "To Clean 🧹", "To Sleep 😴"],
+                        answer: "To Prepare / Create 📝",
+                        explanation: "Context clue: 'List'. You usually prepare or create a list, you don't lie to it."
+                    },
+                    {
+                        question: "Read carefully:\n\"He didn't do his homework, so he MADE UP a story.\"\n\nWhat does 'MADE UP' mean here?",
+                        options: ["Invented / Lied 🤥", "Prepared 📝", "Forgot ❓", "Read 📖"],
+                        answer: "Invented / Lied 🤥",
+                        explanation: "Context clue: 'Story'. He invented a fake story to avoid trouble."
+                    },
+                    {
+                        question: "Read carefully:\n\"Please help me BLOW UP these balloons for the birthday.\"\n\nWhat does 'BLOW UP' mean here?",
+                        options: ["Fill with air 🎈", "Get angry 😡", "Break 🔨", "Fly ✈️"],
+                        answer: "Fill with air 🎈",
+                        explanation: "Context clue: 'Balloons'. We fill balloons with air."
+                    },
+                    {
+                        question: "Read carefully:\n\"My dad might BLOW UP if he sees the broken window.\"\n\nWhat does 'BLOW UP' mean here?",
+                        options: ["Get angry 😡", "Fill with air 🎈", "Leave 🚪", "Smile 🙂"],
+                        answer: "Get angry 😡",
+                        explanation: "Context clue: 'Broken window'. Parents usually get angry (explode with anger) when things break."
+                    },
+                    {
+                        question: "Read carefully:\n\"My old car BROKE DOWN on the highway.\"\n\nWhat does 'BROKE DOWN' mean here?",
+                        options: ["Stopped working 🛑", "Smashed 🔨", "Cried 😢", "Started 🏁"],
+                        answer: "Stopped working 🛑",
+                        explanation: "Context clue: 'Car'. When a machine stops working, we say it broke down."
+                    },
+                    {
+                        question: "Read carefully:\n\"The firefighters had to BREAK DOWN the door to save the cat.\"\n\nWhat does 'BREAK DOWN' mean here?",
+                        options: ["Force open / Destroy 🔨", "Stop working 🛑", "Paint 🎨", "Open gently 🔑"],
+                        answer: "Force open / Destroy 🔨",
+                        explanation: "Context clue: 'Door' + 'Firefighters'. They used force to destroy/open the door."
+                    },
+                    {
+                        question: "Read carefully:\n\"Can you PICK UP the pen I dropped?\"\n\nWhat does 'PICK UP' mean here?",
+                        options: ["Lift from surface ✋", "Learn casually 🧠", "Collect a person 🚗", "Improve 📈"],
+                        answer: "Lift from surface ✋",
+                        explanation: "Context clue: 'Dropped'. If something falls, you lift it (pick it up) from the floor."
+                    }
+                ];
+                // Randomize questions AND their options
+                return multiMeaningQs.sort(() => 0.5 - Math.random()).map(q => ({
+                    ...q,
+                    options: q.options.sort(() => 0.5 - Math.random())
+                }));
+            }, []);
+
+            const handleAnswer = (option) => {
+                const currentQ = questions[qIndex];
+                const isCorrect = option === currentQ.answer;
+                setLastCorrect(isCorrect);
+                if (isCorrect) setScore(s => s + 1);
+                // Use the explanation field if available, otherwise fallback
+                const explanation = currentQ.explanation || `Answer: ${currentQ.answer}`;
+                setFeedbackText(isCorrect ? "Correct! " + explanation : `Not quite. ${explanation}`);
+                setShowFeedback(true);
+            };
+
+            const nextQ = () => {
+                setShowFeedback(false);
+                if (qIndex < questions.length - 1) setQIndex(qIndex + 1);
+                else onComplete(score, questions.length);
+            };
+
+            if (step === 'study') return <LessonView title="Module 1: The Basics" slides={lessons} onComplete={() => setStep('play')} />;
+
+            const q = questions[qIndex];
+            return (
+                <div className="w-full max-w-lg">
+                    <div className="flex justify-between text-sm font-bold text-gray-500 mb-2"><span>Q: {qIndex + 1}/{questions.length}</span><span>Score: {score}</span></div>
+                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-4">
+                        <h3 className="text-xl font-bold mb-6 text-gray-800 whitespace-pre-line leading-relaxed">{q.question}</h3>
+                        <div className="grid gap-3">
+                            {q.options.map((opt, i) => (
+                                <button key={i} onClick={() => handleAnswer(opt)} className="p-4 text-left border-2 border-indigo-50 rounded-xl hover:bg-indigo-50 hover:border-indigo-200 transition-colors font-medium text-gray-700">
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {showFeedback && <FeedbackModal isCorrect={lastCorrect} correctDetails={feedbackText} onNext={nextQ} />}
+                </div>
+            );
+        };
+
+        const Module2 = ({ onComplete }) => {
+            const [step, setStep] = useState('study');
+            const [qIndex, setQIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [lastCorrect, setLastCorrect] = useState(false);
+            const [feedbackText, setFeedbackText] = useState("");
+
+            // ... [Keep Lessons] ...
+            const lessons = [
+                {
+                    title: "Formation Patterns (Types)",
+                    content: (
+                        <div className="space-y-4">
+                            <p>Phrasal verbs are built like equations. Let's look at the three formulas.</p>
+                            <div className="grid grid-cols-1 gap-3">
+                                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                                    <div className="font-bold text-blue-800 mb-1">1. Verb + Adverb</div>
+                                    <div className="flex gap-2 text-lg">
+                                        <span className="bg-white px-2 py-1 rounded shadow-sm">Stay</span>
+                                        <span className="text-gray-400">+</span>
+                                        <span className="bg-blue-200 px-2 py-1 rounded shadow-sm text-blue-900 font-bold">Up</span>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-2">Also: "Put away", "Call off"</p>
+                                </div>
+                                <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+                                    <div className="font-bold text-green-800 mb-1">2. Verb + Preposition</div>
+                                    <div className="flex gap-2 text-lg">
+                                        <span className="bg-white px-2 py-1 rounded shadow-sm">Wait</span>
+                                        <span className="text-gray-400">+</span>
+                                        <span className="bg-green-200 px-2 py-1 rounded shadow-sm text-green-900 font-bold">For</span>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-2">Also: "Talk into", "Bump into"</p>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    title: "The Triple Threat (3 Parts)",
+                    content: (
+                        <div className="space-y-4">
+                            <p>Some phrasal verbs use THREE words. They are always <strong>Verb + Adverb + Preposition</strong>.</p>
+                            <div className="bg-purple-50 p-6 rounded-xl border border-purple-200 text-center">
+                                <div className="flex flex-wrap justify-center gap-2 text-xl mb-4">
+                                    <span className="bg-white px-3 py-2 rounded-lg shadow">Look</span>
+                                    <span className="bg-purple-200 px-3 py-2 rounded-lg shadow font-bold text-purple-900">Forward</span>
+                                    <span className="bg-purple-300 px-3 py-2 rounded-lg shadow font-bold text-purple-900">To</span>
+                                </div>
+                                <p className="text-purple-800 italic">"I look forward to the weekend."</p>
+                            </div>
+                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                <p className="font-bold text-gray-700">Another Example:</p>
+                                <p className="text-lg mt-1">"Get on with"</p>
+                                <p className="text-sm text-gray-500">(To have a good relationship)</p>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    title: "Transitivity Lab: Intransitive",
+                    content: (
+                        <div>
+                            <div className="bg-orange-100 text-orange-800 p-3 rounded-lg font-bold mb-4 inline-block">
+                                TYPE A: Intransitive
+                            </div>
+                            <p className="mb-4">These verbs constitute a complete action on their own. They do not affect an object.</p>
+                            
+                            <div className="bg-white border-2 border-orange-100 p-6 rounded-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-bl-lg">MODEL</div>
+                                <div className="flex items-center gap-4 text-xl">
+                                    <div className="text-center">
+                                        <div className="text-4xl">😴</div>
+                                        <div className="text-sm font-bold mt-1 text-gray-500">SUBJECT</div>
+                                    </div>
+                                    <Icon name="arrow-right" className="text-gray-300"/>
+                                    <div className="bg-orange-50 px-4 py-2 rounded-lg border border-orange-200 font-bold text-orange-700">
+                                        GET UP
+                                    </div>
+                                    <div className="text-gray-300 text-4xl">🚫</div>
+                                </div>
+                                <p className="mt-4 text-center text-gray-600 italic">"I get up at 7 AM."</p>
+                                <p className="text-center text-xs text-gray-400">(Nothing receives the action)</p>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    title: "Transitivity Lab: Transitive",
+                    content: (
+                        <div>
+                            <div className="bg-green-100 text-green-800 p-3 rounded-lg font-bold mb-4 inline-block">
+                                TYPE B: Transitive
+                            </div>
+                            <p className="mb-4">These verbs must be followed by an object (a noun or pronoun). They do something TO something.</p>
+                            
+                            <div className="bg-white border-2 border-green-100 p-6 rounded-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 bg-green-100 text-green-600 text-xs font-bold px-2 py-1 rounded-bl-lg">MODEL</div>
+                                <div className="flex items-center gap-4 text-xl justify-center">
+                                    <div className="bg-green-50 px-3 py-2 rounded-lg border border-green-200 font-bold text-green-700">
+                                        Bumped Into
+                                    </div>
+                                    <Icon name="arrow-right" className="text-green-500"/>
+                                    <div className="text-center">
+                                        <div className="bg-gray-800 text-white px-3 py-1 rounded font-bold">ROY</div>
+                                        <div className="text-xs font-bold mt-1 text-gray-400">OBJECT</div>
+                                    </div>
+                                </div>
+                                <p className="mt-4 text-center text-gray-600 italic">"I bumped into Roy."</p>
+                            </div>
+                            
+                            <div className="mt-4 bg-gray-50 p-3 rounded-lg border-l-4 border-gray-400">
+                                <p className="text-sm"><strong>Check yourself:</strong> Can you say "I bumped into"? <br/>No. Who did you bump into? You need the object.</p>
+                            </div>
+                        </div>
+                    )
+                }
+            ];
+
+            const questions = useMemo(() => {
+                const subset = getRandomSubset(PHRASAL_VERBS_LIST, 10);
+                return subset.map(v => {
+                    const isFormationQ = Math.random() > 0.5;
+                    if (isFormationQ) {
+                        return {
+                            q: `What is the formation pattern of "${v.verb.toUpperCase()}"?`,
+                            options: ["Verb + Adverb", "Verb + Preposition", "Verb + Adv + Prep"].sort(() => 0.5 - Math.random()),
+                            a: v.pattern,
+                            expl: `Correct! "${v.verb}" is formed by ${v.pattern}.`
+                        };
+                    } else {
+                        const typeAnswer = v.type.includes("Intransitive") ? "Intransitive" : "Transitive"; 
+                        if (v.type === "Context Dependent") {
+                             return {
+                                q: `Is "${v.verb.toUpperCase()}" Transitive or Intransitive?`,
+                                // Randomized options
+                                options: ["It depends on the meaning", "Always Transitive", "Always Intransitive"].sort(() => 0.5 - Math.random()),
+                                a: "It depends on the meaning",
+                                expl: `"${v.verb}" can be both. Example: "${v.example}"`
+                            };
+                        }
+                        return {
+                            q: `Is "${v.verb.toUpperCase()}" Transitive or Intransitive?`,
+                            // Randomized options
+                            options: ["Transitive", "Intransitive"].sort(() => 0.5 - Math.random()),
+                            a: typeAnswer,
+                            expl: `${typeAnswer}. Example: "${v.example}"`
+                        };
+                    }
+                });
+            }, []);
+
+            const handleAnswer = (opt) => {
+                const q = questions[qIndex];
+                const isCorrect = opt === q.a;
+                setLastCorrect(isCorrect);
+                if (isCorrect) setScore(s => s + 1);
+                setFeedbackText(q.expl);
+                setShowFeedback(true);
+            };
+
+            const nextQ = () => {
+                setShowFeedback(false);
+                if (qIndex < questions.length - 1) setQIndex(qIndex + 1);
+                else onComplete(score, questions.length);
+            };
+
+            if (step === 'study') return <LessonView title="Module 2: Structure" slides={lessons} onComplete={() => setStep('play')} />;
+
+            const q = questions[qIndex];
+            return (
+                <div className="w-full max-w-lg">
+                    <div className="text-center mb-6"><span className="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded">Structure Challenge</span></div>
+                    <div className="bg-white rounded-2xl shadow-lg p-8 mb-4 text-center">
+                        <h3 className="text-xl font-bold mb-8 text-gray-800">{q.q}</h3>
+                        <div className="flex flex-col gap-4">
+                            {q.options.map((opt, i) => (
+                                <Button key={i} onClick={() => handleAnswer(opt)} variant="secondary" className="justify-center">{opt}</Button>
+                            ))}
+                        </div>
+                    </div>
+                    {showFeedback && <FeedbackModal isCorrect={lastCorrect} correctDetails={feedbackText} onNext={nextQ} />}
+                </div>
+            );
+        };
+
+        const Module3 = ({ onComplete }) => {
+            const [step, setStep] = useState('study');
+            const [pairs, setPairs] = useState([]);
+            const [selected, setSelected] = useState([]);
+            const [matchedIds, setMatchedIds] = useState([]);
+
+            const lessons = [
+                {
+                    title: "Formal vs Informal",
+                    content: (
+                        <div>
+                            <p className="mb-4">Phrasal verbs are generally informal. In business or academic writing, we use single-word equivalents.</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 text-center">
+                                    <div className="text-4xl mb-2">😎</div>
+                                    <h4 className="font-bold text-yellow-800">Informal</h4>
+                                    <p className="text-xs text-gray-500">Text messages, spoken English, friends.</p>
+                                </div>
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-300 text-center">
+                                    <div className="text-4xl mb-2">🧐</div>
+                                    <h4 className="font-bold text-slate-800">Formal</h4>
+                                    <p className="text-xs text-gray-500">Emails to boss, essays, reports.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    title: "Context Scenarios: The Email",
+                    content: (
+                        <div className="space-y-6">
+                            <div className="bg-white shadow-md rounded-lg overflow-hidden border">
+                                <div className="bg-gray-100 px-4 py-2 border-b text-xs text-gray-500 font-mono">From: Employee | To: Boss</div>
+                                <div className="p-4 text-sm text-gray-700">
+                                    "I am writing to <span className="bg-indigo-100 text-indigo-800 font-bold px-1 rounded">investigate</span> the issue. We hope to <span className="bg-indigo-100 text-indigo-800 font-bold px-1 rounded">discover</span> the cause soon."
+                                </div>
+                            </div>
+                            
+                            <div className="text-center text-gray-400 text-sm italic">vs. The Text Message</div>
+                            
+                            <div className="bg-green-50 shadow-md rounded-lg overflow-hidden border border-green-100 max-w-xs ml-auto">
+                                <div className="p-3 text-sm text-gray-800 bubble-right">
+                                    "Hey! I'm <span className="font-bold">looking into</span> that problem. Gonna <span className="font-bold">find out</span> what happened."
+                                </div>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    title: "Comparison List",
+                    content: (
+                        <div>
+                            <p className="mb-4 text-sm text-gray-500">Memorize these pairs for the game.</p>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between bg-white p-3 rounded-lg border shadow-sm">
+                                    <span className="font-bold text-gray-700">Looking into</span>
+                                    <Icon name="arrow-right" size={16} className="text-gray-300"/>
+                                    <span className="font-bold text-indigo-600">Investigating</span>
+                                </div>
+                                <div className="flex items-center justify-between bg-white p-3 rounded-lg border shadow-sm">
+                                    <span className="font-bold text-gray-700">Find out</span>
+                                    <Icon name="arrow-right" size={16} className="text-gray-300"/>
+                                    <span className="font-bold text-indigo-600">Discover</span>
+                                </div>
+                                <div className="flex items-center justify-between bg-white p-3 rounded-lg border shadow-sm">
+                                    <span className="font-bold text-gray-700">Turned down</span>
+                                    <Icon name="arrow-right" size={16} className="text-gray-300"/>
+                                    <span className="font-bold text-indigo-600">Refused</span>
+                                </div>
+                                <div className="flex items-center justify-between bg-white p-3 rounded-lg border shadow-sm">
+                                    <span className="font-bold text-gray-700">Sort out</span>
+                                    <Icon name="arrow-right" size={16} className="text-gray-300"/>
+                                    <span className="font-bold text-indigo-600">Resolve</span>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+            ];
+
+            useEffect(() => {
+                const cards = [];
+                FORMAL_INFORMAL_PAIRS.forEach((p, i) => {
+                    cards.push({ id: `inf-${i}`, text: p.informal, type: 'informal', matchId: i });
+                    cards.push({ id: `for-${i}`, text: p.formal, type: 'formal', matchId: i });
+                });
+                setPairs(cards.sort(() => 0.5 - Math.random()));
+            }, []);
+
+            const handleCardClick = (card) => {
+                if (selected.length === 2 || selected.find(c => c.id === card.id) || matchedIds.includes(card.matchId)) return;
+                const newSelected = [...selected, card];
+                setSelected(newSelected);
+                if (newSelected.length === 2) {
+                    if (newSelected[0].matchId === newSelected[1].matchId) {
+                        const matchedId = newSelected[0].matchId;
+                        setTimeout(() => {
+                            setMatchedIds(prev => {
+                                const newMatches = [...prev, matchedId];
+                                if (newMatches.length === FORMAL_INFORMAL_PAIRS.length) setTimeout(() => onComplete(FORMAL_INFORMAL_PAIRS.length, FORMAL_INFORMAL_PAIRS.length), 1000);
+                                return newMatches;
+                            });
+                            setSelected([]);
+                        }, 500);
+                    } else setTimeout(() => setSelected([]), 1000);
+                }
+            };
+
+            if (step === 'study') return <LessonView title="Module 3: Formality" slides={lessons} onComplete={() => setStep('play')} />;
+
+            return (
+                <div className="w-full max-w-2xl">
+                    <h3 className="text-center text-xl font-bold mb-6 text-gray-700">Match Informal to Formal</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {pairs.map(card => {
+                            const isSelected = selected.find(s => s.id === card.id);
+                            const isMatched = matchedIds.includes(card.matchId);
+                            return (
+                                <button key={card.id} onClick={() => handleCardClick(card)} disabled={isSelected || isMatched} 
+                                    className={`h-24 rounded-xl font-bold text-sm shadow-sm transition-all ${isMatched ? 'invisible' : ''} ${isSelected ? 'bg-indigo-600 text-white scale-105' : 'bg-white text-gray-700 hover:bg-indigo-50'}`}>
+                                    {card.text}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const Module4 = ({ onComplete }) => {
+            const [step, setStep] = useState('study');
+            const [qIndex, setQIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [lastCorrect, setLastCorrect] = useState(false);
+            const [feedbackText, setFeedbackText] = useState("");
+
+            // ... [Keep Lessons] ...
+            const lessons = [
+                {
+                    title: "Separability: The Moving Object",
+                    content: (
+                        <div className="space-y-4">
+                            <p>For many transitive verbs, the object can move. It's flexible!</p>
+                            <div className="bg-white border-2 border-dashed border-gray-300 p-4 rounded-xl text-center">
+                                <p className="text-sm text-gray-400 font-bold mb-2">Example: CLEAN UP</p>
+                                <div className="flex justify-center items-center gap-2 mb-2">
+                                    <span>Clean up</span>
+                                    <span className="bg-indigo-100 px-2 py-1 rounded text-indigo-800 font-bold">the room</span>
+                                </div>
+                                <div className="text-gray-300 text-xs mb-2">↕️ OR ↕️</div>
+                                <div className="flex justify-center items-center gap-2">
+                                    <span>Clean</span>
+                                    <span className="bg-indigo-100 px-2 py-1 rounded text-indigo-800 font-bold">the room</span>
+                                    <span>up</span>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    title: "🚨 The Pronoun Rule (CRITICAL) 🚨",
+                    content: (
+                        <div>
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                                <h4 className="font-bold text-red-800">THE TRAP:</h4>
+                                <p>If the object is a <strong>PRONOUN</strong> (it, them, me, him), it MUST be sandwiched in the middle.</p>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-green-100 p-4 rounded-xl border-2 border-green-500 text-center">
+                                    <div className="text-3xl mb-2">✅</div>
+                                    <p className="font-bold text-green-800">Pick <span className="underline">it</span> up</p>
+                                    <p className="font-bold text-green-800">Clean <span className="underline">them</span> up</p>
+                                </div>
+                                <div className="bg-red-100 p-4 rounded-xl border-2 border-red-500 text-center opacity-70">
+                                    <div className="text-3xl mb-2">❌</div>
+                                    <p className="font-bold text-red-800 line-through">Pick up <span className="underline">it</span></p>
+                                    <p className="font-bold text-red-800 line-through">Clean up <span className="underline">them</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    title: "Inseparable Verbs",
+                    content: (
+                        <div className="space-y-4">
+                            <p>Some verbs are glued together. The object is blocked from entering.</p>
+                            <div className="bg-gray-100 p-4 rounded-xl flex items-center justify-center gap-2">
+                                <div className="bg-white px-3 py-2 rounded border border-gray-300 font-bold">Look After</div>
+                                <div className="h-full w-1 bg-red-500 mx-2"></div>
+                                <div className="bg-yellow-100 px-3 py-2 rounded border border-yellow-300 font-bold text-yellow-800">My Goldfish</div>
+                            </div>
+                            <p className="text-center text-sm italic text-gray-500">"Look after my goldfish" (Correct)</p>
+                            <p className="text-center text-sm italic text-red-400 line-through">"Look my goldfish after" (Wrong)</p>
+                        </div>
+                    )
+                },
+                {
+                    title: "Error Clinic: Confusing Pairs",
+                    content: (
+                        <div className="space-y-4">
+                            <div className="bg-white border-l-4 border-indigo-500 p-3 shadow-sm">
+                                <h4 className="font-bold text-indigo-700">Give In vs Give Up</h4>
+                                <ul className="text-sm mt-1 space-y-1">
+                                    <li><strong>Give In:</strong> To stop arguing and agree. <br/><em className="text-gray-500">"He gave in and bought the toy."</em></li>
+                                    <li><strong>Give Up:</strong> To quit a habit/effort. <br/><em className="text-gray-500">"He gave up smoking."</em></li>
+                                </ul>
+                            </div>
+                            <div className="bg-white border-l-4 border-teal-500 p-3 shadow-sm">
+                                <h4 className="font-bold text-teal-700">Look For vs Look Up</h4>
+                                <ul className="text-sm mt-1 space-y-1">
+                                    <li><strong>Look For:</strong> Search for lost object. <br/><em className="text-gray-500">"Looking for keys."</em></li>
+                                    <li><strong>Look Up:</strong> Search for info (dictionary). <br/><em className="text-gray-500">"Look up the word."</em></li>
+                                </ul>
+                            </div>
+                        </div>
+                    )
+                }
+            ];
+
+            const questions = useMemo(() => {
+                const qList = [];
+                qList.push({
+                    q: "Which sentence uses 'GIVE IN' correctly?",
+                    options: ["He gave in and bought the toy.", "He gave in smoking."],
+                    a: "He gave in and bought the toy.",
+                    expl: "'Give in' means to finally agree/accept. 'Give up' means to stop doing something (smoking)."
+                });
+                 qList.push({
+                    q: "Which sentence uses 'LOOK UP' correctly?",
+                    options: ["Look up the word in the dictionary.", "I need to look up my keys."],
+                    a: "Look up the word in the dictionary.",
+                    expl: "'Look up' means to search for info in reference material. 'Look for' means to search for an object."
+                });
+
+                const transitiveSubset = getRandomSubset(PHRASAL_VERBS_LIST.filter(v => v.type === "Transitive"), 8);
+                
+                transitiveSubset.forEach(v => {
+                    if (v.separable) {
+                        qList.push({
+                            q: `Which is correct for "${v.verb.toUpperCase()}" with a pronoun?`,
+                            options: [`${v.verb.split(' ')[0]} it ${v.verb.split(' ')[1]}`, `${v.verb} it`],
+                            a: `${v.verb.split(' ')[0]} it ${v.verb.split(' ')[1]}`, 
+                            expl: `Since "${v.verb}" is separable, pronouns (it/them) MUST go in the middle.`
+                        });
+                    } else {
+                        qList.push({
+                            q: `Which is correct for "${v.verb.toUpperCase()}"?`,
+                            options: [`${v.verb} the object`, `${v.verb.split(' ')[0]} the object ${v.verb.split(' ').slice(1).join(' ')}`],
+                            a: `${v.verb} the object`,
+                            expl: `"${v.verb}" is inseparable. The object must follow the entire phrasal verb.`
+                        });
+                    }
+                });
+
+                // Randomize question order AND option order for each question
+                return qList.sort(() => 0.5 - Math.random()).map(q => ({
+                    ...q,
+                    options: q.options.sort(() => 0.5 - Math.random())
+                }));
+            }, []);
+
+            const handleAnswer = (opt) => {
+                const q = questions[qIndex];
+                const isCorrect = opt === q.a;
+                setLastCorrect(isCorrect);
+                if (isCorrect) setScore(s => s + 1);
+                setFeedbackText(q.expl);
+                setShowFeedback(true);
+            };
+
+            const nextQ = () => {
+                setShowFeedback(false);
+                if (qIndex < questions.length - 1) setQIndex(qIndex + 1);
+                else onComplete(score, questions.length);
+            };
+
+            if (step === 'study') return <LessonView title="Module 4: Syntax & Rules" slides={lessons} onComplete={() => setStep('play')} />;
+
+            const q = questions[qIndex];
+            return (
+                <div className="w-full max-w-lg">
+                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-4">
+                        <div className="flex items-center gap-2 mb-4 text-amber-600 font-bold uppercase text-xs tracking-wider"><Icon name="alert-triangle" size={16}/> Syntax Check</div>
+                        <h3 className="text-xl font-bold mb-6 text-gray-800">{q.q}</h3>
+                        <div className="space-y-3">
+                            {q.options.map((opt, i) => (
+                                <button key={i} onClick={() => handleAnswer(opt)} className="w-full p-4 text-left border-2 border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-all font-mono text-sm sm:text-base">
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {showFeedback && <FeedbackModal isCorrect={lastCorrect} correctDetails={feedbackText} onNext={nextQ} />}
+                </div>
+            );
+        };
+
+        // --- NEW GATED MODULE 5 ---
+
+        const Module5 = ({ onComplete, onExit }) => {
+            const [gameState, setGameState] = useState({
+                qIndex: 0,
+                score: 0,
+                wrongAnswers: [], // Stores objects { q, a, yourAnswer, expl, level }
+                shuffledQuestions: []
+            });
+            const [loading, setLoading] = useState(true);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [lastCorrect, setLastCorrect] = useState(false);
+            const [levelUpMode, setLevelUpMode] = useState(false);
+
+            // Constants
+            const LEVEL_SIZE = 10;
+            const TOTAL_LEVELS = 10;
+
+            useEffect(() => {
+                // Load progress from LocalStorage
+                const saved = localStorage.getItem('phrasalMaster_progress');
+                if (saved) {
+                    setGameState(JSON.parse(saved));
+                } else {
+                    // Initialize new game: Shuffle Questions AND Shuffle Options within each question
+                    const randomizedQuestions = [...FINAL_QUIZ_DATA]
+                        .sort(() => 0.5 - Math.random())
+                        .map(q => ({
+                            ...q,
+                            options: [...q.options].sort(() => 0.5 - Math.random()) // Randomize option order
+                        }));
+
+                    setGameState({
+                        qIndex: 0,
+                        score: 0,
+                        wrongAnswers: [],
+                        shuffledQuestions: randomizedQuestions
+                    });
+                }
+                setLoading(false);
+            }, []);
+
+            useEffect(() => {
+                // Save progress whenever state changes (if questions exist)
+                if (gameState.shuffledQuestions.length > 0) {
+                    localStorage.setItem('phrasalMaster_progress', JSON.stringify(gameState));
+                }
+            }, [gameState]);
+
+            const currentLevel = Math.floor(gameState.qIndex / LEVEL_SIZE) + 1;
+            
+            const handleAnswer = (opt) => {
+                const q = gameState.shuffledQuestions[gameState.qIndex];
+                const isCorrect = opt === q.a;
+                
+                setLastCorrect(isCorrect);
+                
+                setGameState(prev => {
+                    const newWrong = isCorrect ? prev.wrongAnswers : [...prev.wrongAnswers, { ...q, yourAnswer: opt, level: currentLevel }];
+                    return {
+                        ...prev,
+                        score: isCorrect ? prev.score + 1 : prev.score,
+                        wrongAnswers: newWrong
+                    };
+                });
+
+                setShowFeedback(true);
+            };
+
+            const handleNext = () => {
+                setShowFeedback(false);
+                const nextIndex = gameState.qIndex + 1;
+
+                // Check for Level Up (every 10 questions)
+                if (nextIndex % LEVEL_SIZE === 0 && nextIndex < gameState.shuffledQuestions.length) {
+                    setLevelUpMode(true);
+                } else if (nextIndex >= gameState.shuffledQuestions.length) {
+                    // Game Over
+                    onComplete(gameState.score + (lastCorrect ? 1 : 0), gameState.shuffledQuestions.length); // simple fix for score sync
+                    localStorage.removeItem('phrasalMaster_progress'); // Clear save on finish
+                } else {
+                    // Normal Next Question
+                    setGameState(prev => ({ ...prev, qIndex: nextIndex }));
+                }
+            };
+
+            const handleContinueLevel = () => {
+                setLevelUpMode(false);
+                setGameState(prev => ({ ...prev, qIndex: prev.qIndex + 1 }));
+            };
+
+            if (loading) return <div>Loading...</div>;
+
+            // --- LEVEL UP SCREEN ---
+            if (levelUpMode) {
+                // Calculate stats for just this level
+                const startIndexOfLevel = (currentLevel - 1) * LEVEL_SIZE;
+                const wrongInThisLevel = gameState.wrongAnswers.filter(w => w.level === currentLevel);
+                const scoreInLevel = LEVEL_SIZE - wrongInThisLevel.length;
+
+                return (
+                    <div className="w-full max-w-lg fade-in bg-white rounded-2xl shadow-xl overflow-hidden">
+                        <div className="bg-yellow-400 p-6 text-center">
+                            <Icon name="star" size={48} className="text-white mx-auto mb-2 fill-current"/>
+                            <h2 className="text-3xl font-extrabold text-yellow-900">LEVEL {currentLevel} COMPLETE!</h2>
+                            <p className="text-yellow-800 font-bold mt-2">You scored {scoreInLevel} / {LEVEL_SIZE}</p>
+                        </div>
+                        
+                        <div className="p-6">
+                            {wrongInThisLevel.length > 0 ? (
+                                <div className="mb-6">
+                                    <h3 className="font-bold text-red-500 mb-3 flex items-center gap-2"><Icon name="alert-circle" size={18}/> Review Mistakes:</h3>
+                                    <div className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
+                                        {wrongInThisLevel.map((w, i) => (
+                                            <div key={i} className="bg-red-50 p-3 rounded-lg border border-red-100 text-sm">
+                                                <p className="font-semibold text-gray-800 mb-1">{w.q}</p>
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-red-500 line-through">{w.yourAnswer}</span>
+                                                    <span className="text-green-600 font-bold">{w.a}</span>
+                                                </div>
+                                                <p className="text-gray-500 text-xs mt-1 italic">{w.expl}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-6 text-green-600 font-bold text-lg">
+                                    Perfect Score! Amazing job! 🎉
+                                </div>
+                            )}
+
+                            <div className="flex gap-3">
+                                <Button onClick={onExit} variant="secondary" className="flex-1">Take a Break</Button>
+                                <Button onClick={handleContinueLevel} variant="primary" className="flex-1">Start Level {currentLevel + 1}</Button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- QUIZ INTERFACE ---
+            const q = gameState.shuffledQuestions[gameState.qIndex];
+            const progressInLevel = (gameState.qIndex % LEVEL_SIZE);
+            
+            return (
+                <div className="w-full max-w-lg fade-in">
+                    <div className="bg-indigo-900 text-white p-4 rounded-t-2xl flex justify-between items-center shadow-lg">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="bg-yellow-400 text-indigo-900 text-xs font-bold px-2 py-1 rounded">LEVEL {currentLevel}</span>
+                            </div>
+                            <p className="text-xs text-indigo-300 mt-1">Total Score: {gameState.score}</p>
+                        </div>
+                        <div className="text-right">
+                            <button onClick={onExit} className="text-indigo-300 hover:text-white text-xs underline">Save & Exit</button>
+                        </div>
+                    </div>
+                    
+                    {/* Level Progress Bar */}
+                    <div className="w-full bg-indigo-200 h-2">
+                        <div className="bg-yellow-400 h-2 transition-all duration-300" style={{ width: `${((progressInLevel) / LEVEL_SIZE) * 100}%` }}></div>
+                    </div>
+
+                    <div className="bg-white rounded-b-2xl shadow-xl p-6 mb-4">
+                        <div className="mb-2 text-right text-xs text-gray-400">Question {progressInLevel + 1} of {LEVEL_SIZE}</div>
+                        <h3 className="text-xl font-bold mb-6 text-gray-800 leading-relaxed">{q.q}</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {q.options.map((opt, i) => (
+                                <button key={i} onClick={() => handleAnswer(opt)} className="p-3 text-center border-2 border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-500 transition-all font-semibold text-gray-700">
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    {showFeedback && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                            <div className={`bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl border-b-8 ${lastCorrect ? 'border-green-500' : 'border-red-500'} fade-in`}>
+                                <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-3 ${lastCorrect ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                    <Icon name={lastCorrect ? "check" : "x"} size={24} />
+                                </div>
+                                <h3 className={`text-2xl font-bold mb-2 ${lastCorrect ? 'text-green-600' : 'text-red-600'}`}>{lastCorrect ? "Correct!" : "Incorrect"}</h3>
+                                <p className="text-gray-600 mb-2">Answer: <strong>{q.a}</strong></p>
+                                <div className="bg-gray-50 p-3 rounded-lg mb-6 text-sm text-gray-600 italic border border-gray-100">
+                                    "{q.expl}"
+                                </div>
+                                <Button onClick={handleNext} variant={lastCorrect ? "primary" : "secondary"}>
+                                    {(gameState.qIndex + 1) % LEVEL_SIZE === 0 ? "Finish Level" : "Next Question"}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- APP SHELL ---
+
+        const App = () => {
+            const [appState, setAppState] = useState('menu');
+            const [scores, setScores] = useState({});
+            const [savedProgress, setSavedProgress] = useState(null);
+
+            useEffect(() => {
+                // Check for saved game on load
+                const saved = localStorage.getItem('phrasalMaster_progress');
+                if (saved) {
+                    setSavedProgress(JSON.parse(saved));
+                }
+            }, [appState]); // Re-check when returning to menu
+
+            const handleModuleComplete = (score, total, moduleId) => {
+                setScores(prev => ({ ...prev, [moduleId]: { score, total } }));
+                setAppState('menu');
+            };
+
+            const handleResetData = () => {
+                if(confirm("Are you sure? This will delete your progress in the Final Challenge.")) {
+                    localStorage.removeItem('phrasalMaster_progress');
+                    setSavedProgress(null);
+                }
+            };
+
+            const getScoreDisplay = (id) => scores[id] ? <span className="ml-2 text-sm font-bold text-green-600">({scores[id].score}/{scores[id].total})</span> : null;
+            
+            const modules = [
+                { id: 'module1', title: "1. Definitions & Meanings", icon: "book-a" },
+                { id: 'module2', title: "2. Structure & Types", icon: "hammer" },
+                { id: 'module3', title: "3. Formal vs Informal", icon: "arrow-left-right" },
+                { id: 'module4', title: "4. Rules & Syntax", icon: "check-circle-2" },
+            ];
+
+            // Helper to get button text for Module 5
+            const getMod5Text = () => {
+                if (savedProgress) {
+                    const level = Math.floor(savedProgress.qIndex / 10) + 1;
+                    return `Continue Level ${level} (${savedProgress.qIndex}/100)`;
+                }
+                return "5. Final Challenge (100 Qs)";
+            };
+
+            const renderContent = () => {
+                switch (appState) {
+                    case 'menu': return (
+                        <div className="max-w-md w-full mx-auto fade-in text-center">
+                            <div className="inline-block p-4 bg-white rounded-full shadow-md mb-4"><Icon name="graduation-cap" size={48} className="text-indigo-600" /></div>
+                            <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Phrasal Verb<br/>Academy</h1>
+                            <p className="text-gray-500 mb-8">Comprehensive Course (28 Verbs)</p>
+                            <div className="space-y-3">
+                                {modules.map(m => (
+                                    <button 
+                                        key={m.id} 
+                                        onClick={() => setAppState(m.id)} 
+                                        className={`w-full p-4 rounded-xl shadow-sm hover:shadow-md border border-transparent transition-all flex items-center justify-between group bg-white hover:border-indigo-200`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100`}><Icon name={m.icon} /></div>
+                                            <div className="text-left"><span className="font-semibold block text-gray-700">{m.title}</span>{getScoreDisplay(m.id)}</div>
+                                        </div>
+                                        <Icon name="chevron-right" className="text-gray-300 group-hover:text-indigo-400" />
+                                    </button>
+                                ))}
+                                
+                                {/* Module 5 Button (Dynamic) */}
+                                <button 
+                                    onClick={() => setAppState('module5')} 
+                                    className="w-full p-4 rounded-xl shadow-sm hover:shadow-md border border-transparent transition-all flex items-center justify-between group bg-indigo-900 text-white hover:bg-indigo-800"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-yellow-500 text-indigo-900"><Icon name="trophy" /></div>
+                                        <div className="text-left">
+                                            <span className="font-semibold block text-white">{getMod5Text()}</span>
+                                            {getScoreDisplay('module5')}
+                                        </div>
+                                    </div>
+                                    <Icon name={savedProgress ? "play-circle" : "chevron-right"} className="text-indigo-300" />
+                                </button>
+
+                                {savedProgress && (
+                                    <button onClick={handleResetData} className="text-xs text-red-400 hover:text-red-600 underline mt-2">
+                                        Reset Final Challenge Progress
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    );
+                    case 'module1': return <Module1 onComplete={(s, t) => handleModuleComplete(s, t, 'module1')} />;
+                    case 'module2': return <Module2 onComplete={(s, t) => handleModuleComplete(s, t, 'module2')} />;
+                    case 'module3': return <Module3 onComplete={(s, t) => handleModuleComplete(s, t, 'module3')} />;
+                    case 'module4': return <Module4 onComplete={(s, t) => handleModuleComplete(s, t, 'module4')} />;
+                    case 'module5': return <Module5 onComplete={(s, t) => handleModuleComplete(s, t, 'module5')} onExit={() => setAppState('menu')} />;
+                    default: return <div>Error</div>;
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-100 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 -z-10"></div>
+                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-green-100 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 -z-10"></div>
+                    {appState !== 'menu' && <button onClick={() => setAppState('menu')} className="absolute top-4 left-4 p-2 bg-white rounded-full shadow hover:bg-gray-50 text-gray-600"><Icon name="home" size={20} /></button>}
+                    {renderContent()}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
