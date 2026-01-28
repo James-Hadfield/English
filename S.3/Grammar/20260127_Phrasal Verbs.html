@@ -106,6 +106,16 @@
             return <span ref={ref} className="inline-flex items-center justify-center"></span>;
         };
 
+        // Utility: unbiased in-place shuffle that returns a new array
+        const shuffleArray = (arr) => {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        };
+
         // --- PHRASAL VERB DATA ---
         const PHRASAL_VERBS = {
             // Verb + Adverb
@@ -297,6 +307,16 @@
             const [available, setAvailable] = useState(items);
             const [feedback, setFeedback] = useState(null);
             const [draggedItem, setDraggedItem] = useState(null);
+            const [hasAttempted, setHasAttempted] = useState(false);
+            const [revealed, setRevealed] = useState(false);
+            const [completionTriggered, setCompletionTriggered] = useState(false);
+
+            const triggerComplete = useCallback(() => {
+                setCompletionTriggered(prev => {
+                    if (!prev && onComplete) onComplete();
+                    return true;
+                });
+            }, [onComplete]);
 
             const handleDragStart = (e, item, sourceCategory) => {
                 setDraggedItem({ item, sourceCategory });
@@ -357,6 +377,7 @@
             };
 
             const checkAnswers = () => {
+                setHasAttempted(true);
                 let correct = 0;
                 let total = items.length;
 
@@ -368,8 +389,20 @@
 
                 setFeedback({ correct, total, percentage: Math.round((correct / total) * 100) });
                 if (correct === total) {
-                    setTimeout(() => onComplete && onComplete(), 1500);
+                    setTimeout(triggerComplete, 1200);
                 }
+            };
+
+            const revealAnswers = () => {
+                const answerKey = categories.reduce((acc, cat) => {
+                    acc[cat.id] = items.filter(item => item.category === cat.id);
+                    return acc;
+                }, {});
+                setDraggedItem(null);
+                setSorted(answerKey);
+                setAvailable([]);
+                setFeedback({ correct: items.length, total: items.length, percentage: 100, revealed: true });
+                setRevealed(true);
             };
 
             const reset = () => {
@@ -377,6 +410,9 @@
                 setAvailable(items);
                 setFeedback(null);
                 setDraggedItem(null);
+                setHasAttempted(false);
+                setRevealed(false);
+                setCompletionTriggered(false);
             };
 
             return (
@@ -442,13 +478,23 @@
                         </div>
                     )}
 
-                    <div className="flex gap-3 justify-center">
+                    <div className="flex gap-3 justify-center flex-wrap">
                         <Button variant="outline" onClick={reset} size="sm">
                             <Icon name="refresh-cw" size={16} /> Reset
                         </Button>
                         <Button variant="primary" onClick={checkAnswers} disabled={available.length > 0} size="sm">
                             <Icon name="check-circle" size={16} /> Check Answers
                         </Button>
+                        {hasAttempted && !revealed && feedback && feedback.percentage < 100 && (
+                            <Button variant="secondary" onClick={revealAnswers} size="sm">
+                                <Icon name="eye" size={16} /> Reveal answers
+                            </Button>
+                        )}
+                        {(revealed || (feedback && feedback.percentage === 100)) && (
+                            <Button variant="primary" onClick={triggerComplete} size="sm" disabled={completionTriggered}>
+                                Continue <Icon name="arrow-right" size={16} />
+                            </Button>
+                        )}
                     </div>
                 </div>
             );
@@ -462,6 +508,7 @@
             const [score, setScore] = useState(0);
 
             const current = items[currentIndex];
+            const optionOrder = useMemo(() => shuffleArray(['correct', 'wrong_separation', 'wrong_order', 'wrong_verb']), [currentIndex]);
 
             const handleSelect = (option) => {
                 setSelectedError(option);
@@ -496,7 +543,7 @@
                         </p>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {['correct', 'wrong_separation', 'wrong_order', 'wrong_verb'].map(option => {
+                            {optionOrder.map(option => {
                                 const labels = {
                                     'correct': '✓ Sentence is correct',
                                     'wrong_separation': '✗ Wrong separation',
@@ -547,6 +594,16 @@
             const [selected, setSelected] = useState({ left: null, right: null });
             const [matched, setMatched] = useState([]);
             const [wrong, setWrong] = useState(null);
+            const [hasAttempted, setHasAttempted] = useState(false);
+            const [revealed, setRevealed] = useState(false);
+            const [completionTriggered, setCompletionTriggered] = useState(false);
+
+            const triggerComplete = useCallback(() => {
+                setCompletionTriggered(prev => {
+                    if (!prev && onComplete) onComplete();
+                    return true;
+                });
+            }, [onComplete]);
 
             const leftItems = pairs.map(p => p.phrasal);
             const rightItems = useMemo(() => [...pairs.map(p => p.formal)].sort(() => Math.random() - 0.5), []);
@@ -557,13 +614,17 @@
                 setWrong(null);
 
                 if (newSelected.left && newSelected.right) {
+                    setHasAttempted(true);
                     const pair = pairs.find(p => p.phrasal === newSelected.left);
                     if (pair && pair.formal === newSelected.right) {
-                        setMatched(m => [...m, newSelected.left]);
+                        setMatched(m => {
+                            const updated = [...m, newSelected.left];
+                            if (updated.length === pairs.length) {
+                                setTimeout(triggerComplete, 800);
+                            }
+                            return updated;
+                        });
                         setSelected({ left: null, right: null });
-                        if (matched.length + 1 === pairs.length) {
-                            setTimeout(() => onComplete && onComplete(), 1000);
-                        }
                     } else {
                         setWrong(newSelected);
                         setTimeout(() => {
@@ -572,6 +633,13 @@
                         }, 800);
                     }
                 }
+            };
+
+            const revealAnswers = () => {
+                setMatched(pairs.map(p => p.phrasal));
+                setSelected({ left: null, right: null });
+                setWrong(null);
+                setRevealed(true);
             };
 
             return (
@@ -627,6 +695,36 @@
                                 );
                             })}
                         </div>
+                    </div>
+
+                    {revealed && (
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 max-w-2xl mx-auto fade-in">
+                            <h4 className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                                <Icon name="eye" size={16} /> Answer key
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-700">
+                                {pairs.map(pair => (
+                                    <div key={pair.phrasal} className="flex items-center gap-2 bg-white/60 px-3 py-2 rounded-lg border border-indigo-100">
+                                        <span className="font-bold text-indigo-900">{pair.phrasal}</span>
+                                        <Icon name="arrow-right" size={14} className="text-indigo-500" />
+                                        <span>{pair.formal}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex flex-wrap justify-center gap-3">
+                        {hasAttempted && !revealed && matched.length < pairs.length && (
+                            <Button variant="secondary" onClick={revealAnswers} size="sm">
+                                <Icon name="eye" size={16} /> Reveal answers
+                            </Button>
+                        )}
+                        {(revealed || matched.length === pairs.length) && (
+                            <Button variant="primary" onClick={triggerComplete} size="sm" disabled={completionTriggered}>
+                                Continue <Icon name="arrow-right" size={16} />
+                            </Button>
+                        )}
                     </div>
 
                     {matched.length === pairs.length && (
@@ -768,6 +866,7 @@
             const [selectedOption, setSelectedOption] = useState(null);
 
             const q = activeQuestions[idx];
+            const shuffledOptions = useMemo(() => shuffleArray(q.opts), [q.id]);
 
             const handleAnswer = (choice) => {
                 if (answered) return;
@@ -868,7 +967,7 @@
                             </h3>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                                {q.opts.map((opt, i) => {
+                                {shuffledOptions.map((opt, i) => {
                                     const isCorrectAnswer = opt === q.a || (Array.isArray(q.a) && q.a.includes(opt));
                                     let btnClass = "bg-white border-2 border-slate-200 hover:border-indigo-400";
 
