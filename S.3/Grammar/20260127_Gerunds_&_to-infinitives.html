@@ -185,6 +185,16 @@
             }
         };
 
+        // --- UTILS ---
+        const shuffleArray = (array) => {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        };
+
         // --- REUSABLE COMPONENTS ---
         const Button = ({ onClick, children, variant = "primary", className = "", disabled = false, size = "md" }) => {
             const styles = {
@@ -1421,6 +1431,10 @@
             const [completed, setCompleted] = useState(false);
             const [score, setScore] = useState(null);
 
+            const shuffledQuestions = useMemo(() => {
+                return shuffleArray(module.practiceQuestions);
+            }, [module.practiceQuestions]);
+
             const currentPhase = module.phases[phase];
 
             const nextSlide = () => {
@@ -1557,7 +1571,7 @@
                     {/* INDEPENDENT PRACTICE PHASE */}
                     {phase === 2 && (
                         <QuizActivity
-                            questions={module.practiceQuestions}
+                            questions={shuffledQuestions}
                             onComplete={handleQuizComplete}
                         />
                     )}
@@ -1569,7 +1583,7 @@
         const FinalChallenge = ({ onExit }) => {
             const allQuestions = useMemo(() => {
                 const all = Object.values(MODULE_DATA).flatMap(m => m.practiceQuestions);
-                return all.sort(() => 0.5 - Math.random()).slice(0, 20);
+                return shuffleArray(all).slice(0, 20);
             }, []);
 
             const [completed, setCompleted] = useState(false);
