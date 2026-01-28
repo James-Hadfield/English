@@ -221,8 +221,8 @@
                 {phases.map((phase, idx) => (
                     <React.Fragment key={phase.id}>
                         <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${idx < currentPhase ? 'bg-emerald-100 text-emerald-700' :
-                                idx === currentPhase ? 'bg-indigo-600 text-white shadow-lg' :
-                                    'bg-slate-100 text-slate-400'
+                            idx === currentPhase ? 'bg-indigo-600 text-white shadow-lg' :
+                                'bg-slate-100 text-slate-400'
                             }`}>
                             {idx < currentPhase ? <Icon name="check" size={16} /> : <span className="w-5 h-5 flex items-center justify-center">{idx + 1}</span>}
                             <span className="hidden sm:inline">{phase.name}</span>
@@ -377,28 +377,53 @@
             const [showResults, setShowResults] = useState(false);
             const [draggedItem, setDraggedItem] = useState(null);
 
+            // Calculate unplaced items
             const unplacedItems = items.filter(item => !Object.values(placements).flat().includes(item.word));
 
-            const handleDrop = (category) => {
-                if (draggedItem) {
-                    // Remove from previous category
-                    const newPlacements = { ...placements };
-                    Object.keys(newPlacements).forEach(cat => {
-                        newPlacements[cat] = newPlacements[cat].filter(w => w !== draggedItem.word);
-                    });
-                    // Add to new category
-                    newPlacements[category] = [...(newPlacements[category] || []), draggedItem.word];
-                    setPlacements(newPlacements);
-                    setDraggedItem(null);
-                }
+            const handleDragStart = (e, item) => {
+                setDraggedItem(item);
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', item.word);
             };
 
-            const handleItemClick = (item) => {
-                if (draggedItem?.word === item.word) {
-                    setDraggedItem(null);
-                } else {
-                    setDraggedItem(item);
-                }
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            };
+
+            const handleDrop = (e, targetCategory) => {
+                e.preventDefault();
+                if (!draggedItem) return;
+
+                const word = draggedItem.word;
+
+                // Remove from any existing placement (if moved from one category to another)
+                const newPlacements = { ...placements };
+                Object.keys(newPlacements).forEach(cat => {
+                    newPlacements[cat] = newPlacements[cat].filter(w => w !== word);
+                });
+
+                // Add to new category
+                newPlacements[targetCategory] = [...(newPlacements[targetCategory] || []), word];
+
+                setPlacements(newPlacements);
+                setDraggedItem(null);
+            };
+
+            const handleDropToAvailable = (e) => {
+                e.preventDefault();
+                if (!draggedItem) return;
+
+                const word = draggedItem.word;
+
+                // Remove from any existing placement
+                const newPlacements = { ...placements };
+                Object.keys(newPlacements).forEach(cat => {
+                    newPlacements[cat] = newPlacements[cat].filter(w => w !== word);
+                });
+
+                setPlacements(newPlacements);
+                setDraggedItem(null);
             };
 
             const removeFromCategory = (category, word) => {
@@ -417,6 +442,11 @@
                 });
                 return correct;
             };
+
+            const reset = () => {
+                setPlacements({});
+                setShowResults(false);
+            }
 
             if (showResults) {
                 const score = getScore();
@@ -445,9 +475,14 @@
                             ))}
                         </div>
 
-                        <Button onClick={onComplete} variant="primary" className="w-full">
-                            Continue <Icon name="arrow-right" size={20} />
-                        </Button>
+                        <div className="flex gap-3">
+                            <Button onClick={reset} variant="outline" className="flex-1">
+                                Try Again <Icon name="refresh-cw" size={20} />
+                            </Button>
+                            <Button onClick={onComplete} variant="primary" className="flex-1">
+                                Continue <Icon name="arrow-right" size={20} />
+                            </Button>
+                        </div>
                     </div>
                 );
             }
@@ -456,20 +491,25 @@
                 <div className="bg-white rounded-2xl p-6 shadow-lg fade-in">
                     <p className="text-slate-600 mb-4 text-center">
                         <Icon name="move" size={18} className="inline mr-2" />
-                        Tap a word, then tap a category to sort it
+                        Drag words to the correct category
                     </p>
 
                     {/* Unplaced items */}
-                    <div className="bg-slate-100 rounded-xl p-4 mb-6 min-h-20">
+                    <div
+                        className={`bg-slate-100 rounded-xl p-4 mb-6 min-h-20 transition-colors ${draggedItem && !unplacedItems.includes(draggedItem) ? 'bg-indigo-50 border-2 border-indigo-200 border-dashed' : ''}`}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDropToAvailable}
+                    >
                         <div className="flex flex-wrap gap-2 justify-center">
                             {unplacedItems.map(item => (
-                                <button
+                                <div
                                     key={item.word}
-                                    onClick={() => handleItemClick(item)}
-                                    className={`px-4 py-2 rounded-lg font-bold transition-all ${draggedItem?.word === item.word ? 'bg-indigo-600 text-white scale-105 shadow-lg' : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-indigo-300'}`}
+                                    draggable={true}
+                                    onDragStart={(e) => handleDragStart(e, item)}
+                                    className="px-4 py-2 bg-white rounded-lg font-bold shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-105 transition-all select-none border border-slate-200 text-slate-700"
                                 >
                                     {item.word}
-                                </button>
+                                </div>
                             ))}
                             {unplacedItems.length === 0 && <p className="text-slate-400 italic">All words sorted!</p>}
                         </div>
@@ -478,24 +518,32 @@
                     {/* Categories */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         {categories.map(cat => (
-                            <button
+                            <div
                                 key={cat.id}
-                                onClick={() => draggedItem && handleDrop(cat.id)}
-                                className={`p-4 rounded-xl border-2 border-dashed transition-all min-h-32 ${cat.color} ${draggedItem ? 'border-indigo-400 cursor-pointer hover:border-indigo-600' : 'border-transparent'}`}
+                                onDragOver={handleDragOver}
+                                onDrop={(e) => handleDrop(e, cat.id)}
+                                className={`p-4 rounded-xl border-2 border-dashed transition-all min-h-32 ${cat.color} ${draggedItem ? 'hover:bg-opacity-80 hover:scale-[1.02]' : ''}`}
                             >
-                                <h4 className="font-bold text-lg mb-3">{cat.name}</h4>
+                                <h4 className="font-bold text-lg mb-3 select-none pointer-events-none">{cat.name}</h4>
                                 <div className="flex flex-wrap gap-2">
                                     {(placements[cat.id] || []).map(word => (
-                                        <span
+                                        <div
                                             key={word}
-                                            onClick={(e) => { e.stopPropagation(); removeFromCategory(cat.id, word); }}
-                                            className="px-3 py-1 bg-white rounded-lg text-sm font-medium shadow-sm cursor-pointer hover:bg-red-50 hover:text-red-600 transition-colors"
+                                            draggable={true}
+                                            onDragStart={(e) => handleDragStart(e, items.find(i => i.word === word))}
+                                            className="px-3 py-1 bg-white rounded-lg text-sm font-medium shadow-sm cursor-grab active:cursor-grabbing hover:bg-slate-50 transition-colors flex items-center gap-1 select-none"
                                         >
-                                            {word} ×
-                                        </span>
+                                            {word}
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); removeFromCategory(cat.id, word); }}
+                                                className="ml-1 text-slate-400 hover:text-red-500 rounded-full"
+                                            >
+                                                <Icon name="x" size={14} />
+                                            </button>
+                                        </div>
                                     ))}
                                 </div>
-                            </button>
+                            </div>
                         ))}
                     </div>
 
