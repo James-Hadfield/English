@@ -301,8 +301,15 @@
                 setShowResults(true);
             };
 
+            const sentencesWithShuffledOptions = useMemo(() => {
+                return sentences.map(s => ({
+                    ...s,
+                    options: shuffleArray(s.options)
+                }));
+            }, [sentences]);
+
             const allCorrect = sentences.every((s, i) => answers[i] === s.answer);
-            const currentSentence = sentences[currentIdx];
+            const currentSentence = sentencesWithShuffledOptions[currentIdx];
 
             if (showResults) {
                 const score = sentences.filter((s, i) => answers[i] === s.answer).length;
@@ -722,7 +729,14 @@
             const [showFeedback, setShowFeedback] = useState(false);
             const [showResults, setShowResults] = useState(false);
 
-            const q = questions[currentIdx];
+            const questionsWithShuffledOptions = useMemo(() => {
+                return questions.map(q => ({
+                    ...q,
+                    options: shuffleArray(q.options)
+                }));
+            }, [questions]);
+
+            const q = questionsWithShuffledOptions[currentIdx];
 
             const handleAnswer = (choice) => {
                 if (showFeedback) return;
@@ -973,22 +987,22 @@
                         type: 'fillBlank',
                         title: "Complete the Sentences",
                         sentences: [
-                            { text: "I enjoy ___ to music while studying.", options: ["listening", "to listen", "listen"], answer: "listening" },
-                            { text: "Have you finished ___ your homework?", options: ["doing", "to do", "do"], answer: "doing" },
-                            { text: "She suggested ___ a movie tonight.", options: ["watching", "to watch", "watch"], answer: "watching" },
-                            { text: "I can't imagine ___ in such a cold place.", options: ["living", "to live", "live"], answer: "living" }
+                            { text: "I enjoy ___ to music while studying.", options: ["to listen", "listening", "listen"], answer: "listening" },
+                            { text: "Have you finished ___ your homework?", options: ["to do", "do", "doing"], answer: "doing" },
+                            { text: "She suggested ___ a movie tonight.", options: ["watch", "watching", "to watch"], answer: "watching" },
+                            { text: "I can't imagine ___ in such a cold place.", options: ["to live", "live", "living"], answer: "living" }
                         ]
                     }
                 ],
                 practiceQuestions: [
-                    { question: "___ is my favourite hobby.", options: ["Reading", "To read", "Read", "Reads"], answer: "Reading", explanation: "When a verb acts as the subject, use the gerund form." },
-                    { question: "Do you mind ___ me with this?", options: ["helping", "to help", "help", "helped"], answer: "helping", explanation: "'Mind' is always followed by a gerund." },
-                    { question: "She admitted ___ the window.", options: ["breaking", "to break", "break", "broken"], answer: "breaking", explanation: "'Admit' is always followed by a gerund." },
-                    { question: "Are you interested in ___ Spanish?", options: ["learning", "to learn", "learn", "learned"], answer: "learning", explanation: "After prepositions (in, by, at), we use gerunds." },
-                    { question: "I ___ walk to school, but now I take the bus.", options: ["used to", "am used to", "get used to", "using to"], answer: "used to", explanation: "'Used to + base verb' describes a past habit that no longer happens." },
-                    { question: "After living here for years, I ___ the noise.", options: ["am used to", "used to", "use to", "am use to"], answer: "am used to", explanation: "'Be used to' + gerund/noun means something is familiar." },
+                    { question: "___ is my favourite hobby.", options: ["To read", "Reading", "Read", "Reads"], answer: "Reading", explanation: "When a verb acts as the subject, use the gerund form." },
+                    { question: "Do you mind ___ me with this?", options: ["to help", "help", "helping", "helped"], answer: "helping", explanation: "'Mind' is always followed by a gerund." },
+                    { question: "She admitted ___ the window.", options: ["break", "breaking", "to break", "broken"], answer: "breaking", explanation: "'Admit' is always followed by a gerund." },
+                    { question: "Are you interested in ___ Spanish?", options: ["to learn", "learn", "learning", "learned"], answer: "learning", explanation: "After prepositions (in, by, at), we use gerunds." },
+                    { question: "I ___ walk to school, but now I take the bus.", options: ["am used to", "used to", "get used to", "using to"], answer: "used to", explanation: "'Used to + base verb' describes a past habit that no longer happens." },
+                    { question: "After living here for years, I ___ the noise.", options: ["used to", "use to", "am used to", "am use to"], answer: "am used to", explanation: "'Be used to' + gerund/noun means something is familiar." },
                     { question: "He keeps ___ the same mistakes.", options: ["making", "to make", "make", "made"], answer: "making", explanation: "'Keep' is always followed by a gerund." },
-                    { question: "We considered ___ to a bigger house.", options: ["moving", "to move", "move", "moved"], answer: "moving", explanation: "'Consider' is always followed by a gerund." }
+                    { question: "We considered ___ to a bigger house.", options: ["to move", "move", "moving", "moved"], answer: "moving", explanation: "'Consider' is always followed by a gerund." }
                 ]
             },
             m2: {
@@ -1128,22 +1142,22 @@
                         type: 'fillBlank',
                         title: "Complete the Sentences",
                         sentences: [
-                            { text: "She agreed ___ me with my homework.", options: ["to help", "helping", "help"], answer: "to help" },
-                            { text: "My parents allowed me ___ out tonight.", options: ["to go", "going", "go"], answer: "to go" },
-                            { text: "I haven't decided where ___ for dinner.", options: ["to go", "going", "go"], answer: "to go" },
-                            { text: "He reminded me ___ my keys.", options: ["to bring", "bringing", "bring"], answer: "to bring" }
+                            { text: "She agreed ___ me with my homework.", options: ["helping", "to help", "help"], answer: "to help" },
+                            { text: "My parents allowed me ___ out tonight.", options: ["going", "to go", "go"], answer: "to go" },
+                            { text: "I haven't decided where ___ for dinner.", options: ["to go", "go", "going"], answer: "to go" },
+                            { text: "He reminded me ___ my keys.", options: ["bringing", "to bring", "bring"], answer: "to bring" }
                         ]
                     }
                 ],
                 practiceQuestions: [
-                    { question: "She agreed ___ early tomorrow.", options: ["to come", "coming", "come", "came"], answer: "to come", explanation: "'Agree' is always followed by a to-infinitive." },
-                    { question: "The teacher encouraged us ___ our best.", options: ["to do", "doing", "do", "did"], answer: "to do", explanation: "'Encourage' follows: encourage + object + to-infinitive." },
-                    { question: "I'm happy ___ you again.", options: ["to see", "seeing", "see", "saw"], answer: "to see", explanation: "After adjectives describing feelings, use to-infinitives." },
-                    { question: "Have you decided what ___ for the party?", options: ["to wear", "wearing", "wear", "wore"], answer: "to wear", explanation: "After wh-words (except why), use to-infinitives." },
+                    { question: "She agreed ___ early tomorrow.", options: ["coming", "to come", "come", "came"], answer: "to come", explanation: "'Agree' is always followed by a to-infinitive." },
+                    { question: "The teacher encouraged us ___ our best.", options: ["doing", "to do", "do", "did"], answer: "to do", explanation: "'Encourage' follows: encourage + object + to-infinitive." },
+                    { question: "I'm happy ___ you again.", options: ["seeing", "to see", "see", "saw"], answer: "to see", explanation: "After adjectives describing feelings, use to-infinitives." },
+                    { question: "Have you decided what ___ for the party?", options: ["wearing", "to wear", "wear", "wore"], answer: "to wear", explanation: "After wh-words (except why), use to-infinitives." },
                     { question: "Mum told me ___ late.", options: ["not to be", "to not be", "not being", "not be"], answer: "not to be", explanation: "The negative infinitive is 'not + to-infinitive'." },
-                    { question: "He promised ___ again.", options: ["not to lie", "to not lie", "not lying", "lying not"], answer: "not to lie", explanation: "The negative infinitive is 'not + to-infinitive'." },
-                    { question: "I need someone ___ me move this box.", options: ["to help", "helping", "help", "helped"], answer: "to help", explanation: "After indefinite pronouns (someone, something), use to-infinitives." },
-                    { question: "She refused ___ to him.", options: ["to talk", "talking", "talk", "talked"], answer: "to talk", explanation: "'Refuse' is always followed by a to-infinitive." }
+                    { question: "He promised ___ again.", options: ["to not lie", "not to lie", "not lying", "lying not"], answer: "not to lie", explanation: "The negative infinitive is 'not + to-infinitive'." },
+                    { question: "I need someone ___ me move this box.", options: ["helping", "to help", "help", "helped"], answer: "to help", explanation: "After indefinite pronouns (someone, something), use to-infinitives." },
+                    { question: "She refused ___ to him.", options: ["talking", "to talk", "talk", "talked"], answer: "to talk", explanation: "'Refuse' is always followed by a to-infinitive." }
                 ]
             },
             m3: {
@@ -1240,19 +1254,19 @@
                         type: 'fillBlank',
                         title: "Choose the Correct Form",
                         sentences: [
-                            { text: "It started ___ when we arrived.", options: ["raining / to rain (both OK)", "only raining", "only to rain"], answer: "raining / to rain (both OK)" },
-                            { text: "I would prefer ___ at home tonight.", options: ["to stay", "staying", "stay"], answer: "to stay" },
-                            { text: "More people are beginning ___ online.", options: ["to shop", "shopping", "shop"], answer: "to shop" },
-                            { text: "She loves ___ in the garden.", options: ["working / to work (both OK)", "only working", "only to work"], answer: "working / to work (both OK)" }
+                            { text: "It started ___ when we arrived.", options: ["only raining", "raining / to rain (both OK)", "only to rain"], answer: "raining / to rain (both OK)" },
+                            { text: "I would prefer ___ at home tonight.", options: ["staying", "to stay", "stay"], answer: "to stay" },
+                            { text: "More people are beginning ___ online.", options: ["shopping", "to shop", "shop"], answer: "to shop" },
+                            { text: "She loves ___ in the garden.", options: ["only working", "working / to work (both OK)", "only to work"], answer: "working / to work (both OK)" }
                         ]
                     }
                 ],
                 practiceQuestions: [
                     { question: "It started ___ heavily.", options: ["raining / to rain", "only raining", "only to rain", "rained"], answer: "raining / to rain", explanation: "'Start' can take either form with no meaning change." },
-                    { question: "I would like ___ a coffee, please.", options: ["to have", "having", "have", "had"], answer: "to have", explanation: "'Would like' MUST be followed by a to-infinitive." },
-                    { question: "People are beginning ___ the problem.", options: ["to understand", "understanding", "understand", "understood"], answer: "to understand", explanation: "When 'begin' is in continuous form, use to-infinitive to avoid double -ing." },
-                    { question: "He'd prefer ___ by train.", options: ["to travel", "travelling", "travel", "travelled"], answer: "to travel", explanation: "'Would prefer' MUST be followed by a to-infinitive." },
-                    { question: "I hate ___ early in the morning.", options: ["waking up / to wake up", "only waking up", "only to wake up", "wake up"], answer: "waking up / to wake up", explanation: "'Hate' can take either form in general statements." },
+                    { question: "I would like ___ a coffee, please.", options: ["having", "to have", "have", "had"], answer: "to have", explanation: "'Would like' MUST be followed by a to-infinitive." },
+                    { question: "People are beginning ___ the problem.", options: ["understanding", "to understand", "understand", "understood"], answer: "to understand", explanation: "When 'begin' is in continuous form, use to-infinitive to avoid double -ing." },
+                    { question: "He'd prefer ___ by train.", options: ["travelling", "to travel", "travel", "travelled"], answer: "to travel", explanation: "'Would prefer' MUST be followed by a to-infinitive." },
+                    { question: "I hate ___ early in the morning.", options: ["only waking up", "waking up / to wake up", "only to wake up", "wake up"], answer: "waking up / to wake up", explanation: "'Hate' can take either form in general statements." },
                     { question: "They continued ___ despite the rain.", options: ["playing / to play", "only playing", "only to play", "play"], answer: "playing / to play", explanation: "'Continue' can take either form." }
                 ]
             },
@@ -1402,22 +1416,22 @@
                         type: 'fillBlank',
                         title: "Complete Based on Meaning",
                         sentences: [
-                            { text: "I'll never forget ___ the Eiffel Tower for the first time. (memory of past)", options: ["seeing", "to see"], answer: "seeing" },
-                            { text: "Please remember ___ the lights when you leave. (task to do)", options: ["to turn off", "turning off"], answer: "to turn off" },
-                            { text: "The food was bland, so I tried ___ more spices. (experiment)", options: ["adding", "to add"], answer: "adding" },
-                            { text: "We were hungry, so we stopped ___ some food. (pause to do)", options: ["to buy", "buying"], answer: "to buy" }
+                            { text: "I'll never forget ___ the Eiffel Tower for the first time. (memory of past)", options: ["to see", "seeing"], answer: "seeing" },
+                            { text: "Please remember ___ the lights when you leave. (task to do)", options: ["turning off", "to turn off"], answer: "to turn off" },
+                            { text: "The food was bland, so I tried ___ more spices. (experiment)", options: ["to add", "adding"], answer: "adding" },
+                            { text: "We were hungry, so we stopped ___ some food. (pause to do)", options: ["buying", "to buy"], answer: "to buy" }
                         ]
                     }
                 ],
                 practiceQuestions: [
-                    { question: "I forgot ___ my homework at home. (I didn't bring it)", options: ["to bring", "bringing"], answer: "to bring", explanation: "'Forget + to-infinitive' means failed to do a task." },
-                    { question: "Do you remember ___ to the beach as a child? (memory)", options: ["going", "to go"], answer: "going", explanation: "'Remember + gerund' refers to a memory of a past event." },
-                    { question: "She stopped ___ and looked at me. (quit the action)", options: ["talking", "to talk"], answer: "talking", explanation: "'Stop + gerund' means to end an activity." },
-                    { question: "We stopped ___ photos of the sunset. (pause to do)", options: ["to take", "taking"], answer: "to take", explanation: "'Stop + to-infinitive' means pause to do something else." },
-                    { question: "If you're tired, try ___ a nap. (experiment)", options: ["taking", "to take"], answer: "taking", explanation: "'Try + gerund' means experiment to see the result." },
-                    { question: "Please try ___ more careful next time. (make effort)", options: ["to be", "being"], answer: "to be", explanation: "'Try + to-infinitive' means make an effort to do something." },
-                    { question: "After lunch, we went on ___ the museum. (continue same)", options: ["exploring", "to explore"], answer: "exploring", explanation: "'Go on + gerund' means continue the same activity." },
-                    { question: "After the introduction, he went on ___ the main points. (move to new)", options: ["to explain", "explaining"], answer: "to explain", explanation: "'Go on + to-infinitive' means move on to something new." }
+                    { question: "I forgot ___ my homework at home. (I didn't bring it)", options: ["bringing", "to bring"], answer: "to bring", explanation: "'Forget + to-infinitive' means failed to do a task." },
+                    { question: "Do you remember ___ to the beach as a child? (memory)", options: ["to go", "going"], answer: "going", explanation: "'Remember + gerund' refers to a memory of a past event." },
+                    { question: "She stopped ___ and looked at me. (quit the action)", options: ["to talk", "talking"], answer: "talking", explanation: "'Stop + gerund' means to end an activity." },
+                    { question: "We stopped ___ photos of the sunset. (pause to do)", options: ["taking", "to take"], answer: "to take", explanation: "'Stop + to-infinitive' means pause to do something else." },
+                    { question: "If you're tired, try ___ a nap. (experiment)", options: ["to take", "taking"], answer: "taking", explanation: "'Try + gerund' means experiment to see the result." },
+                    { question: "Please try ___ more careful next time. (make effort)", options: ["being", "to be"], answer: "to be", explanation: "'Try + to-infinitive' means make an effort to do something." },
+                    { question: "After lunch, we went on ___ the museum. (continue same)", options: ["to explore", "exploring"], answer: "exploring", explanation: "'Go on + gerund' means continue the same activity." },
+                    { question: "After the introduction, he went on ___ the main points. (move to new)", options: ["explaining", "to explain"], answer: "to explain", explanation: "'Go on + to-infinitive' means move on to something new." }
                 ]
             }
         };
