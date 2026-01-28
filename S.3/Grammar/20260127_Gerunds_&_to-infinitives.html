@@ -509,6 +509,14 @@
             );
         };
 
+        const FinalChallenge = ({ onComplete }) => {
+            const shuffled = useMemo(() => [...QUIZ_QUESTIONS].sort(() => 0.5 - Math.random()), []);
+            return <QuizInterface
+                questions={shuffled}
+                onComplete={onComplete}
+            />;
+        };
+
         // --- MAIN APP COMPONENT ---
 
         const App = () => {
@@ -570,11 +578,11 @@
                     <div className="mt-8 bg-slate-900 rounded-[2.5rem] p-12 text-white relative overflow-hidden shadow-2xl group cursor-pointer" onClick={() => startModule('m5')}>
                         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                             <div>
-                                <h2 className="text-4xl font-black mb-2 text-yellow-400">Final Proficiency Challenge</h2>
+                                <h2 className="text-4xl font-black mb-2 text-yellow-400">Final Challenge</h2>
                                 <p className="text-slate-300 text-xl font-medium">Test your mastery with a comprehensive 30-question exam.</p>
                             </div>
                             <Button variant="success" size="lg" className="shrink-0 bg-yellow-500 text-slate-900 hover:bg-yellow-400 border-none">
-                                Start Final Exam
+                                Start Final Challenge
                             </Button>
                         </div>
                         <Icon name="award" size={200} className="absolute -right-8 -bottom-8 text-white/5 rotate-12 group-hover:scale-110 transition-transform duration-700" />
@@ -907,11 +915,7 @@
             };
 
             const renderModule5 = () => {
-                const shuffled = useMemo(() => [...QUIZ_QUESTIONS].sort(() => 0.5 - Math.random()), []);
-                return <QuizInterface
-                    questions={shuffled}
-                    onComplete={(s, t) => finishQuiz(s, t, 'm5')}
-                />;
+                return <FinalChallenge onComplete={(s, t) => finishQuiz(s, t, 'm5')} />;
             };
 
             const getContent = () => {
