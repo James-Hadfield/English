@@ -1247,15 +1247,17 @@
         );
 
         // --- MODULE 1: TYPES OF PHRASAL VERBS ---
-        const Module1 = ({ onComplete, onBack }) => {
-            const [step, setStep] = useState(0);
-            const [maxStepReached, setMaxStepReached] = useState(0);
+        const Module1 = ({ initialState, onProgress, onComplete, onBack }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Sort', 'Quiz'];
 
-            // Track highest step reached
+            // Track highest step reached and report to parent
             React.useEffect(() => {
-                if (step > maxStepReached) setMaxStepReached(step);
-            }, [step]);
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
 
             const conceptQuestions = [
                 { topic: "Adverbs", question: "What is an adverb?", options: ["A word that describes a verb", "A word that names a thing", "A word that joins sentences", "A word that shows time"], correctAnswer: "A word that describes a verb", explanation: "Adverbs describe HOW something happens. In phrasal verbs, words like 'up', 'down', 'away' are adverbs." },
@@ -1465,14 +1467,17 @@
         };
 
         // --- MODULE 2: TRANSITIVE VS INTRANSITIVE ---
-        const Module2 = ({ onComplete, onBack }) => {
-            const [step, setStep] = useState(0);
-            const [maxStepReached, setMaxStepReached] = useState(0);
+        const Module2 = ({ initialState, onProgress, onComplete, onBack }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
 
+            // Track highest step reached and report to parent
             React.useEffect(() => {
-                if (step > maxStepReached) setMaxStepReached(step);
-            }, [step]);
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
 
             const conceptQuestions = [
                 { topic: "Objects", question: "In 'I kicked the ball', what is the object?", options: ["the ball", "I", "kicked"], correctAnswer: "the ball", explanation: "The ball receives the action of kicking. Objects receive the action of the verb." },
@@ -1638,14 +1643,17 @@
         };
 
         // --- MODULE 3: SEPARABLE VS INSEPARABLE ---
-        const Module3 = ({ onComplete, onBack }) => {
-            const [step, setStep] = useState(0);
-            const [maxStepReached, setMaxStepReached] = useState(0);
+        const Module3 = ({ initialState, onProgress, onComplete, onBack }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Build', 'Quiz'];
 
+            // Track highest step reached and report to parent
             React.useEffect(() => {
-                if (step > maxStepReached) setMaxStepReached(step);
-            }, [step]);
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
             const conceptQuestions = [
                 { topic: "Particles", question: "What is a 'particle' in a phrasal verb?", options: ["The adverb or preposition part", "The main verb", "The object", "The subject"], correctAnswer: "The adverb or preposition part", explanation: "In 'pick up', 'up' is the particle. It's the adverb/preposition attached to the verb." },
                 { topic: "Separable verbs", question: "'Separable' means...", options: ["The object can go between verb and particle", "The verb can never be split", "It has three parts", "It needs no object"], correctAnswer: "The object can go between verb and particle", explanation: "Separable = we CAN put the object between: 'pick up the book' OR 'pick the book up'." },
@@ -1813,14 +1821,17 @@
         };
 
         // --- MODULE 4: FORMAL VS INFORMAL ---
-        const Module4 = ({ onComplete, onBack }) => {
-            const [step, setStep] = useState(0);
-            const [maxStepReached, setMaxStepReached] = useState(0);
+        const Module4 = ({ initialState, onProgress, onComplete, onBack }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Match', 'Quiz'];
 
+            // Track highest step reached and report to parent
             React.useEffect(() => {
-                if (step > maxStepReached) setMaxStepReached(step);
-            }, [step]);
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
 
             const conceptQuestions = [
                 { topic: "Register", question: "What is 'register' in language?", options: ["How formal or casual your words are", "The grammar of a sentence", "The spelling of words"], correctAnswer: "How formal or casual your words are", explanation: "Register = formality level. Essays need formal register, chatting needs informal." },
@@ -1991,14 +2002,17 @@
         };
 
         // --- MODULE 5: COMMON ERRORS ---
-        const Module5 = ({ onComplete, onBack }) => {
-            const [step, setStep] = useState(0);
-            const [maxStepReached, setMaxStepReached] = useState(0);
+        const Module5 = ({ initialState, onProgress, onComplete, onBack }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
 
+            // Track highest step reached and report to parent
             React.useEffect(() => {
-                if (step > maxStepReached) setMaxStepReached(step);
-            }, [step]);
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
 
             const conceptQuestions = [
                 { topic: "3-part verbs", question: "Can you split 'looking forward to'?", options: ["No - 3-part verbs NEVER split", "Yes - any verb can split", "Only with pronouns"], correctAnswer: "No - 3-part verbs NEVER split", explanation: "3-part phrasal verbs (verb + adverb + preposition) must stay together. Object goes after." },
@@ -2156,7 +2170,8 @@
 
         // --- FINAL CHALLENGE ---
         const FinalChallenge = ({ onComplete, onBack }) => {
-            const shuffledQuestions = useMemo(() => [...ALL_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 15), []);
+            // Generate 15 random questions from the pool on mount
+            const questions = useMemo(() => generateTestQuestions(15), []);
 
             return (
                 <ModuleWrapper
@@ -2167,7 +2182,7 @@
                     onBack={onBack}
                 >
                     <QuizInterface
-                        questions={shuffledQuestions}
+                        questions={questions}
                         title="Final Challenge"
                         onComplete={(score, total) => onComplete(score, total)}
                     />
@@ -2179,10 +2194,24 @@
         const App = () => {
             const [screen, setScreen] = useState('menu');
             const [scores, setScores] = useState({});
+            const [moduleProgress, setModuleProgress] = useState({
+                m1: { step: 0, maxStep: 0 },
+                m2: { step: 0, maxStep: 0 },
+                m3: { step: 0, maxStep: 0 },
+                m4: { step: 0, maxStep: 0 },
+                m5: { step: 0, maxStep: 0 }
+            });
 
             const handleComplete = (moduleId, score, total) => {
                 setScores(prev => ({ ...prev, [moduleId]: { score, total } }));
                 setScreen('menu');
+            };
+
+            const handleProgress = (moduleId, step, maxStep) => {
+                setModuleProgress(prev => ({
+                    ...prev,
+                    [moduleId]: { step, maxStep: Math.max(maxStep, prev[moduleId]?.maxStep || 0) }
+                }));
             };
 
             const modules = [
@@ -2220,10 +2249,17 @@
                                             <h3 className="font-bold text-slate-800 text-lg">{i + 1}. {mod.title}</h3>
                                             <p className="text-slate-500 text-sm truncate">{mod.desc}</p>
                                         </div>
-                                        {scores[mod.id] && (
+                                        {scores[mod.id] ? (
                                             <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
                                                 {scores[mod.id].score}/{scores[mod.id].total}
                                             </div>
+                                        ) : (
+                                            moduleProgress[mod.id]?.maxStep > 0 && (
+                                                <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                                    Step {moduleProgress[mod.id].maxStep + 1}/5
+                                                </div>
+                                            )
                                         )}
                                         <Icon name="chevron-right" size={24} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
                                     </button>
@@ -2259,11 +2295,11 @@
 
             const renderModule = () => {
                 switch (screen) {
-                    case 'm1': return <Module1 onComplete={(s, t) => handleComplete('m1', s, t)} onBack={() => setScreen('menu')} />;
-                    case 'm2': return <Module2 onComplete={(s, t) => handleComplete('m2', s, t)} onBack={() => setScreen('menu')} />;
-                    case 'm3': return <Module3 onComplete={(s, t) => handleComplete('m3', s, t)} onBack={() => setScreen('menu')} />;
-                    case 'm4': return <Module4 onComplete={(s, t) => handleComplete('m4', s, t)} onBack={() => setScreen('menu')} />;
-                    case 'm5': return <Module5 onComplete={(s, t) => handleComplete('m5', s, t)} onBack={() => setScreen('menu')} />;
+                    case 'm1': return <Module1 initialState={moduleProgress.m1} onProgress={(s, m) => handleProgress('m1', s, m)} onComplete={(s, t) => handleComplete('m1', s, t)} onBack={() => setScreen('menu')} />;
+                    case 'm2': return <Module2 initialState={moduleProgress.m2} onProgress={(s, m) => handleProgress('m2', s, m)} onComplete={(s, t) => handleComplete('m2', s, t)} onBack={() => setScreen('menu')} />;
+                    case 'm3': return <Module3 initialState={moduleProgress.m3} onProgress={(s, m) => handleProgress('m3', s, m)} onComplete={(s, t) => handleComplete('m3', s, t)} onBack={() => setScreen('menu')} />;
+                    case 'm4': return <Module4 initialState={moduleProgress.m4} onProgress={(s, m) => handleProgress('m4', s, m)} onComplete={(s, t) => handleComplete('m4', s, t)} onBack={() => setScreen('menu')} />;
+                    case 'm5': return <Module5 initialState={moduleProgress.m5} onProgress={(s, m) => handleProgress('m5', s, m)} onComplete={(s, t) => handleComplete('m5', s, t)} onBack={() => setScreen('menu')} />;
                     case 'final': return <FinalChallenge onComplete={(s, t) => handleComplete('final', s, t)} onBack={() => setScreen('menu')} />;
                     default: return null;
                 }
