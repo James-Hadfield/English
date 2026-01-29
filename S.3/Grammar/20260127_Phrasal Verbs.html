@@ -206,6 +206,15 @@
             ]
         };
 
+        const MODULE_BASE_TOTALS = {
+            m1: 19, // 5 concept + 9 sorting + 5 quiz
+            m2: 14, // 4 concept + 5 error + 5 quiz
+            m3: 15, // 4 concept + 5 sentence + 6 quiz
+            m4: 13, // 3 concept + 6 matching + 4 quiz
+            m5: 14, // 3 concept + 5 error + 6 quiz
+            final: 15
+        };
+
         // --- COMPREHENSIVE PHRASAL VERB TEST POOL ---
         // Each phrasal verb with a distinct meaning is a separate entry
         const PHRASAL_VERB_POOL = [
@@ -331,15 +340,21 @@
             return 55;
         };
 
-        const getScoreTotals = (scoreMap) => {
+        const getScoreTotals = (scoreMap, baseTotal) => {
             const entries = Object.entries(scoreMap || {});
             const hasDetailed = entries.some(([key, value]) => key !== 'overall' && value && typeof value.correct === 'number' && typeof value.total === 'number');
-            return entries.reduce((acc, [key, entry]) => {
+            const correct = entries.reduce((acc, [key, entry]) => {
                 if (key === 'overall' && hasDetailed) return acc;
-                acc.correct += entry?.correct || 0;
-                acc.total += entry?.total || 0;
-                return acc;
-            }, { correct: 0, total: 0 });
+                if (!entry || typeof entry.correct !== 'number' || typeof entry.total !== 'number') return acc;
+                return acc + entry.correct;
+            }, 0);
+            const totalFromMap = entries.reduce((acc, [key, entry]) => {
+                if (key === 'overall' && hasDetailed) return acc;
+                if (!entry || typeof entry.correct !== 'number' || typeof entry.total !== 'number') return acc;
+                return acc + entry.total;
+            }, 0);
+            const total = typeof baseTotal === 'number' ? baseTotal : totalFromMap;
+            return { correct, total };
         };
 
         const UnitScoreHUD = ({ correct, total, label = "Unit Score" }) => {
@@ -376,9 +391,9 @@
             );
         };
 
-        const useUnitScore = (initialScoreMap = {}) => {
+        const useUnitScore = (initialScoreMap = {}, baseTotal) => {
             const [scoreMap, setScoreMap] = useState(initialScoreMap);
-            const totals = useMemo(() => getScoreTotals(scoreMap), [scoreMap]);
+            const totals = useMemo(() => getScoreTotals(scoreMap, baseTotal), [scoreMap, baseTotal]);
             const updateScore = useCallback((key, correct, total) => {
                 setScoreMap(prev => ({ ...prev, [key]: { correct, total } }));
             }, []);
@@ -1414,7 +1429,7 @@
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Sort', 'Quiz'];
-            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m1);
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -1454,7 +1469,7 @@
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
-                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m1);
                 updateScore('quiz', quizScore, quizTotal);
                 if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
             };
@@ -1649,7 +1664,7 @@
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
-            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m2);
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -1678,7 +1693,7 @@
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
-                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m2);
                 updateScore('quiz', quizScore, quizTotal);
                 if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
             };
@@ -1843,7 +1858,7 @@
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Build', 'Quiz'];
-            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m3);
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -1871,7 +1886,7 @@
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
-                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m3);
                 updateScore('quiz', quizScore, quizTotal);
                 if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
             };
@@ -2039,7 +2054,7 @@
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Match', 'Quiz'];
-            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m4);
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -2068,7 +2083,7 @@
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
-                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m4);
                 updateScore('quiz', quizScore, quizTotal);
                 if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
             };
@@ -2235,7 +2250,7 @@
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
-            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m5);
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -2263,7 +2278,7 @@
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
-                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m5);
                 updateScore('quiz', quizScore, quizTotal);
                 if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
             };
@@ -2521,7 +2536,8 @@
                             <div className="space-y-4 mb-8">
                                 {modules.map((mod, i) => {
                                     const scoreMap = scores[mod.id] || {};
-                                    const totals = getScoreTotals(scoreMap);
+                                    const baseTotal = MODULE_BASE_TOTALS[mod.id] || 0;
+                                    const totals = getScoreTotals(scoreMap, baseTotal);
                                     const percent = getPercent(totals.correct, totals.total);
                                     const rank = getRankInfo(percent);
 
@@ -2569,13 +2585,13 @@
                                     <p className="text-slate-400">15 questions from all modules</p>
                                 </div>
                                 {(() => {
-                                    const finalTotals = getScoreTotals(scores['final'] || {});
+                                    const finalTotals = getScoreTotals(scores['final'] || {}, MODULE_BASE_TOTALS.final);
                                     const finalPercent = getPercent(finalTotals.correct, finalTotals.total);
-                                    return finalTotals.total > 0 ? (
+                                    return (
                                         <div className="bg-yellow-500 text-slate-900 px-4 py-2 rounded-full font-bold">
-                                            {finalPercent}%
+                                            {finalTotals.correct}/{finalTotals.total}  {finalPercent}%
                                         </div>
-                                    ) : null;
+                                    );
                                 })()}
                                 <Icon name="arrow-right" size={28} className="text-slate-500 group-hover:text-white transition-colors" />
                             </button>

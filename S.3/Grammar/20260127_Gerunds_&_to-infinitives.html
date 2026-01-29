@@ -254,15 +254,37 @@
             return 55;
         };
 
-        const getScoreTotals = (scoreMap) => {
+        const getScoreTotals = (scoreMap, baseTotal) => {
             const entries = Object.entries(scoreMap || {});
             const hasDetailed = entries.some(([key, value]) => key !== 'overall' && value && typeof value.correct === 'number' && typeof value.total === 'number');
-            return entries.reduce((acc, [key, entry]) => {
+            const correct = entries.reduce((acc, [key, entry]) => {
                 if (key === 'overall' && hasDetailed) return acc;
-                acc.correct += entry?.correct || 0;
-                acc.total += entry?.total || 0;
-                return acc;
-            }, { correct: 0, total: 0 });
+                if (!entry || typeof entry.correct !== 'number' || typeof entry.total !== 'number') return acc;
+                return acc + entry.correct;
+            }, 0);
+            const totalFromMap = entries.reduce((acc, [key, entry]) => {
+                if (key === 'overall' && hasDetailed) return acc;
+                if (!entry || typeof entry.correct !== 'number' || typeof entry.total !== 'number') return acc;
+                return acc + entry.total;
+            }, 0);
+            const total = typeof baseTotal === 'number' ? baseTotal : totalFromMap;
+            return { correct, total };
+        };
+
+        const getPracticeItemTotal = (item) => {
+            if (!item) return 0;
+            if (item.type === 'sorting') return item.items?.length || 0;
+            if (item.type === 'fillBlank') return item.sentences?.length || 0;
+            if (item.type === 'errorCorrection') return item.sentences?.length || 0;
+            return 0;
+        };
+
+        const getModuleBaseTotal = (module) => {
+            if (!module) return 0;
+            const concept = module.conceptQuestions?.length || 0;
+            const practice = (module.practiceItems || []).reduce((sum, item) => sum + getPracticeItemTotal(item), 0);
+            const quiz = module.practiceQuestions?.length || 0;
+            return concept + practice + quiz;
         };
 
         const UnitScoreHUD = ({ correct, total, label = "Unit Score" }) => {
@@ -1962,7 +1984,8 @@
                 setScoreMap(prev => ({ ...prev, [key]: { correct, total } }));
             }, []);
 
-            const totals = useMemo(() => getScoreTotals(scoreMap), [scoreMap]);
+            const baseTotal = useMemo(() => getModuleBaseTotal(module), [module]);
+            const totals = useMemo(() => getScoreTotals(scoreMap, baseTotal), [scoreMap, baseTotal]);
 
             useEffect(() => {
                 if (onScoreUpdate) onScoreUpdate(scoreMap);
@@ -1995,7 +2018,7 @@
             const handleQuizComplete = (correct, total) => {
                 setScoreMap(prev => {
                     const next = { ...prev, quiz: { correct, total } };
-                    const nextTotals = getScoreTotals(next);
+                    const nextTotals = getScoreTotals(next, baseTotal);
                     setFinalScore(nextTotals);
                     return next;
                 });
@@ -2281,7 +2304,8 @@
                             { id: 'm4', title: "4. Meaning Changes", icon: "git-branch", color: "bg-amber-500", desc: "Stop, Try, Remember..." }
                         ].map(mod => {
                             const scoreMap = moduleScores[mod.id] || {};
-                            const totals = getScoreTotals(scoreMap);
+                            const baseTotal = getModuleBaseTotal(MODULE_DATA[mod.id]);
+                            const totals = getScoreTotals(scoreMap, baseTotal);
                             const percent = getPercent(totals.correct, totals.total);
                             const rank = getRankInfo(percent);
 
@@ -2326,14 +2350,15 @@
                                 <p className="text-slate-300">Test your mastery with 20 mixed questions</p>
                             </div>
                             {(() => {
-                                const finalTotals = getScoreTotals(moduleScores.final || {});
+                                const finalBaseTotal = Math.min(20, Object.values(MODULE_DATA).flatMap(m => m.practiceQuestions).length);
+                                const finalTotals = getScoreTotals(moduleScores.final || {}, finalBaseTotal);
                                 const finalPercent = getPercent(finalTotals.correct, finalTotals.total);
                                 const finalRank = getRankInfo(finalPercent);
-                                return finalTotals.total > 0 ? (
+                                return (
                                     <div className={`px-3 py-2 rounded-full text-sm font-bold ${finalRank.bg} ${finalRank.text}`}>
-                                        {finalPercent}% | {finalRank.label}
+                                        {finalTotals.correct}/{finalTotals.total} {finalPercent}%
                                     </div>
-                                ) : null;
+                                );
                             })()}
                             <div className="bg-amber-500 p-4 rounded-xl group-hover:scale-110 transition-transform">
                                 <Icon name="trophy" size={32} className="text-white" />
