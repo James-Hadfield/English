@@ -478,28 +478,63 @@
 
             if (showResults) {
                 const score = sentences.filter((s, i) => answers[i] === s.answer).length;
+                const passed = score === sentences.length;
+
+                const handleTryAgain = () => {
+                    // Reset incorrect answers only
+                    const newAnswers = { ...answers };
+                    sentences.forEach((s, i) => {
+                        if (answers[i] !== s.answer) delete newAnswers[i];
+                    });
+                    setAnswers(newAnswers);
+                    setShowResults(false);
+                };
+
                 return (
                     <div className="bg-white rounded-2xl p-8 shadow-lg fade-in">
                         <div className="text-center mb-6">
-                            <div className={`inline-flex p-4 rounded-full mb-4 ${score === sentences.length ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-                                <Icon name={score === sentences.length ? "trophy" : "target"} size={48} className={score === sentences.length ? 'text-emerald-600' : 'text-amber-600'} />
+                            <div className={`inline-flex p-4 rounded-full mb-4 ${passed ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+                                <Icon name={passed ? "trophy" : "target"} size={48} className={passed ? 'text-emerald-600' : 'text-amber-600'} />
                             </div>
                             <h3 className="text-2xl font-bold text-slate-800">{score}/{sentences.length} Correct</h3>
+                            <p className="text-slate-500 mt-2">{passed ? "Perfect! You got everything right." : "Don't worry, you can try again or move on."}</p>
                         </div>
-                        <div className="space-y-3 mb-6">
-                            {sentences.map((s, i) => (
-                                <div key={i} className={`p-4 rounded-xl flex items-start gap-3 ${answers[i] === s.answer ? 'bg-emerald-50' : 'bg-red-50'}`}>
-                                    <Icon name={answers[i] === s.answer ? "check-circle" : "x-circle"} size={24} className={answers[i] === s.answer ? 'text-emerald-600' : 'text-red-500'} />
-                                    <div>
-                                        <p className="font-medium text-slate-800">{s.text.replace('___', `**${s.answer}**`).split('**').map((part, j) => j === 1 ? <strong key={j} className="text-indigo-600">{part}</strong> : part)}</p>
-                                        {answers[i] !== s.answer && <p className="text-sm text-red-600 mt-1">You chose: {answers[i] || '(none)'}</p>}
+                        <div className="space-y-4 mb-8">
+                            {sentences.map((s, i) => {
+                                const isCorrect = answers[i] === s.answer;
+                                return (
+                                    <div key={i} className={`p-4 rounded-xl flex items-start gap-3 ${isCorrect ? 'bg-emerald-50 border border-emerald-100' : 'bg-red-50 border border-red-100'}`}>
+                                        <Icon name={isCorrect ? "check-circle" : "x-circle"} size={24} className={`shrink-0 mt-1 ${isCorrect ? 'text-emerald-600' : 'text-red-500'}`} />
+                                        <div className="flex-1">
+                                            <p className="font-medium text-slate-800 leading-relaxed">
+                                                {s.text.replace('___', `**${s.answer}**`).split('**').map((part, j) =>
+                                                    j === 1 ? <strong key={j} className="text-indigo-600 underline decoration-2">{part}</strong> : part
+                                                )}
+                                            </p>
+                                            {!isCorrect && (
+                                                <div className="mt-2 text-sm text-red-700 bg-white/50 p-2 rounded-lg border border-red-100">
+                                                    <span className="font-bold block mb-1">Your answer: {answers[i] || '(none)'}</span>
+                                                    {s.explanation && <span className="block text-slate-600 italic"><Icon name="info" size={14} className="inline mr-1" />{s.explanation}</span>}
+                                                </div>
+                                            )}
+                                            {isCorrect && s.explanation && (
+                                                <p className="text-sm text-emerald-700 mt-2 italic"><Icon name="info" size={14} className="inline mr-1" />{s.explanation}</p>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
-                        <Button onClick={onComplete} variant="primary" className="w-full">
-                            {allCorrect ? "Continue" : "Try Again"} <Icon name="arrow-right" size={20} />
-                        </Button>
+                        <div className="flex gap-4">
+                            {!passed && (
+                                <Button onClick={handleTryAgain} variant="outline" className="flex-1">
+                                    <Icon name="refresh-cw" size={20} /> Try Again
+                                </Button>
+                            )}
+                            <Button onClick={onComplete} variant="primary" className="flex-1">
+                                {passed ? "Continue" : "Continue Anyway"} <Icon name="arrow-right" size={20} />
+                            </Button>
+                        </div>
                     </div>
                 );
             }
@@ -1183,10 +1218,10 @@
                         type: 'fillBlank',
                         title: "Complete the Sentences",
                         sentences: [
-                            { text: "I enjoy ___ to music while studying.", options: ["to listen", "listening", "listen"], answer: "listening" },
-                            { text: "Have you finished ___ your homework?", options: ["to do", "do", "doing"], answer: "doing" },
-                            { text: "She suggested ___ a movie tonight.", options: ["watch", "watching", "to watch"], answer: "watching" },
-                            { text: "I can't imagine ___ in such a cold place.", options: ["to live", "live", "living"], answer: "living" }
+                            { text: "I enjoy ___ to music while studying.", options: ["to listen", "listening", "listen"], answer: "listening", explanation: "'Enjoy' is always followed by a gerund." },
+                            { text: "Have you finished ___ your homework?", options: ["to do", "do", "doing"], answer: "doing", explanation: "'Finish' is always followed by a gerund." },
+                            { text: "She suggested ___ a movie tonight.", options: ["watch", "watching", "to watch"], answer: "watching", explanation: "'Suggest' is always followed by a gerund." },
+                            { text: "I can't imagine ___ in such a cold place.", options: ["to live", "live", "living"], answer: "living", explanation: "'Imagine' is always followed by a gerund." }
                         ]
                     }
                 ],
@@ -1369,10 +1404,10 @@
                         type: 'fillBlank',
                         title: "Complete the Sentences",
                         sentences: [
-                            { text: "She agreed ___ me with my homework.", options: ["helping", "to help", "help"], answer: "to help" },
-                            { text: "My parents allowed me ___ out tonight.", options: ["going", "to go", "go"], answer: "to go" },
-                            { text: "I haven't decided where ___ for dinner.", options: ["to go", "go", "going"], answer: "to go" },
-                            { text: "He reminded me ___ my keys.", options: ["bringing", "to bring", "bring"], answer: "to bring" }
+                            { text: "She agreed ___ me with my homework.", options: ["helping", "to help", "help"], answer: "to help", explanation: "'Agree' is always followed by a to-infinitive." },
+                            { text: "My parents allowed me ___ out tonight.", options: ["going", "to go", "go"], answer: "to go", explanation: "Allow + object + to-infinitive." },
+                            { text: "I haven't decided where ___ for dinner.", options: ["to go", "go", "going"], answer: "to go", explanation: "Wh-word (where) + to-infinitive." },
+                            { text: "He reminded me ___ my keys.", options: ["bringing", "to bring", "bring"], answer: "to bring", explanation: "Remind + object + to-infinitive." }
                         ]
                     }
                 ],
@@ -1512,10 +1547,10 @@
                         type: 'fillBlank',
                         title: "Choose the Correct Form",
                         sentences: [
-                            { text: "It started ___ when we arrived.", options: ["only raining", "raining / to rain (both OK)", "only to rain"], answer: "raining / to rain (both OK)" },
-                            { text: "I would prefer ___ at home tonight.", options: ["staying", "to stay", "stay"], answer: "to stay" },
-                            { text: "More people are beginning ___ online.", options: ["shopping", "to shop", "shop"], answer: "to shop" },
-                            { text: "She loves ___ in the garden.", options: ["only working", "working / to work (both OK)", "only to work"], answer: "working / to work (both OK)" }
+                            { text: "It started ___ when we arrived.", options: ["only raining", "raining / to rain (both OK)", "only to rain"], answer: "raining / to rain (both OK)", explanation: "'Start' can take either form with no meaning change." },
+                            { text: "I would prefer ___ at home tonight.", options: ["staying", "to stay", "stay"], answer: "to stay", explanation: "'Would prefer' MUST be followed by a to-infinitive." },
+                            { text: "More people are beginning ___ online.", options: ["shopping", "to shop", "shop"], answer: "to shop", explanation: "Prefer to-infinitive when main verb is -ing (beginning)." },
+                            { text: "She loves ___ in the garden.", options: ["only working", "working / to work (both OK)", "only to work"], answer: "working / to work (both OK)", explanation: "'Love' can take either form in general statements." }
                         ]
                     }
                 ],
@@ -1705,10 +1740,10 @@
                         type: 'fillBlank',
                         title: "Complete Based on Meaning",
                         sentences: [
-                            { text: "I'll never forget ___ the Eiffel Tower for the first time. (memory of past)", options: ["to see", "seeing"], answer: "seeing" },
-                            { text: "Please remember ___ the lights when you leave. (task to do)", options: ["turning off", "to turn off"], answer: "to turn off" },
-                            { text: "The food was bland, so I tried ___ more spices. (experiment)", options: ["to add", "adding"], answer: "adding" },
-                            { text: "We were hungry, so we stopped ___ some food. (pause to do)", options: ["buying", "to buy"], answer: "to buy" }
+                            { text: "I'll never forget ___ the Eiffel Tower for the first time. (memory of past)", options: ["to see", "seeing"], answer: "seeing", explanation: "Forget + gerund = forget a past memory." },
+                            { text: "Please remember ___ the lights when you leave. (task to do)", options: ["turning off", "to turn off"], answer: "to turn off", explanation: "Remember + to-infinitive = remember to do a task." },
+                            { text: "The food was bland, so I tried ___ more spices. (experiment)", options: ["to add", "adding"], answer: "adding", explanation: "Try + gerund = experiment with something." },
+                            { text: "We were hungry, so we stopped ___ some food. (pause to do)", options: ["buying", "to buy"], answer: "to buy", explanation: "Stop + to-infinitive = pause to do something." }
                         ]
                     }
                 ],
