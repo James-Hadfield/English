@@ -62,7 +62,7 @@
             25% {
                 transform: translateX(-5px);
             }
-
+            
             75% {
                 transform: translateX(5px);
             }
@@ -226,22 +226,187 @@
             </div>
         );
 
-        const PhaseIndicator = ({ currentPhase, phases }) => (
-            <div className="flex items-center gap-2 mb-6">
-                {phases.map((phase, idx) => (
-                    <React.Fragment key={phase.id}>
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${idx < currentPhase ? 'bg-emerald-100 text-emerald-700' :
-                            idx === currentPhase ? 'bg-indigo-600 text-white shadow-lg' :
-                                'bg-slate-100 text-slate-400'
-                            }`}>
-                            {idx < currentPhase ? <Icon name="check" size={16} /> : <span className="w-5 h-5 flex items-center justify-center">{idx + 1}</span>}
-                            <span className="hidden sm:inline">{phase.name}</span>
+        // --- STEP INDICATOR ---
+        const StepIndicator = ({ steps, current, maxReached, onStepClick }) => {
+            return (
+                <div className="flex items-center justify-center mb-8 px-4">
+                    {steps.map((step, idx) => {
+                        // Status: 0=locked, 1=current, 2=completed
+                        const isCurrent = idx === current;
+                        const isCompleted = idx < current;
+                        const isAccessible = idx <= maxReached;
+
+                        return (
+                            <React.Fragment key={idx}>
+                                {/* Step Circle */}
+                                <button
+                                    onClick={() => isAccessible && onStepClick(idx)}
+                                    disabled={!isAccessible}
+                                    className={`relative z-10 flex items-center justify-center p-2 sm:px-4 sm:py-2 rounded-full font-bold transition-all duration-300
+                                        ${isCurrent ? 'bg-indigo-600 text-white shadow-lg scale-110' :
+                                            isCompleted ? 'bg-emerald-500 text-white' :
+                                                isAccessible ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200' : 'bg-slate-100 text-slate-300'}`}
+                                >
+                                    {isCompleted ? (
+                                        <Icon name="check" size={16} strokeWidth={3} />
+                                    ) : (
+                                        <span className="text-sm">{idx + 1}</span>
+                                    )}
+                                    <span className={`hidden sm:block ml-2 text-sm ${isCurrent ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}>
+                                        {step}
+                                    </span>
+                                </button>
+
+                                {/* Connector Line */}
+                                {idx < steps.length - 1 && (
+                                    <div className={`h-1 flex-1 mx-2 rounded-full transition-all duration-500
+                                        ${idx < maxReached ? 'bg-emerald-300' : 'bg-slate-100'}`}
+                                    />
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        const ConceptCheckStep = ({ questions, onComplete, onReviewRequest }) => {
+            const [currentIdx, setCurrentIdx] = useState(0);
+            const [showResult, setShowResult] = useState(false);
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [mistakes, setMistakes] = useState([]);
+            const [isReviewing, setIsReviewing] = useState(false);
+
+            // Re-shuffle options when question changes
+            const currentQ = questions[currentIdx];
+            const shuffledOptions = useMemo(() => {
+                return currentQ ? shuffleArray(currentQ.options) : [];
+            }, [currentQ]);
+
+            const handleSelect = (option) => {
+                if (showResult) return;
+                setSelectedOption(option);
+                setShowResult(true);
+            };
+
+            const handleNext = () => {
+                // If wrong, record mistake
+                if (selectedOption !== currentQ.correctAnswer) {
+                    setMistakes(prev => [...prev, currentQ]);
+                }
+
+                if (currentIdx < questions.length - 1) {
+                    setCurrentIdx(prev => prev + 1);
+                    setShowResult(false);
+                    setSelectedOption(null);
+                } else {
+                    // Finished all questions
+                    setIsReviewing(true);
+                }
+            };
+
+            if (isReviewing) {
+                const passed = mistakes.length === 0;
+                return (
+                    <div className="bg-white rounded-3xl shadow-xl overflow-hidden fade-in max-w-2xl mx-auto">
+                        <div className={`p-8 text-center text-white ${passed ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                            <Icon name={passed ? "check-circle" : "alert-circle"} size={64} className="mb-4 mx-auto" />
+                            <h2 className="text-3xl font-black mb-2">{passed ? "Ready!" : "Review Suggestions"}</h2>
+                            <p className="text-lg opacity-90">
+                                {passed ? "You've grasped the key concepts. Ready to practice?" : `You missed ${mistakes.length} concept(s). A quick review might help!`}
+                            </p>
                         </div>
-                        {idx < phases.length - 1 && <div className={`w-8 h-0.5 ${idx < currentPhase ? 'bg-emerald-300' : 'bg-slate-200'}`}></div>}
-                    </React.Fragment>
-                ))}
-            </div>
-        );
+
+                        <div className="p-8 space-y-4">
+                            {!passed && (
+                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 text-left">
+                                    <p className="font-bold text-amber-800 mb-2">concepts to review:</p>
+                                    <ul className="list-disc list-inside space-y-1 text-amber-900">
+                                        {mistakes.map((m, i) => (
+                                            <li key={i}>{m.topic}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            <div className="flex gap-4">
+                                {!passed && (
+                                    <Button onClick={onReviewRequest} variant="outline" className="flex-1">
+                                        <Icon name="arrow-left" size={20} /> Review Material
+                                    </Button>
+                                )}
+                                <Button onClick={onComplete} variant="primary" className="flex-1">
+                                    {passed ? "Start Practice" : "Continue Anyway"} <Icon name="arrow-right" size={20} />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const isCorrect = selectedOption === currentQ.correctAnswer;
+
+            return (
+                <div className="max-w-2xl mx-auto fade-in">
+                    <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+                        <div className="bg-indigo-50 p-6 border-b border-indigo-100 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-indigo-100 p-2 rounded-lg">
+                                    <Icon name="help-circle" size={24} className="text-indigo-600" />
+                                </div>
+                                <span className="font-bold text-indigo-900">Concept Check {currentIdx + 1}/{questions.length}</span>
+                            </div>
+                            <div className="text-sm font-bold text-indigo-400 uppercase tracking-wider">{currentQ.topic}</div>
+                        </div>
+
+                        <div className="p-8">
+                            <h3 className="text-2xl font-bold text-slate-800 mb-6">{currentQ.question}</h3>
+
+                            <div className="space-y-3">
+                                {shuffledOptions.map((opt, i) => {
+                                    let btnClass = "bg-white border-2 border-slate-200 text-slate-700 hover:border-indigo-300 hover:bg-slate-50";
+                                    if (showResult) {
+                                        if (opt === currentQ.correctAnswer) btnClass = "bg-emerald-100 border-emerald-500 text-emerald-800 font-bold";
+                                        else if (opt === selectedOption) btnClass = "bg-red-100 border-red-500 text-red-800 opacity-60";
+                                        else btnClass = "opacity-50 grayscale";
+                                    }
+
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => handleSelect(opt)}
+                                            disabled={showResult}
+                                            className={`w-full text-left p-4 rounded-xl transition-all duration-300 flex items-center justify-between group ${btnClass}`}
+                                        >
+                                            <span className="text-lg">{opt}</span>
+                                            {showResult && opt === currentQ.correctAnswer && <Icon name="check" size={20} className="text-emerald-600" />}
+                                            {showResult && opt === selectedOption && opt !== currentQ.correctAnswer && <Icon name="x" size={20} className="text-red-500" />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {showResult && (
+                                <div className="mt-8 animate-in slide-in-from-bottom-4 duration-500">
+                                    <div className={`p-4 rounded-xl mb-4 ${isCorrect ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
+                                        <div className="flex gap-3">
+                                            <Icon name={isCorrect ? "check-circle" : "info"} size={24} className={isCorrect ? "text-emerald-500" : "text-amber-500"} />
+                                            <div>
+                                                <p className={`font-bold ${isCorrect ? 'text-emerald-900' : 'text-amber-900'}`}>{isCorrect ? "That's right!" : "Not quite."}</p>
+                                                <p className="text-slate-700 mt-1">{currentQ.explanation}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button onClick={handleNext} variant={isCorrect ? "success" : "primary"} className="w-full">
+                                        Continue <Icon name="arrow-right" size={20} />
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
         const WorkedExample = ({ label, sentence, highlights, explanation }) => (
             <div className="bg-white p-6 rounded-2xl border-2 border-slate-100 shadow-sm">
@@ -1437,44 +1602,157 @@
         };
 
         // --- MAIN MODULE COMPONENT ---
-        const ModuleScreen = ({ moduleId, onExit }) => {
+        // --- MAIN MODULE COMPONENT ---
+        const ModuleScreen = ({ moduleId, initialState, onProgress, onExit }) => {
             const module = MODULE_DATA[moduleId];
-            const [phase, setPhase] = useState(0); // 0=learn, 1=guided, 2=practice
-            const [slideIdx, setSlideIdx] = useState(0);
-            const [guidedIdx, setGuidedIdx] = useState(0);
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
+
+            // Report progress
+            useEffect(() => {
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
+
+            const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
+            const [learnIdx, setLearnIdx] = useState(0);
+            const [practiceIdx, setPracticeIdx] = useState(0);
             const [completed, setCompleted] = useState(false);
             const [score, setScore] = useState(null);
 
-            const shuffledQuestions = useMemo(() => {
+            const shuffledPracticeQuestions = useMemo(() => {
                 return shuffleArray(module.practiceQuestions);
             }, [module.practiceQuestions]);
 
-            const currentPhase = module.phases[phase];
-
-            const nextSlide = () => {
-                if (slideIdx < module.learnSlides.length - 1) {
-                    setSlideIdx(slideIdx + 1);
+            const handleNextLearn = () => {
+                if (learnIdx < module.learnSlides.length - 1) {
+                    setLearnIdx(learnIdx + 1);
                 } else {
-                    setPhase(1);
-                    setGuidedIdx(0);
+                    setStep(1); // Go to Model
                 }
             };
 
-            const prevSlide = () => {
-                if (slideIdx > 0) setSlideIdx(slideIdx - 1);
+            const handlePrevLearn = () => {
+                if (learnIdx > 0) setLearnIdx(learnIdx - 1);
             };
 
-            const nextGuided = () => {
-                if (guidedIdx < module.guidedActivities.length - 1) {
-                    setGuidedIdx(guidedIdx + 1);
+            const handleNextPractice = () => {
+                if (practiceIdx < module.practiceItems.length - 1) {
+                    setPracticeIdx(practiceIdx + 1);
                 } else {
-                    setPhase(2);
+                    setStep(4); // Go to Quiz
                 }
             };
 
-            const handleQuizComplete = (s, t) => {
-                setScore({ correct: s, total: t });
-                setCompleted(true);
+            const renderContent = () => {
+                switch (step) {
+                    case 0: // LEARN
+                        return (
+                            <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+                                <div className="bg-slate-50 p-6 border-b border-slate-200">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-3 rounded-xl bg-${module.color}-100`}>
+                                            <Icon name={module.icon} size={32} className={`text-${module.color}-600`} />
+                                        </div>
+                                        <div>
+                                            <p className="text-indigo-600 font-bold text-sm uppercase tracking-wider">Learn: {learnIdx + 1}/{module.learnSlides.length}</p>
+                                            <h2 className="text-2xl font-black text-slate-800">{module.learnSlides[learnIdx].title}</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-8">
+                                    {module.learnSlides[learnIdx].content}
+                                </div>
+                                <div className="p-6 bg-slate-50 flex justify-between border-t border-slate-200">
+                                    <Button variant="outline" onClick={handlePrevLearn} disabled={learnIdx === 0}>
+                                        <Icon name="arrow-left" size={20} /> Back
+                                    </Button>
+                                    <Button variant="primary" onClick={handleNextLearn}>
+                                        {learnIdx === module.learnSlides.length - 1 ? "To Model" : "Next"} <Icon name="arrow-right" size={20} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 1: // MODEL
+                        const modelActivity = module.modelContent;
+                        return (
+                            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                                <div className="p-6 border-b border-slate-100">
+                                    <h3 className="font-bold text-slate-800 text-xl">{modelActivity.title}</h3>
+                                </div>
+                                <div className="p-6">
+                                    {modelActivity.content}
+                                </div>
+                                <div className="p-6 bg-slate-50 border-t">
+                                    <Button variant="primary" onClick={() => setStep(2)} className="w-full">
+                                        Proceed to Check <Icon name="arrow-right" size={20} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 2: // CHECK
+                        return (
+                            <ConceptCheckStep
+                                questions={module.conceptQuestions || []}
+                                onComplete={() => setStep(3)}
+                                onReviewRequest={() => setStep(0)}
+                            />
+                        );
+
+                    case 3: // PRACTICE
+                        const currentPractice = module.practiceItems[practiceIdx];
+                        return (
+                            <div className="space-y-6">
+                                <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-amber-100 rounded-lg">
+                                            <Icon name="users" size={24} className="text-amber-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-800 text-xl">{currentPractice.title}</h3>
+                                            <p className="text-slate-500 text-sm">Practice {practiceIdx + 1} of {module.practiceItems.length}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {currentPractice.type === 'sorting' && (
+                                    <SortingActivity
+                                        items={currentPractice.items}
+                                        categories={currentPractice.categories}
+                                        onComplete={handleNextPractice}
+                                    />
+                                )}
+
+                                {currentPractice.type === 'fillBlank' && (
+                                    <FillBlankActivity
+                                        sentences={currentPractice.sentences}
+                                        onComplete={handleNextPractice}
+                                    />
+                                )}
+
+                                {currentPractice.type === 'errorCorrection' && (
+                                    <ErrorCorrectionActivity
+                                        sentences={currentPractice.sentences}
+                                        onComplete={handleNextPractice}
+                                    />
+                                )}
+                            </div>
+                        );
+
+                    case 4: // QUIZ
+                        return (
+                            <QuizActivity
+                                questions={shuffledPracticeQuestions}
+                                onComplete={(s, t) => {
+                                    setScore({ correct: s, total: t });
+                                    setCompleted(true);
+                                }}
+                            />
+                        );
+                }
             };
 
             if (completed) {
@@ -1500,95 +1778,8 @@
 
             return (
                 <div className="max-w-4xl mx-auto fade-in">
-                    <PhaseIndicator currentPhase={phase} phases={module.phases} />
-
-                    {/* LEARN PHASE */}
-                    {phase === 0 && (
-                        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-                            <div className="bg-slate-50 p-6 border-b border-slate-200">
-                                <div className="flex items-center gap-4">
-                                    <div className={`p-3 rounded-xl bg-${module.color}-100`}>
-                                        <Icon name={module.icon} size={32} className={`text-${module.color}-600`} />
-                                    </div>
-                                    <div>
-                                        <p className="text-indigo-600 font-bold text-sm uppercase tracking-wider">Learn: {slideIdx + 1}/{module.learnSlides.length}</p>
-                                        <h2 className="text-2xl font-black text-slate-800">{module.learnSlides[slideIdx].title}</h2>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-8">
-                                {module.learnSlides[slideIdx].content}
-                            </div>
-                            <div className="p-6 bg-slate-50 flex justify-between border-t border-slate-200">
-                                <Button variant="outline" onClick={prevSlide} disabled={slideIdx === 0}>
-                                    <Icon name="arrow-left" size={20} /> Back
-                                </Button>
-                                <Button variant="primary" onClick={nextSlide}>
-                                    {slideIdx === module.learnSlides.length - 1 ? "Start Practice" : "Next"} <Icon name="arrow-right" size={20} />
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* GUIDED PRACTICE PHASE */}
-                    {phase === 1 && (
-                        <div className="space-y-6">
-                            <div className="bg-white rounded-2xl p-6 shadow-lg">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="p-2 bg-amber-100 rounded-lg">
-                                        <Icon name="users" size={24} className="text-amber-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-800 text-xl">{module.guidedActivities[guidedIdx].title}</h3>
-                                        <p className="text-slate-500 text-sm">Guided Practice {guidedIdx + 1} of {module.guidedActivities.length}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {module.guidedActivities[guidedIdx].type === 'teacherModel' && (
-                                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                                    <div className="p-6">
-                                        {module.guidedActivities[guidedIdx].content}
-                                    </div>
-                                    <div className="p-6 bg-slate-50 border-t">
-                                        <Button variant="primary" onClick={nextGuided} className="w-full">
-                                            {guidedIdx === module.guidedActivities.length - 1 ? "Start Independent Practice" : "Next Activity"} <Icon name="arrow-right" size={20} />
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {module.guidedActivities[guidedIdx].type === 'sorting' && (
-                                <SortingActivity
-                                    items={module.guidedActivities[guidedIdx].items}
-                                    categories={module.guidedActivities[guidedIdx].categories}
-                                    onComplete={nextGuided}
-                                />
-                            )}
-
-                            {module.guidedActivities[guidedIdx].type === 'fillBlank' && (
-                                <FillBlankActivity
-                                    sentences={module.guidedActivities[guidedIdx].sentences}
-                                    onComplete={nextGuided}
-                                />
-                            )}
-
-                            {module.guidedActivities[guidedIdx].type === 'errorCorrection' && (
-                                <ErrorCorrectionActivity
-                                    sentences={module.guidedActivities[guidedIdx].sentences}
-                                    onComplete={nextGuided}
-                                />
-                            )}
-                        </div>
-                    )}
-
-                    {/* INDEPENDENT PRACTICE PHASE */}
-                    {phase === 2 && (
-                        <QuizActivity
-                            questions={shuffledQuestions}
-                            onComplete={handleQuizComplete}
-                        />
-                    )}
+                    <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    {renderContent()}
                 </div>
             );
         };
@@ -1646,6 +1837,19 @@
         // --- MAIN APP ---
         const App = () => {
             const [screen, setScreen] = useState('menu');
+            const [moduleProgress, setModuleProgress] = useState({
+                m1: { step: 0, maxStep: 0 },
+                m2: { step: 0, maxStep: 0 },
+                m3: { step: 0, maxStep: 0 },
+                m4: { step: 0, maxStep: 0 }
+            });
+
+            const handleProgress = (moduleId, step, maxStep) => {
+                setModuleProgress(prev => ({
+                    ...prev,
+                    [moduleId]: { step, maxStep: Math.max(maxStep, prev[moduleId]?.maxStep || 0) }
+                }));
+            };
 
             const renderMenu = () => (
                 <div className="max-w-4xl mx-auto fade-in">
@@ -1676,7 +1880,15 @@
                                     <h3 className="font-bold text-slate-800 text-xl">{mod.title}</h3>
                                     <p className="text-slate-500">{mod.desc}</p>
                                 </div>
-                                <Icon name="chevron-right" size={24} className="text-slate-300 ml-auto group-hover:text-indigo-500" />
+                                <div className="ml-auto text-right">
+                                    {moduleProgress[mod.id].maxStep > 0 && (
+                                        <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 mb-1">
+                                            <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                            Step {moduleProgress[mod.id].maxStep + 1}/5
+                                        </div>
+                                    )}
+                                    <Icon name="chevron-right" size={24} className="text-slate-300 group-hover:text-indigo-500" />
+                                </div>
                             </button>
                         ))}
                     </div>
@@ -1711,10 +1923,10 @@
 
                     <div className="pt-4">
                         {screen === 'menu' && renderMenu()}
-                        {screen === 'm1' && <ModuleScreen moduleId="m1" onExit={() => setScreen('menu')} />}
-                        {screen === 'm2' && <ModuleScreen moduleId="m2" onExit={() => setScreen('menu')} />}
-                        {screen === 'm3' && <ModuleScreen moduleId="m3" onExit={() => setScreen('menu')} />}
-                        {screen === 'm4' && <ModuleScreen moduleId="m4" onExit={() => setScreen('menu')} />}
+                        {screen === 'm1' && <ModuleScreen moduleId="m1" initialState={moduleProgress.m1} onProgress={(s, m) => handleProgress('m1', s, m)} onExit={() => setScreen('menu')} />}
+                        {screen === 'm2' && <ModuleScreen moduleId="m2" initialState={moduleProgress.m2} onProgress={(s, m) => handleProgress('m2', s, m)} onExit={() => setScreen('menu')} />}
+                        {screen === 'm3' && <ModuleScreen moduleId="m3" initialState={moduleProgress.m3} onProgress={(s, m) => handleProgress('m3', s, m)} onExit={() => setScreen('menu')} />}
+                        {screen === 'm4' && <ModuleScreen moduleId="m4" initialState={moduleProgress.m4} onProgress={(s, m) => handleProgress('m4', s, m)} onExit={() => setScreen('menu')} />}
                         {screen === 'final' && <FinalChallenge onExit={() => setScreen('menu')} />}
                     </div>
 
