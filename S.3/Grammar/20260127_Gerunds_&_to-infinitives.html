@@ -62,7 +62,7 @@
             25% {
                 transform: translateX(-5px);
             }
-            
+
             75% {
                 transform: translateX(5px);
             }
@@ -1013,10 +1013,12 @@
                 title: "The Gerund (-ing)",
                 icon: "pen-tool",
                 color: "emerald",
-                phases: [
+                phases: [ // Keep phases for backward compatibility if needed, though mostly using 5-step flow now
                     { id: 'learn', name: 'Learn' },
-                    { id: 'guided', name: 'Guided Practice' },
-                    { id: 'practice', name: 'Independent Practice' }
+                    { id: 'model', name: 'Model' },
+                    { id: 'check', name: 'Check' },
+                    { id: 'practice', name: 'Practice' },
+                    { id: 'quiz', name: 'Quiz' }
                 ],
                 learnSlides: [
                     {
@@ -1107,29 +1109,58 @@
                         )
                     }
                 ],
-                guidedActivities: [
-                    {
-                        type: 'teacherModel',
-                        title: "Teacher Model: Identifying Gerunds",
-                        content: (
-                            <div className="space-y-6">
-                                <div className="bg-indigo-50 p-6 rounded-2xl">
-                                    <p className="text-indigo-700 font-medium mb-4">Watch how we identify whether to use a gerund:</p>
-                                    <div className="bg-white p-4 rounded-xl mb-4">
-                                        <p className="text-lg mb-2"><strong>Sentence:</strong> "Do you mind ___ the door?"</p>
-                                        <div className="pl-4 border-l-4 border-indigo-300 space-y-2 mt-4">
-                                            <p>Step 1: What's the main verb? → <strong>mind</strong></p>
-                                            <p>Step 2: Check: Is "mind" in the gerund list? → <strong>Yes!</strong></p>
-                                            <p>Step 3: Use the gerund form → <strong>closing</strong></p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-emerald-100 p-4 rounded-xl">
-                                        <p className="text-emerald-800 font-medium">Answer: "Do you mind <strong>closing</strong> the door?"</p>
+                modelContent: {
+                    title: "Teacher Model: Identifying Gerunds",
+                    content: (
+                        <div className="space-y-6">
+                            <div className="bg-indigo-50 p-6 rounded-2xl">
+                                <p className="text-indigo-700 font-medium mb-4">Watch how we identify whether to use a gerund:</p>
+                                <div className="bg-white p-4 rounded-xl mb-4">
+                                    <p className="text-lg mb-2"><strong>Sentence:</strong> "Do you mind ___ the door?"</p>
+                                    <div className="pl-4 border-l-4 border-indigo-300 space-y-2 mt-4">
+                                        <p>Step 1: What's the main verb? → <strong>mind</strong></p>
+                                        <p>Step 2: Check: Is "mind" in the gerund list? → <strong>Yes!</strong></p>
+                                        <p>Step 3: Use the gerund form → <strong>closing</strong></p>
                                     </div>
                                 </div>
+                                <div className="bg-emerald-100 p-4 rounded-xl">
+                                    <p className="text-emerald-800 font-medium">Answer: "Do you mind <strong>closing</strong> the door?"</p>
+                                </div>
                             </div>
-                        )
+                        </div>
+                    )
+                },
+                conceptQuestions: [
+                    {
+                        topic: "Gerund Definition",
+                        question: "What is a gerund?",
+                        options: ["The -ing form of a verb acting as a noun", "The past tense of a verb", "A verb acting as an adjective", "The base form of a verb"],
+                        correctAnswer: "The -ing form of a verb acting as a noun",
+                        explanation: "A gerund acts as a noun (e.g., 'Swimming is fun')."
                     },
+                    {
+                        topic: "Gerund as Subject",
+                        question: "If a gerund is the subject, what verb form do we use?",
+                        options: ["Singular (is/was)", "Plural (are/were)", "Future (will be)", "It depends on the object"],
+                        correctAnswer: "Singular (is/was)",
+                        explanation: "Gerund subjects always take a singular verb (e.g., 'Reading IS good')."
+                    },
+                    {
+                        topic: "Prepositions",
+                        question: "What form follows a preposition (in, at, for)?",
+                        options: ["Gerund (-ing)", "To-infinitive", "Base verb", "Past participle"],
+                        correctAnswer: "Gerund (-ing)",
+                        explanation: "Prepositions are always followed by gerunds (e.g., 'good AT drawing')."
+                    },
+                    {
+                        topic: "Be/Get Used To",
+                        question: "Which pattern means 'familiar with'?",
+                        options: ["be/get used to + gerund", "used to + base verb", "used to + gerund", "be used to + base verb"],
+                        correctAnswer: "be/get used to + gerund",
+                        explanation: "'Be/get used to + gerund' means accustomed to. 'Used to + base verb' is for past habits."
+                    }
+                ],
+                practiceItems: [
                     {
                         type: 'sorting',
                         title: "Sort the Verbs",
@@ -1176,8 +1207,10 @@
                 color: "sky",
                 phases: [
                     { id: 'learn', name: 'Learn' },
-                    { id: 'guided', name: 'Guided Practice' },
-                    { id: 'practice', name: 'Independent Practice' }
+                    { id: 'model', name: 'Model' },
+                    { id: 'check', name: 'Check' },
+                    { id: 'practice', name: 'Practice' },
+                    { id: 'quiz', name: 'Quiz' }
                 ],
                 learnSlides: [
                     {
@@ -1269,29 +1302,58 @@
                         )
                     }
                 ],
-                guidedActivities: [
-                    {
-                        type: 'teacherModel',
-                        title: "Teacher Model: Verb + Object Pattern",
-                        content: (
-                            <div className="space-y-6">
-                                <div className="bg-indigo-50 p-6 rounded-2xl">
-                                    <p className="text-indigo-700 font-medium mb-4">Let's work through an example together:</p>
-                                    <div className="bg-white p-4 rounded-xl mb-4">
-                                        <p className="text-lg mb-2"><strong>Task:</strong> Complete with "advise"</p>
-                                        <p className="text-lg">"The doctor ___ her ___ more water."</p>
-                                        <div className="pl-4 border-l-4 border-indigo-300 space-y-2 mt-4">
-                                            <p>Step 1: "Advise" needs an object (who is being advised?) → <strong>her</strong></p>
-                                            <p>Step 2: After the object, use to-infinitive → <strong>to drink</strong></p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-emerald-100 p-4 rounded-xl">
-                                        <p className="text-emerald-800 font-medium">Answer: "The doctor <strong>advised her to drink</strong> more water."</p>
+                modelContent: {
+                    title: "Teacher Model: Verb + Object Pattern",
+                    content: (
+                        <div className="space-y-6">
+                            <div className="bg-indigo-50 p-6 rounded-2xl">
+                                <p className="text-indigo-700 font-medium mb-4">Let's work through an example together:</p>
+                                <div className="bg-white p-4 rounded-xl mb-4">
+                                    <p className="text-lg mb-2"><strong>Task:</strong> Complete with "advise"</p>
+                                    <p className="text-lg">"The doctor ___ her ___ more water."</p>
+                                    <div className="pl-4 border-l-4 border-indigo-300 space-y-2 mt-4">
+                                        <p>Step 1: "Advise" needs an object (who is being advised?) → <strong>her</strong></p>
+                                        <p>Step 2: After the object, use to-infinitive → <strong>to drink</strong></p>
                                     </div>
                                 </div>
+                                <div className="bg-emerald-100 p-4 rounded-xl">
+                                    <p className="text-emerald-800 font-medium">Answer: "The doctor <strong>advised her to drink</strong> more water."</p>
+                                </div>
                             </div>
-                        )
+                        </div>
+                    )
+                },
+                conceptQuestions: [
+                    {
+                        topic: "To-Infinitive Form",
+                        question: "What is the correct form of a to-infinitive?",
+                        options: ["to + base verb", "to + -ing verb", "to + past tense", "base verb only"],
+                        correctAnswer: "to + base verb",
+                        explanation: "A to-infinitive is always 'to' followed by the base form (e.g., 'to go')."
                     },
+                    {
+                        topic: "Verb + Object",
+                        question: "Which sentence follows the 'Verb + Object + To-infinitive' pattern?",
+                        options: ["She asked him to leave.", "She asked to leave him.", "She to leave asked him.", "She asked leaving him."],
+                        correctAnswer: "She asked him to leave.",
+                        explanation: "The object (him) comes between the main verb (asked) and the to-infinitive."
+                    },
+                    {
+                        topic: "Wh-words",
+                        question: "Complete the sentence: 'I don't know what ___.'",
+                        options: ["to do", "doing", "do", "did"],
+                        correctAnswer: "to do",
+                        explanation: "Wh-words (what, where, how) are followed by to-infinitives."
+                    },
+                    {
+                        topic: "Negative Infinitive",
+                        question: "What is the correct negative form?",
+                        options: ["not to go", "to not go", "not going", "to no go"],
+                        correctAnswer: "not to go",
+                        explanation: "The negative is formed by placing 'not' before the to-infinitive."
+                    }
+                ],
+                practiceItems: [
                     {
                         type: 'errorCorrection',
                         title: "Find the Errors",
@@ -1331,8 +1393,10 @@
                 color: "violet",
                 phases: [
                     { id: 'learn', name: 'Learn' },
-                    { id: 'guided', name: 'Guided Practice' },
-                    { id: 'practice', name: 'Independent Practice' }
+                    { id: 'model', name: 'Model' },
+                    { id: 'check', name: 'Check' },
+                    { id: 'practice', name: 'Practice' },
+                    { id: 'quiz', name: 'Quiz' }
                 ],
                 learnSlides: [
                     {
@@ -1392,29 +1456,58 @@
                         )
                     }
                 ],
-                guidedActivities: [
-                    {
-                        type: 'teacherModel',
-                        title: "Teacher Model: Choosing the Right Form",
-                        content: (
-                            <div className="space-y-6">
-                                <div className="bg-indigo-50 p-6 rounded-2xl">
-                                    <p className="text-indigo-700 font-medium mb-4">Let's decide which form to use:</p>
-                                    <div className="bg-white p-4 rounded-xl mb-4">
-                                        <p className="text-lg mb-2"><strong>Sentence:</strong> "She would love ___ to Paris."</p>
-                                        <div className="pl-4 border-l-4 border-indigo-300 space-y-2 mt-4">
-                                            <p>Step 1: Main verb is "love" - normally takes both forms</p>
-                                            <p>Step 2: BUT we have "would" before it!</p>
-                                            <p>Step 3: Rule: would + like/love/prefer/hate = to-infinitive only</p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-emerald-100 p-4 rounded-xl">
-                                        <p className="text-emerald-800 font-medium">Answer: "She would love <strong>to go</strong> to Paris."</p>
+                modelContent: {
+                    title: "Teacher Model: Choosing the Right Form",
+                    content: (
+                        <div className="space-y-6">
+                            <div className="bg-indigo-50 p-6 rounded-2xl">
+                                <p className="text-indigo-700 font-medium mb-4">Let's decide which form to use:</p>
+                                <div className="bg-white p-4 rounded-xl mb-4">
+                                    <p className="text-lg mb-2"><strong>Sentence:</strong> "She would love ___ to Paris."</p>
+                                    <div className="pl-4 border-l-4 border-indigo-300 space-y-2 mt-4">
+                                        <p>Step 1: Main verb is "love" - normally takes both forms</p>
+                                        <p>Step 2: BUT we have "would" before it!</p>
+                                        <p>Step 3: Rule: would + like/love/prefer/hate = to-infinitive only</p>
                                     </div>
                                 </div>
+                                <div className="bg-emerald-100 p-4 rounded-xl">
+                                    <p className="text-emerald-800 font-medium">Answer: "She would love <strong>to go</strong> to Paris."</p>
+                                </div>
                             </div>
-                        )
+                        </div>
+                    )
+                },
+                conceptQuestions: [
+                    {
+                        topic: "General Rule",
+                        question: "Can 'start' be followed by both forms?",
+                        options: ["Yes (start doing / start to do)", "No, only gerund", "No, only to-infinitive", "No, only base verb"],
+                        correctAnswer: "Yes (start doing / start to do)",
+                        explanation: "Verbs like start, begin, continue, like, love, and hate can usually take both forms."
                     },
+                    {
+                        topic: "Exception: Would",
+                        question: "Which correct? 'I would like...'",
+                        options: ["to go", "going", "go", "gone"],
+                        correctAnswer: "to go",
+                        explanation: "'Would like/love/prefer' is ALWAYS followed by a to-infinitive."
+                    },
+                    {
+                        topic: "Exception: Continuous",
+                        question: "It is starting ___.",
+                        options: ["to rain", "raining", "rain", "rained"],
+                        correctAnswer: "to rain",
+                        explanation: "When 'start' is already -ing (starting), use the to-infinitive to avoid double -ing."
+                    },
+                    {
+                        topic: "No Meaning Change",
+                        question: "Does the meaning change between 'I like swimming' and 'I like to swim'?",
+                        options: ["No (or very little)", "Yes, completely different", "One is past, one is future", "One is wrong"],
+                        correctAnswer: "No (or very little)",
+                        explanation: "For these verbs, the meaning is essentially the same."
+                    }
+                ],
+                practiceItems: [
                     {
                         type: 'fillBlank',
                         title: "Choose the Correct Form",
@@ -1441,8 +1534,10 @@
                 color: "amber",
                 phases: [
                     { id: 'learn', name: 'Learn' },
-                    { id: 'guided', name: 'Guided Practice' },
-                    { id: 'practice', name: 'Independent Practice' }
+                    { id: 'model', name: 'Model' },
+                    { id: 'check', name: 'Check' },
+                    { id: 'practice', name: 'Practice' },
+                    { id: 'quiz', name: 'Quiz' }
                 ],
                 learnSlides: [
                     {
@@ -1544,29 +1639,58 @@
                         )
                     }
                 ],
-                guidedActivities: [
-                    {
-                        type: 'teacherModel',
-                        title: "Teacher Model: Understanding Context",
-                        content: (
-                            <div className="space-y-6">
-                                <div className="bg-indigo-50 p-6 rounded-2xl">
-                                    <p className="text-indigo-700 font-medium mb-4">Context is key! Let's analyze:</p>
-                                    <div className="bg-white p-4 rounded-xl mb-4">
-                                        <p className="text-lg mb-2"><strong>Sentence:</strong> "I forgot ___ my camera. I have no photos!"</p>
-                                        <div className="pl-4 border-l-4 border-indigo-300 space-y-2 mt-4">
-                                            <p>Step 1: What's the situation? → "I have no photos"</p>
-                                            <p>Step 2: This means I didn't bring my camera</p>
-                                            <p>Step 3: "forget + to-infinitive" = failed to do something</p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-emerald-100 p-4 rounded-xl">
-                                        <p className="text-emerald-800 font-medium">Answer: "I forgot <strong>to bring</strong> my camera."</p>
+                modelContent: {
+                    title: "Teacher Model: Understanding Context",
+                    content: (
+                        <div className="space-y-6">
+                            <div className="bg-indigo-50 p-6 rounded-2xl">
+                                <p className="text-indigo-700 font-medium mb-4">Context is key! Let's analyze:</p>
+                                <div className="bg-white p-4 rounded-xl mb-4">
+                                    <p className="text-lg mb-2"><strong>Sentence:</strong> "I forgot ___ my camera. I have no photos!"</p>
+                                    <div className="pl-4 border-l-4 border-indigo-300 space-y-2 mt-4">
+                                        <p>Step 1: What's the situation? → "I have no photos"</p>
+                                        <p>Step 2: This means I didn't bring my camera</p>
+                                        <p>Step 3: "forget + to-infinitive" = failed to do something</p>
                                     </div>
                                 </div>
+                                <div className="bg-emerald-100 p-4 rounded-xl">
+                                    <p className="text-emerald-800 font-medium">Answer: "I forgot <strong>to bring</strong> my camera."</p>
+                                </div>
                             </div>
-                        )
+                        </div>
+                    )
+                },
+                conceptQuestions: [
+                    {
+                        topic: "Stop + Gerund",
+                        question: "What does 'stop smoking' mean?",
+                        options: ["Quit smoking forever", "Pause to smoke a cigarette", "Start smoking", "Think about smoking"],
+                        correctAnswer: "Quit smoking forever",
+                        explanation: "'Stop + gerund' means to cease an activity."
                     },
+                    {
+                        topic: "Stop + To-Infinitive",
+                        question: "What does 'stop to smoke' mean?",
+                        options: ["Pause doing something else to smoke", "Quit smoking", "Finish smoking", "Hate smoking"],
+                        correctAnswer: "Pause doing something else to smoke",
+                        explanation: "'Stop + to-infinitive' means to pause an action in order to do something else."
+                    },
+                    {
+                        topic: "Remember + Gerund",
+                        question: "Which refers to a memory?",
+                        options: ["I remember locking the door.", "I remember to lock the door.", "I remember lock the door.", "I remember locked."],
+                        correctAnswer: "I remember locking the door.",
+                        explanation: "'Remember + gerund' refers to a past memory."
+                    },
+                    {
+                        topic: "Try + To-Infinitive",
+                        question: "What does 'try to reach' imply?",
+                        options: ["Making an effort", "Experimenting to see what happens", "Doing it easily", "Completing it"],
+                        correctAnswer: "Making an effort",
+                        explanation: "'Try + to-infinitive' means to make an effort or attempt something difficult."
+                    }
+                ],
+                practiceItems: [
                     {
                         type: 'errorCorrection',
                         title: "Choose the Right Meaning",
