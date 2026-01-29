@@ -297,11 +297,93 @@
             );
         };
 
-        const ProgressBar = ({ current, total, color = "bg-indigo-500" }) => (
-            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div className={`${color} h-full transition-all duration-500`} style={{ width: `${(current / total) * 100}%` }}></div>
-            </div>
-        );
+        const ProgressBar = ({ current, total, color = "bg-indigo-500" }) => {
+            const percentage = total > 0 ? (current / total) * 100 : 0;
+            return (
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div className={`${color} h-full transition-all duration-500`} style={{ width: `${percentage}%` }}></div>
+                </div>
+            );
+        };
+
+        const getPercent = (correct, total) => (total > 0 ? Math.round((correct / total) * 100) : 0);
+
+        const getStars = (percent) => {
+            if (percent >= 90) return 3;
+            if (percent >= 75) return 2;
+            if (percent >= 60) return 1;
+            return 0;
+        };
+
+        const getRankInfo = (percent) => {
+            if (percent >= 95) return { label: "Legend", bg: "bg-amber-100", text: "text-amber-700" };
+            if (percent >= 85) return { label: "Master", bg: "bg-purple-100", text: "text-purple-700" };
+            if (percent >= 70) return { label: "Pro", bg: "bg-emerald-100", text: "text-emerald-700" };
+            if (percent >= 55) return { label: "Rising", bg: "bg-sky-100", text: "text-sky-700" };
+            return { label: "Starter", bg: "bg-slate-100", text: "text-slate-700" };
+        };
+
+        const getNextRankTarget = (percent) => {
+            if (percent >= 95) return null;
+            if (percent >= 85) return 95;
+            if (percent >= 70) return 85;
+            if (percent >= 55) return 70;
+            return 55;
+        };
+
+        const getScoreTotals = (scoreMap) => {
+            const entries = Object.entries(scoreMap || {});
+            const hasDetailed = entries.some(([key, value]) => key !== 'overall' && value && typeof value.correct === 'number' && typeof value.total === 'number');
+            return entries.reduce((acc, [key, entry]) => {
+                if (key === 'overall' && hasDetailed) return acc;
+                acc.correct += entry?.correct || 0;
+                acc.total += entry?.total || 0;
+                return acc;
+            }, { correct: 0, total: 0 });
+        };
+
+        const UnitScoreHUD = ({ correct, total, label = "Unit Score" }) => {
+            const percent = getPercent(correct, total);
+            const stars = getStars(percent);
+            const rank = getRankInfo(percent);
+            const nextTarget = getNextRankTarget(percent);
+            const xp = correct * 10;
+            const maxXp = total * 10;
+
+            return (
+                <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 mb-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-slate-800">{percent}%</span>
+                            <span className="text-xs text-slate-500 font-medium">{correct}/{total}</span>
+                            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{label}</span>
+                        </div>
+                        <div className="flex-1 min-w-[160px]">
+                            <ProgressBar current={correct} total={total} color="bg-emerald-500" />
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+                            <span className={`px-2.5 py-1 rounded-full ${rank.bg} ${rank.text}`}>{rank.label}</span>
+                            <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">Stars {stars}/3</span>
+                            <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">XP {xp}/{maxXp}</span>
+                            {nextTarget && (
+                                <span className="px-2.5 py-1 rounded-full bg-white text-slate-500 border border-slate-200">
+                                    Next {nextTarget}%
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const useUnitScore = (initialScoreMap = {}) => {
+            const [scoreMap, setScoreMap] = useState(initialScoreMap);
+            const totals = useMemo(() => getScoreTotals(scoreMap), [scoreMap]);
+            const updateScore = useCallback((key, correct, total) => {
+                setScoreMap(prev => ({ ...prev, [key]: { correct, total } }));
+            }, []);
+            return { scoreMap, totals, updateScore };
+        };
 
         const StepIndicator = ({ steps, current, maxReached, onStepClick }) => {
             const max = maxReached !== undefined ? maxReached : current;
@@ -410,11 +492,13 @@
         };
 
         // --- CONCEPT CHECK STEP COMPONENT (dedicated step for concept checks) ---
-        const ConceptCheckStep = ({ questions, onComplete, onReviewRequest }) => {
+        const ConceptCheckStep = ({ questions, onComplete, onReviewRequest, onScore }) => {
             const [currentIndex, setCurrentIndex] = useState(0);
             const [wrongAnswers, setWrongAnswers] = useState([]);
             const [allAnswered, setAllAnswered] = useState(false);
             const [answered, setAnswered] = useState(false);
+            const [correctCount, setCorrectCount] = useState(0);
+            const [reported, setReported] = useState(false);
 
             const currentQ = questions[currentIndex];
             const isLast = currentIndex === questions.length - 1;
@@ -425,6 +509,9 @@
                 if (!isCorrect) {
                     setWrongAnswers(prev => [...prev, currentQ.topic]);
                 }
+                const nextCorrect = isCorrect ? correctCount + 1 : correctCount;
+                if (isCorrect) setCorrectCount(nextCorrect);
+                if (onScore) onScore(nextCorrect, questions.length);
             };
 
             const handleNext = () => {
@@ -435,6 +522,13 @@
                     setAnswered(false);
                 }
             };
+
+            useEffect(() => {
+                if (allAnswered && !reported) {
+                    if (onScore) onScore(correctCount, questions.length);
+                    setReported(true);
+                }
+            }, [allAnswered, reported, correctCount, questions.length, onScore]);
 
             if (allAnswered) {
                 return (
@@ -510,7 +604,7 @@
         };
 
         // --- INTERACTIVE SORTING ACTIVITY ---
-        const SortingActivity = ({ items, categories, onComplete }) => {
+        const SortingActivity = ({ items, categories, onComplete, onScore }) => {
             const [sorted, setSorted] = useState({});
             const [available, setAvailable] = useState(items);
             const [feedback, setFeedback] = useState(null);
@@ -596,6 +690,7 @@
                 });
 
                 setFeedback({ correct, total, percentage: Math.round((correct / total) * 100) });
+                if (onScore) onScore(correct, total);
                 if (correct === total) {
                     setTimeout(triggerComplete, 1200);
                 }
@@ -709,7 +804,7 @@
         };
 
         // --- ERROR CORRECTION ACTIVITY ---
-        const ErrorCorrectionActivity = ({ items, onComplete }) => {
+        const ErrorCorrectionActivity = ({ items, onComplete, onScoreUpdate }) => {
             const [currentIndex, setCurrentIndex] = useState(0);
             const [selectedError, setSelectedError] = useState(null);
             const [showFeedback, setShowFeedback] = useState(false);
@@ -723,9 +818,9 @@
             const handleSelect = (option) => {
                 setSelectedError(option);
                 setShowFeedback(true);
-                if (option === correctAnswer) {
-                    setScore(s => s + 1);
-                }
+                const nextScore = option === correctAnswer ? score + 1 : score;
+                if (option === correctAnswer) setScore(nextScore);
+                if (onScoreUpdate) onScoreUpdate(nextScore, items.length);
             };
 
             const next = () => {
@@ -798,13 +893,14 @@
         };
 
         // --- MATCHING ACTIVITY ---
-        const MatchingActivity = ({ pairs, onComplete }) => {
+        const MatchingActivity = ({ pairs, onComplete, onScore }) => {
             const [selected, setSelected] = useState({ left: null, right: null });
             const [matched, setMatched] = useState([]);
             const [wrong, setWrong] = useState(null);
             const [hasAttempted, setHasAttempted] = useState(false);
             const [revealed, setRevealed] = useState(false);
             const [completionTriggered, setCompletionTriggered] = useState(false);
+            const [reported, setReported] = useState(false);
 
             const triggerComplete = useCallback(() => {
                 setCompletionTriggered(prev => {
@@ -827,6 +923,7 @@
                     if (pair && pair.formal === newSelected.right) {
                         setMatched(m => {
                             const updated = [...m, newSelected.left];
+                            if (onScore) onScore(updated.length, pairs.length);
                             if (updated.length === pairs.length) {
                                 setTimeout(triggerComplete, 800);
                             }
@@ -848,7 +945,15 @@
                 setSelected({ left: null, right: null });
                 setWrong(null);
                 setRevealed(true);
+                if (onScore) onScore(pairs.length, pairs.length);
             };
+
+            useEffect(() => {
+                if (!reported && (matched.length === pairs.length || revealed)) {
+                    if (onScore) onScore(matched.length, pairs.length);
+                    setReported(true);
+                }
+            }, [matched.length, pairs.length, revealed, reported, onScore]);
 
             return (
                 <div className="space-y-6">
@@ -867,8 +972,8 @@
                                 return (
                                     <button
                                         key={item}
-                                        onClick={() => !isMatched && handleSelect('left', item)}
-                                        disabled={isMatched}
+                                        onClick={() => !isMatched && !revealed && handleSelect('left', item)}
+                                        disabled={isMatched || revealed}
                                         className={`w-full p-3 rounded-xl font-bold text-left transition-all ${isMatched ? 'bg-green-100 text-green-700 opacity-60' :
                                             isWrong ? 'bg-red-100 border-2 border-red-400 text-red-700' :
                                                 isSelected ? 'bg-indigo-100 border-2 border-indigo-500 text-indigo-700' :
@@ -890,8 +995,8 @@
                                 return (
                                     <button
                                         key={item}
-                                        onClick={() => !isMatched && handleSelect('right', item)}
-                                        disabled={isMatched}
+                                        onClick={() => !isMatched && !revealed && handleSelect('right', item)}
+                                        disabled={isMatched || revealed}
                                         className={`w-full p-3 rounded-xl font-bold text-left transition-all ${isMatched ? 'bg-green-100 text-green-700 opacity-60' :
                                             isWrong ? 'bg-red-100 border-2 border-red-400 text-red-700' :
                                                 isSelected ? 'bg-indigo-100 border-2 border-indigo-500 text-indigo-700' :
@@ -945,7 +1050,7 @@
         };
 
         // --- SENTENCE BUILDER ACTIVITY ---
-        const SentenceBuilderActivity = ({ items, onComplete }) => {
+        const SentenceBuilderActivity = ({ items, onComplete, onScoreUpdate }) => {
             const [currentIndex, setCurrentIndex] = useState(0);
             const [selected, setSelected] = useState([]);
             const [available, setAvailable] = useState([]);
@@ -978,7 +1083,9 @@
                 const userAnswer = selected.join(' ');
                 const isCorrect = current.correct.includes(userAnswer);
                 setShowFeedback(true);
-                if (isCorrect) setScore(s => s + 1);
+                const nextScore = isCorrect ? score + 1 : score;
+                if (isCorrect) setScore(nextScore);
+                if (onScoreUpdate) onScoreUpdate(nextScore, items.length);
             };
 
             const next = () => {
@@ -1065,28 +1172,58 @@
         };
 
         // --- QUIZ INTERFACE ---
-        const QuizInterface = ({ questions, onComplete, title = "Quiz" }) => {
+        const QuizInterface = ({ questions, onComplete, onScoreUpdate, title = "Quiz" }) => {
+            const questionBank = useMemo(() => {
+                return questions.map((q, idx) => ({ ...q, __id: q.id ?? idx }));
+            }, [questions]);
+
             const [mode, setMode] = useState('quiz');
-            const [activeQuestions, setActiveQuestions] = useState(questions);
+            const [activeQuestions, setActiveQuestions] = useState(() => shuffleArray(questionBank));
             const [idx, setIdx] = useState(0);
             const [history, setHistory] = useState({});
             const [answered, setAnswered] = useState(false);
             const [selectedOption, setSelectedOption] = useState(null);
+            const [mastery, setMastery] = useState(() => new Set());
+
+            useEffect(() => {
+                setActiveQuestions(shuffleArray(questionBank));
+                setIdx(0);
+                setMode('quiz');
+                setHistory({});
+                setAnswered(false);
+                setSelectedOption(null);
+                setMastery(new Set());
+            }, [questionBank]);
 
             const q = activeQuestions[idx];
-            const shuffledOptions = useMemo(() => (q ? shuffleArray(q.opts) : []), [q?.id]);
+            const shuffledOptions = useMemo(() => (q ? shuffleArray(q.opts) : []), [q?.__id]);
+            const total = questionBank.length;
+            const score = mastery.size;
+
+            const reportScore = useCallback((nextMastery) => {
+                if (onScoreUpdate) onScoreUpdate(nextMastery.size, total);
+            }, [onScoreUpdate, total]);
 
             const handleAnswer = (choice) => {
                 if (answered) return;
                 const isCorrect = choice === q.a || (Array.isArray(q.a) && q.a.includes(choice));
                 setSelectedOption(choice);
                 setAnswered(true);
-                setHistory(prev => ({ ...prev, [q.id]: { q, selected: choice, isCorrect, skipped: false } }));
+                setHistory(prev => ({ ...prev, [q.__id]: { q, selected: choice, isCorrect, skipped: false } }));
+
+                if (isCorrect && !mastery.has(q.__id)) {
+                    const nextMastery = new Set(mastery);
+                    nextMastery.add(q.__id);
+                    setMastery(nextMastery);
+                    reportScore(nextMastery);
+                } else {
+                    reportScore(mastery);
+                }
             };
 
             const handleSkip = () => {
                 if (answered) return;
-                setHistory(prev => ({ ...prev, [q.id]: { q, selected: null, isCorrect: false, skipped: true } }));
+                setHistory(prev => ({ ...prev, [q.__id]: { q, selected: null, isCorrect: false, skipped: true } }));
                 next();
             };
 
@@ -1100,11 +1237,10 @@
                 }
             };
 
-            const getScore = () => Object.values(history).filter(h => h.isCorrect).length;
-
             const handleRetryMistakes = () => {
-                const mistakes = Object.values(history).filter(h => !h.isCorrect).map(h => h.q);
-                setActiveQuestions(mistakes);
+                const mistakes = questionBank.filter(item => !mastery.has(item.__id));
+                if (mistakes.length === 0) return;
+                setActiveQuestions(shuffleArray(mistakes));
                 setHistory({});
                 setIdx(0);
                 setMode('quiz');
@@ -1113,16 +1249,19 @@
             };
 
             if (mode === 'review') {
-                const score = getScore();
-                const total = Object.keys(history).length;
                 const mistakes = Object.values(history).filter(h => !h.isCorrect);
+                const pending = questionBank.filter(item => !mastery.has(item.__id));
+                const percent = getPercent(score, total);
+                const rank = getRankInfo(percent);
+                const stars = getStars(percent);
 
                 return (
                     <div className="w-full fade-in bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
                         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-center text-white">
                             <h2 className="text-3xl font-black mb-2">{title} Complete!</h2>
                             <div className="text-5xl font-black mb-2">{score}/{total}</div>
-                            <p className="text-indigo-200">{score === total ? "Perfect score! 🎉" : "Good effort! Review your mistakes below."}</p>
+                            <p className="text-indigo-200">{percent}% | Rank: {rank.label} | Stars: {stars}/3</p>
+                            <p className="text-indigo-200 mt-1">{score === total ? "Perfect score! 🎉" : "Good effort! Review your mistakes below."}</p>
                         </div>
 
                         <div className="p-6">
@@ -1148,7 +1287,7 @@
                             )}
 
                             <div className="flex flex-wrap gap-3 justify-center">
-                                {mistakes.length > 0 && (
+                                {pending.length > 0 && (
                                     <Button onClick={handleRetryMistakes} variant="secondary">
                                         <Icon name="refresh-cw" size={18} /> Retry Mistakes
                                     </Button>
@@ -1174,7 +1313,7 @@
                 <div className="w-full fade-in">
                     <div className="mb-4 flex justify-between items-center text-sm">
                         <span className="text-slate-500 font-medium">Question {idx + 1}/{activeQuestions.length}</span>
-                        <span className="font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Score: {getScore()}</span>
+                        <span className="font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Score: {score}</span>
                     </div>
 
                     <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
@@ -1271,10 +1410,11 @@
         );
 
         // --- MODULE 1: TYPES OF PHRASAL VERBS ---
-        const Module1 = ({ initialState, onProgress, onComplete, onBack }) => {
+        const Module1 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Sort', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -1282,6 +1422,10 @@
                 if (newMax > maxStepReached) setMaxStepReached(newMax);
                 if (onProgress) onProgress(step, newMax);
             }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
 
             const conceptQuestions = [
                 { topic: "Adverbs", question: "What is an adverb?", options: ["A word that describes a verb", "A word that names a thing", "A word that joins sentences", "A word that shows time"], correctAnswer: "A word that describes a verb", explanation: "Adverbs describe HOW something happens. In phrasal verbs, words like 'up', 'down', 'away' are adverbs." },
@@ -1308,6 +1452,12 @@
                 { id: "v+prep", name: "Verb + Preposition", icon: "link", color: "bg-green-50 border-green-200 text-green-800" },
                 { id: "v+adv+prep", name: "Verb + Adv + Prep", icon: "layers", color: "bg-purple-50 border-purple-200 text-purple-800" }
             ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
 
             const renderContent = () => {
                 switch (step) {
@@ -1438,6 +1588,7 @@
                                 questions={conceptQuestions}
                                 onComplete={() => setStep(3)}
                                 onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
                             />
                         );
 
@@ -1453,6 +1604,7 @@
                                     items={sortingItems}
                                     categories={sortingCategories}
                                     onComplete={() => setStep(4)}
+                                    onScore={(correct, total) => updateScore('practice', correct, total)}
                                 />
 
                                 <div className="flex justify-start mt-4">
@@ -1469,7 +1621,8 @@
                                 <QuizInterface
                                     questions={QUIZ_DATA.m1}
                                     title="Module 1 Quiz"
-                                    onComplete={(score, total) => onComplete(score, total)}
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
                                 />
                             </div>
                         );
@@ -1485,16 +1638,18 @@
                     onBack={onBack}
                 >
                     <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
                     {renderContent()}
                 </ModuleWrapper>
             );
         };
 
         // --- MODULE 2: TRANSITIVE VS INTRANSITIVE ---
-        const Module2 = ({ initialState, onProgress, onComplete, onBack }) => {
+        const Module2 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -1502,6 +1657,10 @@
                 if (newMax > maxStepReached) setMaxStepReached(newMax);
                 if (onProgress) onProgress(step, newMax);
             }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
 
             const conceptQuestions = [
                 { topic: "Objects", question: "In 'I kicked the ball', what is the object?", options: ["the ball", "I", "kicked"], correctAnswer: "the ball", explanation: "The ball receives the action of kicking. Objects receive the action of the verb." },
@@ -1517,6 +1676,12 @@
                 { sentence: "Mr Ting blew up the balloons.", hasError: false, errorType: "correct", explanation: "'Blow up' (inflate) is transitive here and has an object (the balloons). Correct!" },
                 { sentence: "Our car broke down it yesterday.", hasError: true, errorType: "wrong_separation", explanation: "'Break down' (stop working) is intransitive - it doesn't take an object!", correction: "Our car broke down yesterday." }
             ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
 
             const renderContent = () => {
                 switch (step) {
@@ -1621,6 +1786,7 @@
                                 questions={conceptQuestions}
                                 onComplete={() => setStep(3)}
                                 onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
                             />
                         );
 
@@ -1634,7 +1800,11 @@
 
                                 <ErrorCorrectionActivity
                                     items={errorItems}
-                                    onComplete={() => setStep(4)}
+                                    onComplete={(score, total) => {
+                                        updateScore('practice', score, total);
+                                        setStep(4);
+                                    }}
+                                    onScoreUpdate={(correct, total) => updateScore('practice', correct, total)}
                                 />
                             </div>
                         );
@@ -1645,7 +1815,8 @@
                                 <QuizInterface
                                     questions={QUIZ_DATA.m2}
                                     title="Module 2 Quiz"
-                                    onComplete={(score, total) => onComplete(score, total)}
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
                                 />
                             </div>
                         );
@@ -1661,16 +1832,18 @@
                     onBack={onBack}
                 >
                     <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
                     {renderContent()}
                 </ModuleWrapper>
             );
         };
 
         // --- MODULE 3: SEPARABLE VS INSEPARABLE ---
-        const Module3 = ({ initialState, onProgress, onComplete, onBack }) => {
+        const Module3 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Build', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -1678,6 +1851,10 @@
                 if (newMax > maxStepReached) setMaxStepReached(newMax);
                 if (onProgress) onProgress(step, newMax);
             }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
             const conceptQuestions = [
                 { topic: "Particles", question: "What is a 'particle' in a phrasal verb?", options: ["The adverb or preposition part", "The main verb", "The object", "The subject"], correctAnswer: "The adverb or preposition part", explanation: "In 'pick up', 'up' is the particle. It's the adverb/preposition attached to the verb." },
                 { topic: "Separable verbs", question: "'Separable' means...", options: ["The object can go between verb and particle", "The verb can never be split", "It has three parts", "It needs no object"], correctAnswer: "The object can go between verb and particle", explanation: "Separable = we CAN put the object between: 'pick up the book' OR 'pick the book up'." },
@@ -1692,6 +1869,12 @@
                 { words: ["Tim", "asked", "Jenny", "out", "to", "dinner", "."], correct: ["Tim asked Jenny out to dinner ."], explanation: "'Ask out' MUST be separated - the object goes between" },
                 { words: ["I'll", "show", "my", "friends", "around", "."], correct: ["I'll show my friends around ."], explanation: "'Show around' MUST be separated" }
             ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
 
             const renderContent = () => {
                 switch (step) {
@@ -1799,6 +1982,7 @@
                                 questions={conceptQuestions}
                                 onComplete={() => setStep(3)}
                                 onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
                             />
                         );
 
@@ -1812,7 +1996,11 @@
 
                                 <SentenceBuilderActivity
                                     items={sentenceItems}
-                                    onComplete={() => setStep(4)}
+                                    onComplete={(score, total) => {
+                                        updateScore('practice', score, total);
+                                        setStep(4);
+                                    }}
+                                    onScoreUpdate={(correct, total) => updateScore('practice', correct, total)}
                                 />
                             </div>
                         );
@@ -1823,7 +2011,8 @@
                                 <QuizInterface
                                     questions={QUIZ_DATA.m3}
                                     title="Module 3 Quiz"
-                                    onComplete={(score, total) => onComplete(score, total)}
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
                                 />
                             </div>
                         );
@@ -1839,16 +2028,18 @@
                     onBack={onBack}
                 >
                     <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
                     {renderContent()}
                 </ModuleWrapper>
             );
         };
 
         // --- MODULE 4: FORMAL VS INFORMAL ---
-        const Module4 = ({ initialState, onProgress, onComplete, onBack }) => {
+        const Module4 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Match', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -1856,6 +2047,10 @@
                 if (newMax > maxStepReached) setMaxStepReached(newMax);
                 if (onProgress) onProgress(step, newMax);
             }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
 
             const conceptQuestions = [
                 { topic: "Register", question: "What is 'register' in language?", options: ["How formal or casual your words are", "The grammar of a sentence", "The spelling of words"], correctAnswer: "How formal or casual your words are", explanation: "Register = formality level. Essays need formal register, chatting needs informal." },
@@ -1871,6 +2066,12 @@
                 { phrasal: "call off", formal: "cancel" },
                 { phrasal: "give up", formal: "quit" }
             ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
 
             const renderContent = () => {
                 switch (step) {
@@ -1979,6 +2180,7 @@
                                 questions={conceptQuestions}
                                 onComplete={() => setStep(3)}
                                 onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
                             />
                         );
 
@@ -1993,6 +2195,7 @@
                                 <MatchingActivity
                                     pairs={matchingPairs}
                                     onComplete={() => setStep(4)}
+                                    onScore={(correct, total) => updateScore('practice', correct, total)}
                                 />
                             </div>
                         );
@@ -2004,7 +2207,8 @@
                                 <QuizInterface
                                     questions={QUIZ_DATA.m4}
                                     title="Module 4 Quiz"
-                                    onComplete={(score, total) => onComplete(score, total)}
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
                                 />
                             </div>
                         );
@@ -2020,16 +2224,18 @@
                     onBack={onBack}
                 >
                     <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
                     {renderContent()}
                 </ModuleWrapper>
             );
         };
 
         // --- MODULE 5: COMMON ERRORS ---
-        const Module5 = ({ initialState, onProgress, onComplete, onBack }) => {
+        const Module5 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {});
 
             // Track highest step reached and report to parent
             React.useEffect(() => {
@@ -2037,6 +2243,10 @@
                 if (newMax > maxStepReached) setMaxStepReached(newMax);
                 if (onProgress) onProgress(step, newMax);
             }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
 
             const conceptQuestions = [
                 { topic: "3-part verbs", question: "Can you split 'looking forward to'?", options: ["No - 3-part verbs NEVER split", "Yes - any verb can split", "Only with pronouns"], correctAnswer: "No - 3-part verbs NEVER split", explanation: "3-part phrasal verbs (verb + adverb + preposition) must stay together. Object goes after." },
@@ -2051,6 +2261,12 @@
                 { sentence: "Look the word for in your dictionary.", hasError: true, errorType: "wrong_verb", explanation: "'Look up' means to search for information. 'Look for' means to try to find something lost.", correction: "Look the word up in your dictionary." },
                 { sentence: "I'm going to show around my friends my new house.", hasError: true, errorType: "wrong_separation", explanation: "'Show around' must be separated - the object goes between show and around.", correction: "I'm going to show my friends around my new house." }
             ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } });
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
 
             const renderContent = () => {
                 switch (step) {
@@ -2147,6 +2363,7 @@
                                 questions={conceptQuestions}
                                 onComplete={() => setStep(3)}
                                 onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
                             />
                         );
 
@@ -2160,7 +2377,11 @@
 
                                 <ErrorCorrectionActivity
                                     items={errorItems}
-                                    onComplete={() => setStep(4)}
+                                    onComplete={(score, total) => {
+                                        updateScore('practice', score, total);
+                                        setStep(4);
+                                    }}
+                                    onScoreUpdate={(correct, total) => updateScore('practice', correct, total)}
                                 />
                             </div>
                         );
@@ -2171,7 +2392,8 @@
                                 <QuizInterface
                                     questions={QUIZ_DATA.m5}
                                     title="Module 5 Quiz"
-                                    onComplete={(score, total) => onComplete(score, total)}
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
                                 />
                             </div>
                         );
@@ -2187,13 +2409,14 @@
                     onBack={onBack}
                 >
                     <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
                     {renderContent()}
                 </ModuleWrapper>
             );
         };
 
         // --- FINAL CHALLENGE ---
-        const FinalChallenge = ({ onComplete, onBack }) => {
+        const FinalChallenge = ({ onComplete, onBack, onScoreUpdate }) => {
             // Generate 15 random questions from the pool on mount
             const questions = useMemo(() => generateTestQuestions(15), []);
 
@@ -2209,6 +2432,9 @@
                         questions={questions}
                         title="Final Challenge"
                         onComplete={(score, total) => onComplete(score, total)}
+                        onScoreUpdate={(correct, total) => {
+                            if (onScoreUpdate) onScoreUpdate({ quiz: { correct, total } });
+                        }}
                     />
                 </ModuleWrapper>
             );
@@ -2217,7 +2443,27 @@
         // --- MAIN APP ---
         const App = () => {
             const [screen, setScreen] = useState('menu');
-            const [scores, setScores] = useState({});
+            const [scores, setScores] = useState(() => {
+                try {
+                    const stored = localStorage.getItem('s3-phrasal-scores');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        const normalized = { m1: {}, m2: {}, m3: {}, m4: {}, m5: {}, final: {} };
+                        ['m1', 'm2', 'm3', 'm4', 'm5', 'final'].forEach((key) => {
+                            const value = parsed?.[key];
+                            if (value && typeof value.correct === 'number' && typeof value.total === 'number') {
+                                normalized[key] = { overall: { correct: value.correct, total: value.total } };
+                            } else {
+                                normalized[key] = value || {};
+                            }
+                        });
+                        return normalized;
+                    }
+                } catch (err) {
+                    return { m1: {}, m2: {}, m3: {}, m4: {}, m5: {}, final: {} };
+                }
+                return { m1: {}, m2: {}, m3: {}, m4: {}, m5: {}, final: {} };
+            });
             const [moduleProgress, setModuleProgress] = useState({
                 m1: { step: 0, maxStep: 0 },
                 m2: { step: 0, maxStep: 0 },
@@ -2226,8 +2472,10 @@
                 m5: { step: 0, maxStep: 0 }
             });
 
-            const handleComplete = (moduleId, score, total) => {
-                setScores(prev => ({ ...prev, [moduleId]: { score, total } }));
+            const handleComplete = (moduleId, correct, total) => {
+                if (moduleId === 'final') {
+                    setScores(prev => ({ ...prev, final: { quiz: { correct, total } } }));
+                }
                 setScreen('menu');
             };
 
@@ -2237,6 +2485,18 @@
                     [moduleId]: { step, maxStep: Math.max(maxStep, prev[moduleId]?.maxStep || 0) }
                 }));
             };
+
+            const handleScoreUpdate = (moduleId, scoreMap) => {
+                setScores(prev => ({ ...prev, [moduleId]: scoreMap }));
+            };
+
+            useEffect(() => {
+                try {
+                    localStorage.setItem('s3-phrasal-scores', JSON.stringify(scores));
+                } catch (err) {
+                    // ignore storage failures
+                }
+            }, [scores]);
 
             const modules = [
                 { id: 'm1', title: "Types of Phrasal Verbs", desc: "Verb + adverb, verb + preposition, and three-part verbs", icon: "layers", color: "from-blue-500 to-indigo-500" },
@@ -2259,35 +2519,42 @@
                             </header>
 
                             <div className="space-y-4 mb-8">
-                                {modules.map((mod, i) => (
-                                    <button
-                                        key={mod.id}
-                                        onClick={() => setScreen(mod.id)}
-                                        className="w-full bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-100 hover:border-indigo-200 hover:shadow-lg transition-all text-left flex items-center gap-4 group fade-in"
-                                        style={{ animationDelay: `${i * 0.1}s` }}
-                                    >
-                                        <div className={`bg-gradient-to-br ${mod.color} text-white p-4 rounded-xl shadow-lg group-hover:scale-110 transition-transform`}>
-                                            <Icon name={mod.icon} size={28} />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-bold text-slate-800 text-lg">{i + 1}. {mod.title}</h3>
-                                            <p className="text-slate-500 text-sm truncate">{mod.desc}</p>
-                                        </div>
-                                        {scores[mod.id] ? (
-                                            <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
-                                                {scores[mod.id].score}/{scores[mod.id].total}
+                                {modules.map((mod, i) => {
+                                    const scoreMap = scores[mod.id] || {};
+                                    const totals = getScoreTotals(scoreMap);
+                                    const percent = getPercent(totals.correct, totals.total);
+                                    const rank = getRankInfo(percent);
+
+                                    return (
+                                        <button
+                                            key={mod.id}
+                                            onClick={() => setScreen(mod.id)}
+                                            className="w-full bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-100 hover:border-indigo-200 hover:shadow-lg transition-all text-left flex items-center gap-4 group fade-in"
+                                            style={{ animationDelay: `${i * 0.1}s` }}
+                                        >
+                                            <div className={`bg-gradient-to-br ${mod.color} text-white p-4 rounded-xl shadow-lg group-hover:scale-110 transition-transform`}>
+                                                <Icon name={mod.icon} size={28} />
                                             </div>
-                                        ) : (
-                                            moduleProgress[mod.id]?.maxStep > 0 && (
-                                                <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2">
-                                                    <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                                                    Step {moduleProgress[mod.id].maxStep + 1}/5
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-bold text-slate-800 text-lg">{i + 1}. {mod.title}</h3>
+                                                <p className="text-slate-500 text-sm truncate">{mod.desc}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className={`px-3 py-1 rounded-full text-sm font-bold ${rank.bg} ${rank.text}`}>
+                                                    Score {percent}% | {rank.label}
                                                 </div>
-                                            )
-                                        )}
-                                        <Icon name="chevron-right" size={24} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
-                                    </button>
-                                ))}
+                                                <div className="text-xs text-slate-400 mt-1">{totals.correct}/{totals.total} correct</div>
+                                                {moduleProgress[mod.id]?.maxStep > 0 && (
+                                                    <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 mt-2">
+                                                        <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                                        Step {moduleProgress[mod.id].maxStep + 1}/5
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <Icon name="chevron-right" size={24} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             <button
@@ -2301,11 +2568,15 @@
                                     <h3 className="font-black text-xl">Final Challenge</h3>
                                     <p className="text-slate-400">15 questions from all modules</p>
                                 </div>
-                                {scores['final'] && (
-                                    <div className="bg-yellow-500 text-slate-900 px-4 py-2 rounded-full font-bold">
-                                        {scores['final'].score}/{scores['final'].total}
-                                    </div>
-                                )}
+                                {(() => {
+                                    const finalTotals = getScoreTotals(scores['final'] || {});
+                                    const finalPercent = getPercent(finalTotals.correct, finalTotals.total);
+                                    return finalTotals.total > 0 ? (
+                                        <div className="bg-yellow-500 text-slate-900 px-4 py-2 rounded-full font-bold">
+                                            {finalPercent}%
+                                        </div>
+                                    ) : null;
+                                })()}
                                 <Icon name="arrow-right" size={28} className="text-slate-500 group-hover:text-white transition-colors" />
                             </button>
 
@@ -2319,12 +2590,12 @@
 
             const renderModule = () => {
                 switch (screen) {
-                    case 'm1': return <Module1 initialState={moduleProgress.m1} onProgress={(s, m) => handleProgress('m1', s, m)} onComplete={(s, t) => handleComplete('m1', s, t)} onBack={() => setScreen('menu')} />;
-                    case 'm2': return <Module2 initialState={moduleProgress.m2} onProgress={(s, m) => handleProgress('m2', s, m)} onComplete={(s, t) => handleComplete('m2', s, t)} onBack={() => setScreen('menu')} />;
-                    case 'm3': return <Module3 initialState={moduleProgress.m3} onProgress={(s, m) => handleProgress('m3', s, m)} onComplete={(s, t) => handleComplete('m3', s, t)} onBack={() => setScreen('menu')} />;
-                    case 'm4': return <Module4 initialState={moduleProgress.m4} onProgress={(s, m) => handleProgress('m4', s, m)} onComplete={(s, t) => handleComplete('m4', s, t)} onBack={() => setScreen('menu')} />;
-                    case 'm5': return <Module5 initialState={moduleProgress.m5} onProgress={(s, m) => handleProgress('m5', s, m)} onComplete={(s, t) => handleComplete('m5', s, t)} onBack={() => setScreen('menu')} />;
-                    case 'final': return <FinalChallenge onComplete={(s, t) => handleComplete('final', s, t)} onBack={() => setScreen('menu')} />;
+                    case 'm1': return <Module1 initialState={moduleProgress.m1} initialScores={scores.m1} onProgress={(s, m) => handleProgress('m1', s, m)} onComplete={(s, t) => handleComplete('m1', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m1', map)} onBack={() => setScreen('menu')} />;
+                    case 'm2': return <Module2 initialState={moduleProgress.m2} initialScores={scores.m2} onProgress={(s, m) => handleProgress('m2', s, m)} onComplete={(s, t) => handleComplete('m2', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m2', map)} onBack={() => setScreen('menu')} />;
+                    case 'm3': return <Module3 initialState={moduleProgress.m3} initialScores={scores.m3} onProgress={(s, m) => handleProgress('m3', s, m)} onComplete={(s, t) => handleComplete('m3', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m3', map)} onBack={() => setScreen('menu')} />;
+                    case 'm4': return <Module4 initialState={moduleProgress.m4} initialScores={scores.m4} onProgress={(s, m) => handleProgress('m4', s, m)} onComplete={(s, t) => handleComplete('m4', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m4', map)} onBack={() => setScreen('menu')} />;
+                    case 'm5': return <Module5 initialState={moduleProgress.m5} initialScores={scores.m5} onProgress={(s, m) => handleProgress('m5', s, m)} onComplete={(s, t) => handleComplete('m5', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m5', map)} onBack={() => setScreen('menu')} />;
+                    case 'final': return <FinalChallenge onComplete={(s, t) => handleComplete('final', s, t)} onScoreUpdate={(map) => handleScoreUpdate('final', map)} onBack={() => setScreen('menu')} />;
                     default: return null;
                 }
             };

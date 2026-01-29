@@ -220,11 +220,84 @@
             );
         };
 
-        const ProgressBar = ({ current, total, color = "bg-indigo-500" }) => (
-            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div className={`${color} h-full transition-all duration-500 ease-out`} style={{ width: `${(current / total) * 100}%` }}></div>
-            </div>
-        );
+        const ProgressBar = ({ current, total, color = "bg-indigo-500" }) => {
+            const percentage = total > 0 ? (current / total) * 100 : 0;
+            return (
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div className={`${color} h-full transition-all duration-500 ease-out`} style={{ width: `${percentage}%` }}></div>
+                </div>
+            );
+        };
+
+        const getPercent = (correct, total) => (total > 0 ? Math.round((correct / total) * 100) : 0);
+
+        const getStars = (percent) => {
+            if (percent >= 90) return 3;
+            if (percent >= 75) return 2;
+            if (percent >= 60) return 1;
+            return 0;
+        };
+
+        const getRankInfo = (percent) => {
+            if (percent >= 95) return { label: "Legend", bg: "bg-amber-100", text: "text-amber-700" };
+            if (percent >= 85) return { label: "Master", bg: "bg-purple-100", text: "text-purple-700" };
+            if (percent >= 70) return { label: "Pro", bg: "bg-emerald-100", text: "text-emerald-700" };
+            if (percent >= 55) return { label: "Rising", bg: "bg-sky-100", text: "text-sky-700" };
+            return { label: "Starter", bg: "bg-slate-100", text: "text-slate-700" };
+        };
+
+        const getNextRankTarget = (percent) => {
+            if (percent >= 95) return null;
+            if (percent >= 85) return 95;
+            if (percent >= 70) return 85;
+            if (percent >= 55) return 70;
+            return 55;
+        };
+
+        const getScoreTotals = (scoreMap) => {
+            const entries = Object.entries(scoreMap || {});
+            const hasDetailed = entries.some(([key, value]) => key !== 'overall' && value && typeof value.correct === 'number' && typeof value.total === 'number');
+            return entries.reduce((acc, [key, entry]) => {
+                if (key === 'overall' && hasDetailed) return acc;
+                acc.correct += entry?.correct || 0;
+                acc.total += entry?.total || 0;
+                return acc;
+            }, { correct: 0, total: 0 });
+        };
+
+        const UnitScoreHUD = ({ correct, total, label = "Unit Score" }) => {
+            const percent = getPercent(correct, total);
+            const stars = getStars(percent);
+            const rank = getRankInfo(percent);
+            const nextTarget = getNextRankTarget(percent);
+            const xp = correct * 10;
+            const maxXp = total * 10;
+
+            return (
+                <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 mb-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-slate-800">{percent}%</span>
+                            <span className="text-xs text-slate-500 font-medium">{correct}/{total}</span>
+                            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{label}</span>
+                        </div>
+                        <div className="flex-1 min-w-[160px]">
+                            <ProgressBar current={correct} total={total} color="bg-emerald-500" />
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+                            <span className={`px-2.5 py-1 rounded-full ${rank.bg} ${rank.text}`}>{rank.label}</span>
+                            <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">Stars {stars}/3</span>
+                            <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">XP {xp}/{maxXp}</span>
+                            {nextTarget && (
+                                <span className="px-2.5 py-1 rounded-full bg-white text-slate-500 border border-slate-200">
+                                    Next {nextTarget}%
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
         // --- STEP INDICATOR ---
         const StepIndicator = ({ steps, current, maxReached, onStepClick }) => {
@@ -270,12 +343,14 @@
             );
         };
 
-        const ConceptCheckStep = ({ questions, onComplete, onReviewRequest }) => {
+        const ConceptCheckStep = ({ questions, onComplete, onReviewRequest, onScore }) => {
             const [currentIdx, setCurrentIdx] = useState(0);
             const [showResult, setShowResult] = useState(false);
             const [selectedOption, setSelectedOption] = useState(null);
             const [mistakes, setMistakes] = useState([]);
             const [isReviewing, setIsReviewing] = useState(false);
+            const [correctCount, setCorrectCount] = useState(0);
+            const [reported, setReported] = useState(false);
 
             // Re-shuffle options when question changes
             const currentQ = questions[currentIdx];
@@ -287,6 +362,10 @@
                 if (showResult) return;
                 setSelectedOption(option);
                 setShowResult(true);
+                const isCorrect = option === currentQ.correctAnswer;
+                const nextCorrect = isCorrect ? correctCount + 1 : correctCount;
+                if (isCorrect) setCorrectCount(nextCorrect);
+                if (onScore) onScore(nextCorrect, questions.length);
             };
 
             const handleNext = () => {
@@ -304,6 +383,13 @@
                     setIsReviewing(true);
                 }
             };
+
+            useEffect(() => {
+                if (isReviewing && !reported) {
+                    if (onScore) onScore(correctCount, questions.length);
+                    setReported(true);
+                }
+            }, [isReviewing, reported, correctCount, questions.length, onScore]);
 
             if (isReviewing) {
                 const passed = mistakes.length === 0;
@@ -453,10 +539,11 @@
         // --- ACTIVITY COMPONENTS ---
 
         // Fill-in-the-blank with dropdown
-        const FillBlankActivity = ({ sentences, onComplete }) => {
+        const FillBlankActivity = ({ sentences, onComplete, onScore }) => {
             const [answers, setAnswers] = useState({});
             const [showResults, setShowResults] = useState(false);
             const [currentIdx, setCurrentIdx] = useState(0);
+            const [reported, setReported] = useState(false);
 
             const handleSelect = (idx, value) => {
                 setAnswers(prev => ({ ...prev, [idx]: value }));
@@ -476,6 +563,14 @@
             const allCorrect = sentences.every((s, i) => answers[i] === s.answer);
             const currentSentence = sentencesWithShuffledOptions[currentIdx];
 
+            useEffect(() => {
+                if (showResults && !reported) {
+                    const score = sentences.filter((s, i) => answers[i] === s.answer).length;
+                    if (onScore) onScore(score, sentences.length);
+                    setReported(true);
+                }
+            }, [showResults, reported, answers, sentences, onScore]);
+
             if (showResults) {
                 const score = sentences.filter((s, i) => answers[i] === s.answer).length;
                 const passed = score === sentences.length;
@@ -488,6 +583,7 @@
                     });
                     setAnswers(newAnswers);
                     setShowResults(false);
+                    setReported(false);
                 };
 
                 return (
@@ -589,10 +685,11 @@
         };
 
         // Sorting/Categorization Activity
-        const SortingActivity = ({ items, categories, onComplete }) => {
+        const SortingActivity = ({ items, categories, onComplete, onScore }) => {
             const [placements, setPlacements] = useState({});
             const [showResults, setShowResults] = useState(false);
             const [draggedItem, setDraggedItem] = useState(null);
+            const [reported, setReported] = useState(false);
 
             // Calculate unplaced items
             const unplacedItems = items.filter(item => !Object.values(placements).flat().includes(item.word));
@@ -663,7 +760,16 @@
             const reset = () => {
                 setPlacements({});
                 setShowResults(false);
+                setReported(false);
             }
+
+            useEffect(() => {
+                if (showResults && !reported) {
+                    const score = getScore();
+                    if (onScore) onScore(score, items.length);
+                    setReported(true);
+                }
+            }, [showResults, reported, placements, items, onScore]);
 
             if (showResults) {
                 const score = getScore();
@@ -777,17 +883,23 @@
         };
 
         // Error Correction Activity
-        const ErrorCorrectionActivity = ({ sentences, onComplete }) => {
+        const ErrorCorrectionActivity = ({ sentences, onComplete, onScore }) => {
             const [currentIdx, setCurrentIdx] = useState(0);
             const [userAnswers, setUserAnswers] = useState({});
             const [showFeedback, setShowFeedback] = useState(false);
             const [showResults, setShowResults] = useState(false);
+            const [reported, setReported] = useState(false);
+            const [correctCount, setCorrectCount] = useState(0);
 
             const current = sentences[currentIdx];
 
             const handleChoice = (choice) => {
                 setUserAnswers(prev => ({ ...prev, [currentIdx]: choice }));
                 setShowFeedback(true);
+                const isCorrect = choice === current.correct;
+                const nextCorrect = isCorrect ? correctCount + 1 : correctCount;
+                if (isCorrect) setCorrectCount(nextCorrect);
+                if (onScore) onScore(nextCorrect, sentences.length);
             };
 
             const nextQuestion = () => {
@@ -798,6 +910,14 @@
                     setShowResults(true);
                 }
             };
+
+            useEffect(() => {
+                if (showResults && !reported) {
+                    const score = sentences.filter((s, i) => userAnswers[i] === s.correct).length;
+                    if (onScore) onScore(score, sentences.length);
+                    setReported(true);
+                }
+            }, [showResults, reported, userAnswers, sentences, onScore]);
 
             if (showResults) {
                 const score = sentences.filter((s, i) => userAnswers[i] === s.correct).length;
@@ -923,66 +1043,115 @@
         };
 
         // Quiz Component
-        const QuizActivity = ({ questions, onComplete }) => {
-            const [currentIdx, setCurrentIdx] = useState(0);
-            const [answers, setAnswers] = useState({});
-            const [showFeedback, setShowFeedback] = useState(false);
-            const [showResults, setShowResults] = useState(false);
-
-            const questionsWithShuffledOptions = useMemo(() => {
-                return questions.map(q => ({
-                    ...q,
-                    options: shuffleArray(q.options)
-                }));
+        const QuizActivity = ({ questions, onComplete, onScoreUpdate }) => {
+            const questionBank = useMemo(() => {
+                return questions.map((q, idx) => ({ ...q, __id: idx }));
             }, [questions]);
 
-            const q = questionsWithShuffledOptions[currentIdx];
+            const [activeQuestions, setActiveQuestions] = useState(() => shuffleArray(questionBank));
+            const [idx, setIdx] = useState(0);
+            const [mode, setMode] = useState('quiz');
+            const [history, setHistory] = useState({});
+            const [answered, setAnswered] = useState(false);
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [mastery, setMastery] = useState(() => new Set());
+
+            useEffect(() => {
+                setActiveQuestions(shuffleArray(questionBank));
+                setIdx(0);
+                setMode('quiz');
+                setHistory({});
+                setAnswered(false);
+                setSelectedOption(null);
+                setMastery(new Set());
+            }, [questionBank]);
+
+            const q = activeQuestions[idx];
+            const shuffledOptions = useMemo(() => (q ? shuffleArray(q.options) : []), [q?.__id]);
+            const total = questionBank.length;
+            const score = mastery.size;
+
+            const reportScore = useCallback((nextMastery) => {
+                if (onScoreUpdate) onScoreUpdate(nextMastery.size, total);
+            }, [onScoreUpdate, total]);
 
             const handleAnswer = (choice) => {
-                if (showFeedback) return;
-                setAnswers(prev => ({ ...prev, [currentIdx]: choice }));
-                setShowFeedback(true);
-            };
+                if (answered) return;
+                const isCorrect = choice === q.answer;
+                setSelectedOption(choice);
+                setAnswered(true);
+                setHistory(prev => ({ ...prev, [q.__id]: { q, selected: choice, isCorrect } }));
 
-            const nextQuestion = () => {
-                setShowFeedback(false);
-                if (currentIdx < questions.length - 1) {
-                    setCurrentIdx(currentIdx + 1);
+                if (isCorrect && !mastery.has(q.__id)) {
+                    const nextMastery = new Set(mastery);
+                    nextMastery.add(q.__id);
+                    setMastery(nextMastery);
+                    reportScore(nextMastery);
                 } else {
-                    setShowResults(true);
+                    reportScore(mastery);
                 }
             };
 
-            if (showResults) {
-                const score = questions.filter((q, i) => answers[i] === q.answer).length;
-                const mistakes = questions.filter((q, i) => answers[i] !== q.answer);
+            const next = () => {
+                setAnswered(false);
+                setSelectedOption(null);
+                if (idx < activeQuestions.length - 1) {
+                    setIdx(idx + 1);
+                } else {
+                    setMode('review');
+                }
+            };
+
+            const handleRetryMistakes = () => {
+                const mistakes = questionBank.filter((item) => !mastery.has(item.__id));
+                if (mistakes.length === 0) return;
+                setActiveQuestions(shuffleArray(mistakes));
+                setIdx(0);
+                setHistory({});
+                setAnswered(false);
+                setSelectedOption(null);
+                setMode('quiz');
+            };
+
+            if (mode === 'review') {
+                const percent = getPercent(score, total);
+                const rank = getRankInfo(percent);
+                const stars = getStars(percent);
+                const attemptMistakes = Object.values(history).filter(h => !h.isCorrect);
+                const pending = questionBank.filter((item) => !mastery.has(item.__id));
 
                 return (
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden fade-in">
                         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-center text-white">
-                            <div className="text-6xl font-black mb-2">{score}/{questions.length}</div>
-                            <p className="text-xl text-indigo-100">{score === questions.length ? 'Perfect score!' : 'Keep practicing!'}</p>
+                            <div className="text-5xl font-black mb-2">{score}/{total}</div>
+                            <p className="text-indigo-100">{percent}% | Rank: {rank.label} | Stars: {stars}/3</p>
+                            <p className="text-indigo-100 mt-1">{score === total ? 'Perfect score!' : 'Keep practicing!'}</p>
                         </div>
 
-                        {mistakes.length > 0 && (
+                        {attemptMistakes.length > 0 && (
                             <div className="p-6">
                                 <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                                     <Icon name="book-open" size={20} /> Review these:
                                 </h4>
                                 <div className="space-y-3">
-                                    {mistakes.map((m, i) => (
+                                    {attemptMistakes.map((m, i) => (
                                         <div key={i} className="bg-red-50 p-4 rounded-xl">
-                                            <p className="font-medium text-slate-800 mb-2">{m.question}</p>
-                                            <p className="text-sm text-emerald-700">Answer: <strong>{m.answer}</strong></p>
-                                            <p className="text-sm text-slate-600 mt-2">{m.explanation}</p>
+                                            <p className="font-medium text-slate-800 mb-2">{m.q.question}</p>
+                                            <p className="text-sm text-emerald-700">Answer: <strong>{m.q.answer}</strong></p>
+                                            <p className="text-sm text-slate-600 mt-2">{m.q.explanation}</p>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        <div className="p-6 bg-slate-50">
-                            <Button onClick={() => onComplete(score, questions.length)} variant="primary" className="w-full">
+                        <div className="p-6 bg-slate-50 flex flex-wrap gap-3 justify-center">
+                            {pending.length > 0 && (
+                                <Button onClick={handleRetryMistakes} variant="secondary">
+                                    <Icon name="refresh-cw" size={18} /> Retry Mistakes
+                                </Button>
+                            )}
+                            <Button onClick={() => onComplete(score, total)} variant="primary">
                                 Continue <Icon name="arrow-right" size={20} />
                             </Button>
                         </div>
@@ -990,12 +1159,20 @@
                 );
             }
 
+            if (!q) {
+                return (
+                    <div className="bg-white rounded-2xl p-6 shadow-lg fade-in text-center text-slate-500">
+                        No quiz questions available.
+                    </div>
+                );
+            }
+
             return (
                 <div className="bg-white rounded-2xl p-6 shadow-lg fade-in">
-                    <ProgressBar current={currentIdx + 1} total={questions.length} />
+                    <ProgressBar current={idx + 1} total={activeQuestions.length} />
 
                     <div className="py-8">
-                        <p className="text-sm text-slate-500 mb-2">Question {currentIdx + 1} of {questions.length}</p>
+                        <p className="text-sm text-slate-500 mb-2">Question {idx + 1} of {activeQuestions.length}</p>
                         <h3 className="text-2xl font-bold text-slate-800 mb-8">
                             {q.question.split('___').map((part, i, arr) => (
                                 <React.Fragment key={i}>
@@ -1006,18 +1183,18 @@
                         </h3>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {q.options.map((opt, i) => {
+                            {shuffledOptions.map((opt, i) => {
                                 let style = "bg-white border-2 border-slate-200 hover:border-indigo-300";
-                                if (showFeedback) {
+                                if (answered) {
                                     if (opt === q.answer) style = "bg-emerald-100 border-2 border-emerald-500";
-                                    else if (opt === answers[currentIdx]) style = "bg-red-50 border-2 border-red-300";
+                                    else if (opt === selectedOption) style = "bg-red-50 border-2 border-red-300";
                                     else style = "bg-slate-50 border-2 border-slate-100 opacity-50";
                                 }
                                 return (
                                     <button
                                         key={i}
                                         onClick={() => handleAnswer(opt)}
-                                        disabled={showFeedback}
+                                        disabled={answered}
                                         className={`p-4 rounded-xl font-medium text-left transition-all ${style}`}
                                     >
                                         {opt}
@@ -1027,15 +1204,15 @@
                         </div>
                     </div>
 
-                    {showFeedback && (
-                        <div className={`p-4 rounded-xl mb-4 fade-in ${answers[currentIdx] === q.answer ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                    {answered && (
+                        <div className={`p-4 rounded-xl mb-4 fade-in ${selectedOption === q.answer ? 'bg-emerald-50' : 'bg-amber-50'}`}>
                             <p className="font-medium text-slate-700">{q.explanation}</p>
                         </div>
                     )}
 
-                    {showFeedback && (
-                        <Button onClick={nextQuestion} variant="primary" className="w-full">
-                            {currentIdx < questions.length - 1 ? 'Next Question' : 'See Results'} <Icon name="arrow-right" size={20} />
+                    {answered && (
+                        <Button onClick={next} variant="primary" className="w-full">
+                            {idx < activeQuestions.length - 1 ? 'Next Question' : 'See Results'} <Icon name="arrow-right" size={20} />
                         </Button>
                     )}
                 </div>
@@ -1762,10 +1939,12 @@
 
         // --- MAIN MODULE COMPONENT ---
         // --- MAIN MODULE COMPONENT ---
-        const ModuleScreen = ({ moduleId, initialState, onProgress, onExit }) => {
+        const ModuleScreen = ({ moduleId, initialState, initialScoreMap, onProgress, onExit, onScoreUpdate }) => {
             const module = MODULE_DATA[moduleId];
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
+            const [scoreMap, setScoreMap] = useState(initialScoreMap || initialState?.scoreMap || {});
+            const [finalScore, setFinalScore] = useState(null);
 
             // Report progress
             useEffect(() => {
@@ -1778,7 +1957,16 @@
             const [learnIdx, setLearnIdx] = useState(0);
             const [practiceIdx, setPracticeIdx] = useState(0);
             const [completed, setCompleted] = useState(false);
-            const [score, setScore] = useState(null);
+
+            const updateScore = useCallback((key, correct, total) => {
+                setScoreMap(prev => ({ ...prev, [key]: { correct, total } }));
+            }, []);
+
+            const totals = useMemo(() => getScoreTotals(scoreMap), [scoreMap]);
+
+            useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
 
             const shuffledPracticeQuestions = useMemo(() => {
                 return shuffleArray(module.practiceQuestions);
@@ -1802,6 +1990,16 @@
                 } else {
                     setStep(4); // Go to Quiz
                 }
+            };
+
+            const handleQuizComplete = (correct, total) => {
+                setScoreMap(prev => {
+                    const next = { ...prev, quiz: { correct, total } };
+                    const nextTotals = getScoreTotals(next);
+                    setFinalScore(nextTotals);
+                    return next;
+                });
+                setCompleted(true);
             };
 
             const renderContent = () => {
@@ -1858,6 +2056,7 @@
                                 questions={module.conceptQuestions || []}
                                 onComplete={() => setStep(3)}
                                 onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
                             />
                         );
 
@@ -1882,6 +2081,7 @@
                                         items={currentPractice.items}
                                         categories={currentPractice.categories}
                                         onComplete={handleNextPractice}
+                                        onScore={(correct, total) => updateScore(`practice-${practiceIdx}`, correct, total)}
                                     />
                                 )}
 
@@ -1889,6 +2089,7 @@
                                     <FillBlankActivity
                                         sentences={currentPractice.sentences}
                                         onComplete={handleNextPractice}
+                                        onScore={(correct, total) => updateScore(`practice-${practiceIdx}`, correct, total)}
                                     />
                                 )}
 
@@ -1896,6 +2097,7 @@
                                     <ErrorCorrectionActivity
                                         sentences={currentPractice.sentences}
                                         onComplete={handleNextPractice}
+                                        onScore={(correct, total) => updateScore(`practice-${practiceIdx}`, correct, total)}
                                     />
                                 )}
                             </div>
@@ -1905,16 +2107,24 @@
                         return (
                             <QuizActivity
                                 questions={shuffledPracticeQuestions}
-                                onComplete={(s, t) => {
-                                    setScore({ correct: s, total: t });
-                                    setCompleted(true);
-                                }}
+                                onComplete={(s, t) => handleQuizComplete(s, t)}
+                                onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
                             />
                         );
                 }
             };
 
             if (completed) {
+                const displayScore = finalScore || totals;
+                const percent = getPercent(displayScore.correct, displayScore.total);
+                const rank = getRankInfo(percent);
+                const stars = getStars(percent);
+                const xp = displayScore.correct * 10;
+                const maxXp = displayScore.total * 10;
+                const message = percent >= 90 ? "Legend status unlocked." :
+                    percent >= 75 ? "Strong finish. Keep it up." :
+                        percent >= 60 ? "Good progress. You are leveling up." : "Practice makes progress.";
+
                 return (
                     <div className="max-w-2xl mx-auto fade-in">
                         <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
@@ -1923,9 +2133,15 @@
                                     <Icon name="trophy" size={64} className="text-yellow-300" />
                                 </div>
                                 <h2 className="text-3xl font-black mb-2">Module Complete!</h2>
-                                <div className="text-5xl font-black text-yellow-300 mb-2">{score.correct}/{score.total}</div>
+                                <div className="text-6xl font-black text-yellow-300 mb-2">{percent}%</div>
+                                <p className="text-indigo-100">{displayScore.correct}/{displayScore.total} correct | {message}</p>
                             </div>
-                            <div className="p-8">
+                            <div className="p-8 space-y-4">
+                                <div className="flex flex-wrap justify-center gap-2 text-sm font-bold">
+                                    <span className={`px-3 py-1 rounded-full ${rank.bg} ${rank.text}`}>Rank: {rank.label}</span>
+                                    <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700">Stars: {stars}/3</span>
+                                    <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700">XP: {xp}/{maxXp}</span>
+                                </div>
                                 <Button onClick={onExit} variant="primary" className="w-full" size="lg">
                                     Back to Menu <Icon name="home" size={24} />
                                 </Button>
@@ -1938,13 +2154,14 @@
             return (
                 <div className="max-w-4xl mx-auto fade-in">
                     <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
                     {renderContent()}
                 </div>
             );
         };
 
         // --- FINAL CHALLENGE ---
-        const FinalChallenge = ({ onExit }) => {
+        const FinalChallenge = ({ onExit, onScoreUpdate }) => {
             const allQuestions = useMemo(() => {
                 const all = Object.values(MODULE_DATA).flatMap(m => m.practiceQuestions);
                 return shuffleArray(all).slice(0, 20);
@@ -1988,6 +2205,9 @@
                     <QuizActivity
                         questions={allQuestions}
                         onComplete={(s, t) => { setScore({ correct: s, total: t }); setCompleted(true); }}
+                        onScoreUpdate={(correct, total) => {
+                            if (onScoreUpdate) onScoreUpdate({ quiz: { correct, total } });
+                        }}
                     />
                 </div>
             );
@@ -2002,6 +2222,27 @@
                 m3: { step: 0, maxStep: 0 },
                 m4: { step: 0, maxStep: 0 }
             });
+            const [moduleScores, setModuleScores] = useState(() => {
+                try {
+                    const stored = localStorage.getItem('s3-gerunds-scores');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        const normalized = { m1: {}, m2: {}, m3: {}, m4: {}, final: {} };
+                        ['m1', 'm2', 'm3', 'm4', 'final'].forEach((key) => {
+                            const value = parsed?.[key];
+                            if (value && typeof value.correct === 'number' && typeof value.total === 'number') {
+                                normalized[key] = { overall: { correct: value.correct, total: value.total } };
+                            } else {
+                                normalized[key] = value || {};
+                            }
+                        });
+                        return normalized;
+                    }
+                } catch (err) {
+                    return { m1: {}, m2: {}, m3: {}, m4: {}, final: {} };
+                }
+                return { m1: {}, m2: {}, m3: {}, m4: {}, final: {} };
+            });
 
             const handleProgress = (moduleId, step, maxStep) => {
                 setModuleProgress(prev => ({
@@ -2009,6 +2250,18 @@
                     [moduleId]: { step, maxStep: Math.max(maxStep, prev[moduleId]?.maxStep || 0) }
                 }));
             };
+
+            const handleScoreUpdate = (moduleId, scoreMap) => {
+                setModuleScores(prev => ({ ...prev, [moduleId]: scoreMap }));
+            };
+
+            useEffect(() => {
+                try {
+                    localStorage.setItem('s3-gerunds-scores', JSON.stringify(moduleScores));
+                } catch (err) {
+                    // ignore storage failures
+                }
+            }, [moduleScores]);
 
             const renderMenu = () => (
                 <div className="max-w-4xl mx-auto fade-in">
@@ -2026,30 +2279,41 @@
                             { id: 'm2', title: "2. To-Infinitives", icon: "terminal", color: "bg-sky-500", desc: "Using to + verb" },
                             { id: 'm3', title: "3. Both Forms", icon: "repeat", color: "bg-violet-500", desc: "Either form OK" },
                             { id: 'm4', title: "4. Meaning Changes", icon: "git-branch", color: "bg-amber-500", desc: "Stop, Try, Remember..." }
-                        ].map(mod => (
-                            <button
-                                key={mod.id}
-                                onClick={() => setScreen(mod.id)}
-                                className="bg-white p-6 rounded-2xl shadow-sm border-2 border-slate-100 hover:border-indigo-200 hover:shadow-lg hover:-translate-y-1 transition-all text-left flex items-center gap-4 group"
-                            >
-                                <div className={`${mod.color} text-white p-4 rounded-xl shadow-lg group-hover:scale-110 transition-transform`}>
-                                    <Icon name={mod.icon} size={32} />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-800 text-xl">{mod.title}</h3>
-                                    <p className="text-slate-500">{mod.desc}</p>
-                                </div>
-                                <div className="ml-auto text-right">
-                                    {moduleProgress[mod.id].maxStep > 0 && (
-                                        <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 mb-1">
-                                            <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                                            Step {moduleProgress[mod.id].maxStep + 1}/5
+                        ].map(mod => {
+                            const scoreMap = moduleScores[mod.id] || {};
+                            const totals = getScoreTotals(scoreMap);
+                            const percent = getPercent(totals.correct, totals.total);
+                            const rank = getRankInfo(percent);
+
+                            return (
+                                <button
+                                    key={mod.id}
+                                    onClick={() => setScreen(mod.id)}
+                                    className="bg-white p-6 rounded-2xl shadow-sm border-2 border-slate-100 hover:border-indigo-200 hover:shadow-lg hover:-translate-y-1 transition-all text-left flex items-center gap-4 group"
+                                >
+                                    <div className={`${mod.color} text-white p-4 rounded-xl shadow-lg group-hover:scale-110 transition-transform`}>
+                                        <Icon name={mod.icon} size={32} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 text-xl">{mod.title}</h3>
+                                        <p className="text-slate-500">{mod.desc}</p>
+                                    </div>
+                                    <div className="ml-auto text-right space-y-1">
+                                        <div className={`px-3 py-1 rounded-full text-xs font-bold ${rank.bg} ${rank.text}`}>
+                                            Score {percent}% | {rank.label}
                                         </div>
-                                    )}
-                                    <Icon name="chevron-right" size={24} className="text-slate-300 group-hover:text-indigo-500" />
-                                </div>
-                            </button>
-                        ))}
+                                        <div className="text-xs text-slate-400">{totals.correct}/{totals.total} correct</div>
+                                        {moduleProgress[mod.id].maxStep > 0 && (
+                                            <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                                Step {moduleProgress[mod.id].maxStep + 1}/5
+                                            </div>
+                                        )}
+                                        <Icon name="chevron-right" size={24} className="text-slate-300 group-hover:text-indigo-500" />
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
 
                     <button
@@ -2061,6 +2325,16 @@
                                 <h3 className="text-2xl font-black text-amber-400 mb-1">Final Challenge</h3>
                                 <p className="text-slate-300">Test your mastery with 20 mixed questions</p>
                             </div>
+                            {(() => {
+                                const finalTotals = getScoreTotals(moduleScores.final || {});
+                                const finalPercent = getPercent(finalTotals.correct, finalTotals.total);
+                                const finalRank = getRankInfo(finalPercent);
+                                return finalTotals.total > 0 ? (
+                                    <div className={`px-3 py-2 rounded-full text-sm font-bold ${finalRank.bg} ${finalRank.text}`}>
+                                        {finalPercent}% | {finalRank.label}
+                                    </div>
+                                ) : null;
+                            })()}
                             <div className="bg-amber-500 p-4 rounded-xl group-hover:scale-110 transition-transform">
                                 <Icon name="trophy" size={32} className="text-white" />
                             </div>
@@ -2082,11 +2356,11 @@
 
                     <div className="pt-4">
                         {screen === 'menu' && renderMenu()}
-                        {screen === 'm1' && <ModuleScreen moduleId="m1" initialState={moduleProgress.m1} onProgress={(s, m) => handleProgress('m1', s, m)} onExit={() => setScreen('menu')} />}
-                        {screen === 'm2' && <ModuleScreen moduleId="m2" initialState={moduleProgress.m2} onProgress={(s, m) => handleProgress('m2', s, m)} onExit={() => setScreen('menu')} />}
-                        {screen === 'm3' && <ModuleScreen moduleId="m3" initialState={moduleProgress.m3} onProgress={(s, m) => handleProgress('m3', s, m)} onExit={() => setScreen('menu')} />}
-                        {screen === 'm4' && <ModuleScreen moduleId="m4" initialState={moduleProgress.m4} onProgress={(s, m) => handleProgress('m4', s, m)} onExit={() => setScreen('menu')} />}
-                        {screen === 'final' && <FinalChallenge onExit={() => setScreen('menu')} />}
+                        {screen === 'm1' && <ModuleScreen moduleId="m1" initialState={moduleProgress.m1} initialScoreMap={moduleScores.m1} onProgress={(s, m) => handleProgress('m1', s, m)} onExit={() => setScreen('menu')} onScoreUpdate={(scoreMap) => handleScoreUpdate('m1', scoreMap)} />}
+                        {screen === 'm2' && <ModuleScreen moduleId="m2" initialState={moduleProgress.m2} initialScoreMap={moduleScores.m2} onProgress={(s, m) => handleProgress('m2', s, m)} onExit={() => setScreen('menu')} onScoreUpdate={(scoreMap) => handleScoreUpdate('m2', scoreMap)} />}
+                        {screen === 'm3' && <ModuleScreen moduleId="m3" initialState={moduleProgress.m3} initialScoreMap={moduleScores.m3} onProgress={(s, m) => handleProgress('m3', s, m)} onExit={() => setScreen('menu')} onScoreUpdate={(scoreMap) => handleScoreUpdate('m3', scoreMap)} />}
+                        {screen === 'm4' && <ModuleScreen moduleId="m4" initialState={moduleProgress.m4} initialScoreMap={moduleScores.m4} onProgress={(s, m) => handleProgress('m4', s, m)} onExit={() => setScreen('menu')} onScoreUpdate={(scoreMap) => handleScoreUpdate('m4', scoreMap)} />}
+                        {screen === 'final' && <FinalChallenge onExit={() => setScreen('menu')} onScoreUpdate={(scoreMap) => handleScoreUpdate('final', scoreMap)} />}
                     </div>
 
                     <footer className="text-center text-slate-400 text-sm mt-12 pb-4">
