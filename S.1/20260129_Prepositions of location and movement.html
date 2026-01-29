@@ -1,0 +1,2533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prepositions of Location & Movement - Unit 7</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+            }
+        }
+
+        .drag-item {
+            cursor: grab;
+            user-select: none;
+        }
+
+        .drag-item:active {
+            cursor: grabbing;
+        }
+
+        .drop-zone {
+            transition: all 0.2s ease;
+        }
+
+        .drop-zone.active {
+            background-color: #e0e7ff;
+            border-color: #6366f1;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+        // --- ICON COMPONENT ---
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const ref = useRef(null);
+            useEffect(() => {
+                if (window.lucide && ref.current) {
+                    ref.current.innerHTML = '';
+                    const icon = document.createElement('i');
+                    icon.setAttribute('data-lucide', name);
+                    ref.current.appendChild(icon);
+                    window.lucide.createIcons({ root: ref.current, attrs: { width: size, height: size, class: className } });
+                }
+            }, [name, size, className]);
+            return <span ref={ref} className="inline-flex items-center justify-center"></span>;
+        };
+
+        // Utility: unbiased in-place shuffle that returns a new array
+        const shuffleArray = (arr) => {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        };
+
+        // --- PREPOSITION REFERENCE ---
+        const PREPOSITION_REFERENCE = {
+            location: [
+                "in front of",
+                "behind",
+                "above",
+                "below / under",
+                "to the left of",
+                "to the right of",
+                "in the middle of",
+                "near",
+                "opposite",
+                "on top of",
+                "inside",
+                "outside",
+                "between",
+                "beside / next to",
+                "around",
+                "in the corner of"
+            ],
+            movement: [
+                "onto",
+                "over",
+                "along",
+                "up",
+                "down",
+                "towards",
+                "out of",
+                "into",
+                "from",
+                "to",
+                "across",
+                "off",
+                "through",
+                "around / round",
+                "past"
+            ]
+        };
+
+        // --- QUIZ DATA BY MODULE ---
+        const QUIZ_DATA = {
+            m1: [
+                { id: 101, q: "The apple is ___ the plate.", a: "in front of", opts: ["in front of", "behind", "between", "opposite"], expl: "Use 'in front of' for something directly before another object." },
+                { id: 102, q: "The lights are ___ the table.", a: "above", opts: ["above", "below", "inside", "near"], expl: "'Above' means at a higher level." },
+                { id: 103, q: "The shoes are ___ the table.", a: "under", opts: ["under", "between", "beside", "opposite"], expl: "'Under' or 'below' means lower than and covered by something." },
+                { id: 104, q: "The pear is ___ the knife and the apple.", a: "between", opts: ["between", "beside", "behind", "opposite"], expl: "'Between' is used for something in the middle of two things." },
+                { id: 105, q: "Is there anybody ___ the room?", a: "outside", opts: ["outside", "inside", "around", "near"], expl: "'Outside' means not inside." }
+            ],
+            m2: [
+                { id: 201, q: "Let's meet ___ the Star Ferry Pier.", a: "at", opts: ["at", "in", "on", "to"], expl: "We use 'at' for specific places or meeting points." },
+                { id: 202, q: "My aunt is working ___ Japan at the moment.", a: "in", opts: ["in", "at", "on", "to"], expl: "We use 'in' with countries and cities." },
+                { id: 203, q: "The plates are ___ the table.", a: "on", opts: ["on", "in", "at", "between"], expl: "We use 'on' for surfaces." },
+                { id: 204, q: "I live ___ 23 Henderson Road.", a: "at", opts: ["at", "in", "on", "to"], expl: "We use 'at' for exact addresses." },
+                { id: 205, q: "I live ___ the sixth floor.", a: "on", opts: ["on", "in", "at", "to"], expl: "We use 'on' with floors of buildings." }
+            ],
+            m3: [
+                { id: 301, q: "The clinic is ___ the bank.", a: "opposite", opts: ["opposite", "opposite to", "in front of", "beside"], expl: "'Opposite' is a preposition. Do not add 'to'." },
+                { id: 302, q: "Her opinion is ___ mine.", a: "opposite to", opts: ["opposite to", "opposite", "in front of", "behind"], expl: "'Opposite to' is an adjective meaning 'completely different from'." },
+                { id: 303, q: "The bus stop is ___ the school. (Directly outside the entrance)", a: "in front of", opts: ["in front of", "opposite", "behind", "beside"], expl: "'In front of' means directly outside the entrance." },
+                { id: 304, q: "The bus stop is ___ the school. (Facing across a street)", a: "opposite", opts: ["opposite", "in front of", "behind", "next to"], expl: "'Opposite' means facing each other across a street." },
+                { id: 305, q: "There is a bird ___ the tree.", a: "in", opts: ["in", "on", "under", "behind"], expl: "Birds are usually 'in' the tree (among the branches)." },
+                { id: 306, q: "I'm ___ the cinema. I'll call you later.", a: "at", opts: ["at", "in", "on", "to"], expl: "Use 'at' when focusing on the activity (watching a film)." }
+            ],
+            m4: [
+                { id: 401, q: "Look! John is getting ___ a boat.", a: "onto", opts: ["onto", "into", "over", "under"], expl: "'Onto' shows movement to a surface." },
+                { id: 402, q: "Eric is coming ___ the bookshop.", a: "out of", opts: ["out of", "into", "over", "past"], expl: "'Out of' shows movement from inside to outside." },
+                { id: 403, q: "Cathy is walking ___ the canal.", a: "along", opts: ["along", "across", "through", "towards"], expl: "'Along' means following the side or length of something." },
+                { id: 404, q: "Sarah is walking ___ the clothes shop.", a: "towards", opts: ["towards", "from", "past", "behind"], expl: "'Towards' means in the direction of." }
+            ],
+            m5: [
+                { id: 501, q: "We ___ the bus at 7:30.", a: "got on", opts: ["got on", "got into", "got off", "got out of"], expl: "We say 'get on' a bus, plane, ship or train." },
+                { id: 502, q: "Please get ___ the taxi.", a: "into", opts: ["into", "on", "off", "out of"], expl: "We say 'get into' a car or taxi." },
+                { id: 503, q: "Everyone was excited when they got ___ the ship.", a: "off", opts: ["off", "out of", "into", "onto"], expl: "We say 'get off' a ship, train or plane." },
+                { id: 504, q: "Hurry up and get ___ the car now.", a: "into", opts: ["into", "on", "off", "out of"], expl: "We say 'get into' a car." },
+                { id: 505, q: "She got ___ the train and found a seat.", a: "on", opts: ["on", "into", "off", "out of"], expl: "We say 'get on' a train." },
+                { id: 506, q: "He got ___ the car and closed the door.", a: "out of", opts: ["out of", "off", "into", "onto"], expl: "We say 'get out of' a car or taxi." }
+            ]
+        };
+
+        const MODULE_BASE_TOTALS = {
+            m1: 19, // 5 concept + 9 sorting + 5 quiz
+            m2: 14, // 4 concept + 5 error + 5 quiz
+            m3: 15, // 4 concept + 5 sentence + 6 quiz
+            m4: 13, // 3 concept + 6 matching + 4 quiz
+            m5: 14, // 3 concept + 5 error + 6 quiz
+            final: 15
+        };
+
+        // --- COMPREHENSIVE PREPOSITION TEST POOL ---
+        // Each question targets a specific preposition rule or meaning
+        const PREPOSITION_POOL = [
+            { focus: "location", q: "The apple is ___ the plate.", a: "in front of", opts: ["in front of", "behind", "between", "opposite"], expl: "'In front of' shows position before something." },
+            { focus: "location", q: "The lights are ___ the table.", a: "above", opts: ["above", "below", "inside", "near"], expl: "'Above' means higher than." },
+            { focus: "location", q: "The cup is ___ the plate.", a: "to the left of", opts: ["to the left of", "between", "behind", "inside"], expl: "'To the left of' shows position on the left side." },
+            { focus: "location", q: "The book is ___ the flowers.", a: "behind", opts: ["behind", "in front of", "between", "opposite"], expl: "'Behind' means at the back." },
+            { focus: "location", q: "The shoes are ___ the table.", a: "under", opts: ["under", "between", "above", "opposite"], expl: "'Under' means lower than and covered by." },
+            { focus: "location", q: "The pear is ___ the knife and the apple.", a: "between", opts: ["between", "beside", "behind", "opposite"], expl: "'Between' is used for two things." },
+            { focus: "location", q: "The cap is ___ the book.", a: "beside", opts: ["beside", "between", "above", "inside"], expl: "'Beside' means next to." },
+            { focus: "location", q: "There is a ribbon ___ the table.", a: "around", opts: ["around", "through", "under", "between"], expl: "'Around' shows a surrounding position." },
+            { focus: "location", q: "The bag is ___ the corner of the room.", a: "in", opts: ["in", "on", "at", "to"], expl: "We say 'in the corner of the room'." },
+            { focus: "location", q: "Is there anybody ___ the room?", a: "outside", opts: ["outside", "inside", "around", "near"], expl: "'Outside' means not inside." },
+            { focus: "at-in-on", q: "Let's meet ___ the Star Ferry Pier.", a: "at", opts: ["at", "in", "on", "to"], expl: "Use 'at' for specific places." },
+            { focus: "at-in-on", q: "My aunt is working ___ Japan at the moment.", a: "in", opts: ["in", "at", "on", "to"], expl: "Use 'in' with countries." },
+            { focus: "at-in-on", q: "The plates are ___ the table.", a: "on", opts: ["on", "in", "at", "under"], expl: "Use 'on' for surfaces." },
+            { focus: "at-in-on", q: "I live ___ 23 Henderson Road.", a: "at", opts: ["at", "in", "on", "to"], expl: "Use 'at' for addresses." },
+            { focus: "at-in-on", q: "I live ___ the sixth floor.", a: "on", opts: ["on", "in", "at", "to"], expl: "Use 'on' with floors." },
+            { focus: "errors", q: "There is a bird ___ the tree.", a: "in", opts: ["in", "on", "under", "behind"], expl: "Birds are usually 'in' the tree." },
+            { focus: "errors", q: "There are some apples ___ the tree.", a: "on", opts: ["on", "in", "under", "behind"], expl: "Apples grow 'on' the tree." },
+            { focus: "movement", q: "Look! John is getting ___ a boat.", a: "onto", opts: ["onto", "into", "over", "under"], expl: "'Onto' shows movement to a surface." },
+            { focus: "movement", q: "The train is going ___ the tunnel.", a: "through", opts: ["through", "across", "over", "past"], expl: "'Through' means from one end to the other inside." },
+            { focus: "movement", q: "Ted is walking ___ the grass.", a: "across", opts: ["across", "along", "through", "towards"], expl: "'Across' means from one side to the other." },
+            { focus: "movement", q: "Karen is going ___ the camera shop.", a: "into", opts: ["into", "onto", "over", "past"], expl: "'Into' shows movement to the inside." },
+            { focus: "movement", q: "Sarah is walking ___ the clothes shop.", a: "towards", opts: ["towards", "from", "past", "behind"], expl: "'Towards' means in the direction of." },
+            { focus: "movement", q: "Andy is walking ___ the bakery.", a: "past", opts: ["past", "through", "over", "behind"], expl: "'Past' means going by a place." },
+            { focus: "movement", q: "Jojo is running ___ a tree.", a: "around", opts: ["around", "through", "across", "into"], expl: "'Around' shows movement encircling something." },
+            { focus: "movement", q: "We ___ the bus.", a: "got on", opts: ["got on", "got into", "got off", "got out of"], expl: "We say 'get on' a bus, plane or train." },
+            { focus: "movement", q: "Hurry up and get ___ the car.", a: "into", opts: ["into", "on", "off", "out of"], expl: "We say 'get into' a car or taxi." },
+            { focus: "movement", q: "Everyone was excited when they got ___ the ship.", a: "off", opts: ["off", "out of", "into", "onto"], expl: "We say 'get off' a ship." }
+        ];
+
+        // Generate random test questions from the pool
+        const generateTestQuestions = (count = 15) => {
+            const shuffled = [...PREPOSITION_POOL].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, count).map((item, index) => ({
+                id: 1000 + index,
+                q: item.q,
+                a: item.a,
+                opts: [...item.opts].sort(() => Math.random() - 0.5), // Randomize options too
+                expl: item.expl,
+                focus: item.focus
+            }));
+        };
+
+        // Legacy: All module questions combined (for backwards compatibility)
+        const ALL_QUESTIONS = [...QUIZ_DATA.m1, ...QUIZ_DATA.m2, ...QUIZ_DATA.m3, ...QUIZ_DATA.m4, ...QUIZ_DATA.m5];
+
+        // --- UI COMPONENTS ---
+
+        const Button = ({ onClick, children, variant = "primary", className = "", disabled = false, size = "md" }) => {
+            const styles = {
+                primary: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg hover:shadow-xl",
+                secondary: "bg-white text-indigo-700 border-2 border-indigo-200 hover:bg-indigo-50",
+                outline: "bg-transparent text-slate-600 border-2 border-slate-200 hover:bg-slate-100",
+                success: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg",
+                danger: "bg-red-500 text-white hover:bg-red-600",
+                ghost: "bg-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+            };
+            const sizes = {
+                sm: "px-3 py-2 text-sm",
+                md: "px-5 py-3 text-base",
+                lg: "px-8 py-4 text-xl"
+            };
+            return (
+                <button
+                    disabled={disabled}
+                    onClick={onClick}
+                    className={`rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-98 ${styles[variant]} ${sizes[size]} ${className}`}
+                >
+                    {children}
+                </button>
+            );
+        };
+
+        const ProgressBar = ({ current, total, color = "bg-indigo-500" }) => {
+            const percentage = total > 0 ? (current / total) * 100 : 0;
+            return (
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div className={`${color} h-full transition-all duration-500`} style={{ width: `${percentage}%` }}></div>
+                </div>
+            );
+        };
+
+        const getPercent = (correct, total) => (total > 0 ? Math.round((correct / total) * 100) : 0);
+
+        const getStars = (percent) => {
+            if (percent >= 90) return 3;
+            if (percent >= 75) return 2;
+            if (percent >= 60) return 1;
+            return 0;
+        };
+
+        const getRankInfo = (percent) => {
+            if (percent >= 95) return { label: "Legend", bg: "bg-amber-100", text: "text-amber-700" };
+            if (percent >= 85) return { label: "Master", bg: "bg-purple-100", text: "text-purple-700" };
+            if (percent >= 70) return { label: "Pro", bg: "bg-emerald-100", text: "text-emerald-700" };
+            if (percent >= 55) return { label: "Rising", bg: "bg-sky-100", text: "text-sky-700" };
+            return { label: "Starter", bg: "bg-slate-100", text: "text-slate-700" };
+        };
+
+        const getNextRankTarget = (percent) => {
+            if (percent >= 95) return null;
+            if (percent >= 85) return 95;
+            if (percent >= 70) return 85;
+            if (percent >= 55) return 70;
+            return 55;
+        };
+
+        const getScoreTotals = (scoreMap, baseTotal) => {
+            const entries = Object.entries(scoreMap || {});
+            const hasDetailed = entries.some(([key, value]) => key !== 'overall' && value && typeof value.correct === 'number' && typeof value.total === 'number');
+            const correct = entries.reduce((acc, [key, entry]) => {
+                if (key === 'overall' && hasDetailed) return acc;
+                if (!entry || typeof entry.correct !== 'number' || typeof entry.total !== 'number') return acc;
+                return acc + entry.correct;
+            }, 0);
+            const totalFromMap = entries.reduce((acc, [key, entry]) => {
+                if (key === 'overall' && hasDetailed) return acc;
+                if (!entry || typeof entry.correct !== 'number' || typeof entry.total !== 'number') return acc;
+                return acc + entry.total;
+            }, 0);
+            const total = typeof baseTotal === 'number' ? baseTotal : totalFromMap;
+            return { correct, total };
+        };
+
+        const UnitScoreHUD = ({ correct, total, label = "Unit Score" }) => {
+            const percent = getPercent(correct, total);
+            const stars = getStars(percent);
+            const rank = getRankInfo(percent);
+            const nextTarget = getNextRankTarget(percent);
+            const xp = correct * 10;
+            const maxXp = total * 10;
+
+            return (
+                <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 mb-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-slate-800">{percent}%</span>
+                            <span className="text-xs text-slate-500 font-medium">{correct}/{total}</span>
+                            <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{label}</span>
+                        </div>
+                        <div className="flex-1 min-w-[160px]">
+                            <ProgressBar current={correct} total={total} color="bg-emerald-500" />
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+                            <span className={`px-2.5 py-1 rounded-full ${rank.bg} ${rank.text}`}>{rank.label}</span>
+                            <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">Stars {stars}/3</span>
+                            <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">XP {xp}/{maxXp}</span>
+                            {nextTarget && (
+                                <span className="px-2.5 py-1 rounded-full bg-white text-slate-500 border border-slate-200">
+                                    Next {nextTarget}%
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const useUnitScore = (initialScoreMap = {}, baseTotal) => {
+            const [scoreMap, setScoreMap] = useState(initialScoreMap);
+            const totals = useMemo(() => getScoreTotals(scoreMap, baseTotal), [scoreMap, baseTotal]);
+            const updateScore = useCallback((key, correct, total) => {
+                setScoreMap(prev => ({ ...prev, [key]: { correct, total } }));
+            }, []);
+            return { scoreMap, totals, updateScore };
+        };
+
+        const StepIndicator = ({ steps, current, maxReached, onStepClick }) => {
+            const max = maxReached !== undefined ? maxReached : current;
+            return (
+                <div className="flex items-center gap-1 mb-6 overflow-x-auto pb-2">
+                    {steps.map((step, i) => (
+                        <React.Fragment key={i}>
+                            <button
+                                onClick={() => i <= max && onStepClick && onStepClick(i)}
+                                disabled={i > max}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${i === current ? 'bg-indigo-600 text-white shadow-md' :
+                                    i <= max ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 cursor-pointer' :
+                                        'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                    }`}
+                            >
+                                {i <= max && i !== current ? <Icon name="check" size={16} /> : <span className="w-5 h-5 rounded-full bg-current opacity-20 flex items-center justify-center text-xs">{i + 1}</span>}
+                                <span className="hidden sm:inline">{step}</span>
+                            </button>
+                            {i < steps.length - 1 && <div className="w-4 h-0.5 bg-slate-200 shrink-0"></div>}
+                        </React.Fragment>
+                    ))}
+                </div>
+            );
+        };
+
+        // --- TEACHER MODELING COMPONENT ---
+        const TeacherModel = ({ title, children, icon = "lightbulb" }) => (
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-amber-500 text-white p-2 rounded-xl">
+                        <Icon name={icon} size={24} />
+                    </div>
+                    <h3 className="text-xl font-bold text-amber-900">{title}</h3>
+                    <span className="ml-auto bg-amber-200 text-amber-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Teacher Model</span>
+                </div>
+                <div className="text-amber-900">{children}</div>
+            </div>
+        );
+
+        // --- WORKED EXAMPLE COMPONENT ---
+        const WorkedExample = ({ sentence, parts, note }) => (
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 my-4">
+                <div className="text-lg font-medium text-slate-800 mb-4 flex items-start gap-2">
+                    <Icon name="message-circle" size={20} className="text-indigo-500 shrink-0 mt-1" />
+                    <span>"{sentence}"</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                    {parts.map((part, i) => (
+                        <span key={i} className={`px-3 py-2 rounded-lg text-sm font-bold ${part.type === 'verb' ? 'bg-blue-100 text-blue-800 border-2 border-blue-300' :
+                            part.type === 'adverb' ? 'bg-purple-100 text-purple-800 border-2 border-purple-300' :
+                                part.type === 'preposition' ? 'bg-green-100 text-green-800 border-2 border-green-300' :
+                                    part.type === 'object' ? 'bg-orange-100 text-orange-800 border-2 border-orange-300' :
+                                        'bg-slate-100 text-slate-600'
+                            }`}>
+                            {part.word}
+                            <span className="block text-xs font-normal opacity-70">{part.label}</span>
+                        </span>
+                    ))}
+                </div>
+                {note && <p className="text-sm text-slate-500 italic flex items-center gap-2"><Icon name="info" size={14} /> {note}</p>}
+            </div>
+        );
+
+        // --- CONCEPT CHECK COMPONENT (simplified for use in ConceptCheckStep) ---
+        const ConceptCheck = ({ question, options, correctAnswer, explanation, onAnswer }) => {
+            const [selected, setSelected] = useState(null);
+            const [showResult, setShowResult] = useState(false);
+            const shuffledOptions = useMemo(() => shuffleArray(options), []);
+
+            const handleSelect = (option) => {
+                if (showResult) return;
+                setSelected(option);
+                setShowResult(true);
+                if (onAnswer) onAnswer(option === correctAnswer);
+            };
+
+            const isCorrect = selected === correctAnswer;
+
+            return (
+                <div className="bg-white rounded-xl p-5 border-2 border-slate-200">
+                    <p className="text-lg font-medium text-slate-800 mb-4">{question}</p>
+                    <div className="space-y-2">
+                        {shuffledOptions.map((option, i) => {
+                            let btnClass = "bg-slate-50 border-2 border-slate-200 hover:border-indigo-400";
+                            if (showResult) {
+                                if (option === correctAnswer) btnClass = "bg-green-100 border-2 border-green-500 text-green-800";
+                                else if (option === selected) btnClass = "bg-red-100 border-2 border-red-400 text-red-700";
+                                else btnClass = "bg-slate-50 border-2 border-slate-100 opacity-50";
+                            }
+                            return (
+                                <button key={i} onClick={() => handleSelect(option)} disabled={showResult}
+                                    className={`w-full p-3 rounded-lg font-medium text-left transition-all ${btnClass}`}>
+                                    {option}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {showResult && (
+                        <div className={`mt-4 p-3 rounded-lg ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+                            <p className="font-bold text-sm mb-1">{isCorrect ? '✓ Correct!' : '✗ Not quite'}</p>
+                            <p className="text-slate-600 text-sm">{explanation}</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- CONCEPT CHECK STEP COMPONENT (dedicated step for concept checks) ---
+        const ConceptCheckStep = ({ questions, onComplete, onReviewRequest, onScore }) => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [wrongAnswers, setWrongAnswers] = useState([]);
+            const [allAnswered, setAllAnswered] = useState(false);
+            const [answered, setAnswered] = useState(false);
+            const [correctCount, setCorrectCount] = useState(0);
+            const [reported, setReported] = useState(false);
+
+            const currentQ = questions[currentIndex];
+            const isLast = currentIndex === questions.length - 1;
+            const hasWrongAnswers = wrongAnswers.length > 0;
+
+            const handleAnswer = (isCorrect) => {
+                setAnswered(true);
+                if (!isCorrect) {
+                    setWrongAnswers(prev => [...prev, currentQ.topic]);
+                }
+                const nextCorrect = isCorrect ? correctCount + 1 : correctCount;
+                if (isCorrect) setCorrectCount(nextCorrect);
+                if (onScore) onScore(nextCorrect, questions.length);
+            };
+
+            const handleNext = () => {
+                if (isLast) {
+                    setAllAnswered(true);
+                } else {
+                    setCurrentIndex(prev => prev + 1);
+                    setAnswered(false);
+                }
+            };
+
+            useEffect(() => {
+                if (allAnswered && !reported) {
+                    if (onScore) onScore(correctCount, questions.length);
+                    setReported(true);
+                }
+            }, [allAnswered, reported, correctCount, questions.length, onScore]);
+
+            if (allAnswered) {
+                return (
+                    <div className="space-y-6 fade-in">
+                        <div className={`p-6 rounded-2xl ${hasWrongAnswers ? 'bg-amber-50 border-2 border-amber-200' : 'bg-green-50 border-2 border-green-200'}`}>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className={`p-3 rounded-xl ${hasWrongAnswers ? 'bg-amber-500' : 'bg-green-500'} text-white`}>
+                                    <Icon name={hasWrongAnswers ? "alert-circle" : "check-circle"} size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold">{hasWrongAnswers ? 'Review Suggested' : 'Great Job!'}</h3>
+                                    <p className="text-slate-600">{hasWrongAnswers
+                                        ? `You got ${questions.length - wrongAnswers.length}/${questions.length} correct.`
+                                        : 'You understood all the key concepts!'}</p>
+                                </div>
+                            </div>
+
+                            {hasWrongAnswers && (
+                                <div className="bg-white p-4 rounded-xl mb-4">
+                                    <p className="font-medium text-slate-700 mb-2">Review these topics:</p>
+                                    <ul className="list-disc list-inside text-slate-600">
+                                        {wrongAnswers.map((topic, i) => <li key={i}>{topic}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+
+                            <div className="flex gap-3 justify-end">
+                                {hasWrongAnswers && onReviewRequest && (
+                                    <Button onClick={onReviewRequest} variant="outline">
+                                        <Icon name="arrow-left" size={16} /> Go Back to Learn
+                                    </Button>
+                                )}
+                                <Button onClick={onComplete} variant="primary">
+                                    Continue <Icon name="arrow-right" size={16} />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="space-y-6 fade-in">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-slate-800">Quick Check</h2>
+                        <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">
+                            {currentIndex + 1} / {questions.length}
+                        </span>
+                    </div>
+
+                    {currentQ.topic && (
+                        <p className="text-sm text-slate-500 -mt-4 mb-4">Topic: {currentQ.topic}</p>
+                    )}
+
+                    <ConceptCheck
+                        key={currentIndex}
+                        question={currentQ.question}
+                        options={currentQ.options}
+                        correctAnswer={currentQ.correctAnswer}
+                        explanation={currentQ.explanation}
+                        onAnswer={handleAnswer}
+                    />
+
+                    {answered && (
+                        <div className="flex justify-end">
+                            <Button onClick={handleNext} variant="primary">
+                                {isLast ? 'See Results' : 'Next'} <Icon name="arrow-right" size={16} />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- INTERACTIVE SORTING ACTIVITY ---
+        const SortingActivity = ({ items, categories, onComplete, onScore }) => {
+            const [sorted, setSorted] = useState({});
+            const [available, setAvailable] = useState(items);
+            const [feedback, setFeedback] = useState(null);
+            const [draggedItem, setDraggedItem] = useState(null);
+            const [hasAttempted, setHasAttempted] = useState(false);
+            const [revealed, setRevealed] = useState(false);
+            const [completionTriggered, setCompletionTriggered] = useState(false);
+
+            const triggerComplete = useCallback(() => {
+                setCompletionTriggered(prev => {
+                    if (!prev && onComplete) onComplete();
+                    return true;
+                });
+            }, [onComplete]);
+
+            const handleDragStart = (e, item, sourceCategory) => {
+                setDraggedItem({ item, sourceCategory });
+                e.dataTransfer.effectAllowed = 'move';
+                // Set data for drag operation (required for Firefox)
+                e.dataTransfer.setData('text/plain', JSON.stringify(item));
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            };
+
+            const handleDrop = (e, targetCategoryId) => {
+                e.preventDefault();
+                if (!draggedItem) return;
+
+                const { item, sourceCategory } = draggedItem;
+
+                if (sourceCategory === targetCategoryId) {
+                    setDraggedItem(null);
+                    return;
+                }
+
+                setSorted(prev => ({
+                    ...prev,
+                    [targetCategoryId]: [...(prev[targetCategoryId] || []), item]
+                }));
+
+                if (sourceCategory === 'available') {
+                    setAvailable(prev => prev.filter(i => i.word !== item.word));
+                } else {
+                    setSorted(prev => ({
+                        ...prev,
+                        [sourceCategory]: prev[sourceCategory].filter(i => i.word !== item.word)
+                    }));
+                }
+                setDraggedItem(null);
+            };
+
+            const handleDropToAvailable = (e) => {
+                e.preventDefault();
+                if (!draggedItem) return;
+
+                const { item, sourceCategory } = draggedItem;
+
+                if (sourceCategory === 'available') {
+                    setDraggedItem(null);
+                    return;
+                }
+
+                setAvailable(prev => [...prev, item]);
+                setSorted(prev => ({
+                    ...prev,
+                    [sourceCategory]: prev[sourceCategory].filter(i => i.word !== item.word)
+                }));
+                setDraggedItem(null);
+            };
+
+            const checkAnswers = () => {
+                setHasAttempted(true);
+                let correct = 0;
+                let total = items.length;
+
+                Object.entries(sorted).forEach(([cat, sortedItems]) => {
+                    sortedItems.forEach(item => {
+                        if (item.category === cat) correct++;
+                    });
+                });
+
+                setFeedback({ correct, total, percentage: Math.round((correct / total) * 100) });
+                if (onScore) onScore(correct, total);
+                if (correct === total) {
+                    setTimeout(triggerComplete, 1200);
+                }
+            };
+
+            const revealAnswers = () => {
+                const answerKey = categories.reduce((acc, cat) => {
+                    acc[cat.id] = items.filter(item => item.category === cat.id);
+                    return acc;
+                }, {});
+                setDraggedItem(null);
+                setSorted(answerKey);
+                setAvailable([]);
+                setFeedback({ correct: items.length, total: items.length, percentage: 100, revealed: true });
+                setRevealed(true);
+            };
+
+            const reset = () => {
+                setSorted({});
+                setAvailable(items);
+                setFeedback(null);
+                setDraggedItem(null);
+                setHasAttempted(false);
+                setRevealed(false);
+                setCompletionTriggered(false);
+            };
+
+            return (
+                <div className="space-y-6">
+                    {/* Available Items */}
+                    <div
+                        className={`bg-slate-100 rounded-xl p-4 min-h-24 transition-colors ${draggedItem && draggedItem.sourceCategory !== 'available' ? 'bg-indigo-50 border-2 border-indigo-200 border-dashed' : ''}`}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDropToAvailable}
+                    >
+                        <p className="text-sm font-medium text-slate-500 mb-3">Drag items to the correct category below:</p>
+                        <div className="flex flex-wrap gap-2">
+                            {available.map((item, i) => (
+                                <div
+                                    key={i}
+                                    draggable={!feedback}
+                                    onDragStart={(e) => handleDragStart(e, item, 'available')}
+                                    className="px-4 py-2 bg-white rounded-lg shadow-sm border-2 border-slate-200 font-bold text-slate-700 cursor-grab active:cursor-grabbing hover:border-indigo-400 hover:bg-indigo-50 transition-all select-none"
+                                >
+                                    {item.word}
+                                </div>
+                            ))}
+                            {available.length === 0 && <p className="text-slate-400 italic">All items sorted!</p>}
+                        </div>
+                    </div>
+
+                    {/* Categories */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {categories.map(cat => (
+                            <div
+                                key={cat.id}
+                                className={`rounded-xl p-4 border-2 border-dashed min-h-32 transition-all ${cat.color} ${draggedItem && draggedItem.sourceCategory !== cat.id ? 'bg-opacity-50 border-indigo-400' : ''}`}
+                                onDragOver={handleDragOver}
+                                onDrop={(e) => handleDrop(e, cat.id)}
+                            >
+                                <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                    <Icon name={cat.icon} size={16} />
+                                    {cat.name}
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {(sorted[cat.id] || []).map((item, i) => (
+                                        <div
+                                            key={i}
+                                            draggable={!feedback}
+                                            onDragStart={(e) => handleDragStart(e, item, cat.id)}
+                                            className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1 cursor-grab active:cursor-grabbing select-none ${feedback ? (item.category === cat.id ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800') : 'bg-white shadow-sm'
+                                                }`}
+                                        >
+                                            {item.word}
+                                            {!feedback && <Icon name="move" size={12} className="opacity-30" />}
+                                            {feedback && (item.category === cat.id ? <Icon name="check" size={14} /> : <Icon name="x" size={14} />)}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Feedback & Controls */}
+                    {feedback && (
+                        <div className={`p-4 rounded-xl text-center font-bold ${feedback.percentage === 100 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
+                            {feedback.percentage === 100 ? '🎉 Perfect! All correct!' : `${feedback.correct}/${feedback.total} correct (${feedback.percentage}%)`}
+                        </div>
+                    )}
+
+                    <div className="flex gap-3 justify-center flex-wrap">
+                        <Button variant="outline" onClick={reset} size="sm">
+                            <Icon name="refresh-cw" size={16} /> Reset
+                        </Button>
+                        <Button variant="primary" onClick={checkAnswers} disabled={available.length > 0} size="sm">
+                            <Icon name="check-circle" size={16} /> Check Answers
+                        </Button>
+                        {hasAttempted && !revealed && feedback && feedback.percentage < 100 && (
+                            <Button variant="secondary" onClick={revealAnswers} size="sm">
+                                <Icon name="eye" size={16} /> Reveal answers
+                            </Button>
+                        )}
+                        {(revealed || (feedback && feedback.percentage === 100)) && (
+                            <Button variant="primary" onClick={triggerComplete} size="sm" disabled={completionTriggered}>
+                                Continue <Icon name="arrow-right" size={16} />
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- ERROR CORRECTION ACTIVITY ---
+        const ErrorCorrectionActivity = ({ items, onComplete, onScoreUpdate }) => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [selectedError, setSelectedError] = useState(null);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [score, setScore] = useState(0);
+
+            const current = items[currentIndex];
+            // Simplified: just 2 choices - correct or has error
+            const correctAnswer = current.hasError ? 'has_error' : 'correct';
+            const options = useMemo(() => shuffleArray(['correct', 'has_error']), [currentIndex]);
+
+            const handleSelect = (option) => {
+                setSelectedError(option);
+                setShowFeedback(true);
+                const nextScore = option === correctAnswer ? score + 1 : score;
+                if (option === correctAnswer) setScore(nextScore);
+                if (onScoreUpdate) onScoreUpdate(nextScore, items.length);
+            };
+
+            const next = () => {
+                if (currentIndex < items.length - 1) {
+                    setCurrentIndex(i => i + 1);
+                    setSelectedError(null);
+                    setShowFeedback(false);
+                } else {
+                    onComplete && onComplete(score + (selectedError === correctAnswer ? 1 : 0), items.length);
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-500">Question {currentIndex + 1} of {items.length}</span>
+                        <span className="font-bold text-indigo-600">Score: {score}</span>
+                    </div>
+                    <ProgressBar current={currentIndex + 1} total={items.length} />
+
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <p className="text-slate-500 mb-2 text-sm font-medium">Is this sentence correct?</p>
+                        <p className="text-2xl font-bold text-slate-800 mb-6 p-4 bg-slate-50 rounded-xl">
+                            {current.sentence}
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {options.map(option => {
+                                const labels = {
+                                    'correct': '✓ Correct',
+                                    'has_error': '✗ Has an Error'
+                                };
+                                let btnClass = "bg-slate-50 border-2 border-slate-200 hover:border-indigo-400";
+                                if (showFeedback) {
+                                    if (option === correctAnswer) btnClass = "bg-green-100 border-2 border-green-500";
+                                    else if (option === selectedError) btnClass = "bg-red-100 border-2 border-red-400";
+                                    else btnClass = "bg-slate-50 border-2 border-slate-100 opacity-50";
+                                }
+                                return (
+                                    <button
+                                        key={option}
+                                        onClick={() => !showFeedback && handleSelect(option)}
+                                        disabled={showFeedback}
+                                        className={`p-4 rounded-xl font-medium text-left transition-all ${btnClass}`}
+                                    >
+                                        {labels[option]}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {showFeedback && (
+                            <div className={`mt-6 p-4 rounded-xl ${selectedError === correctAnswer ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+                                <p className="font-bold mb-2">{selectedError === correctAnswer ? '✓ Correct!' : '✗ Not quite'}</p>
+                                <p className="text-slate-700">{current.explanation}</p>
+                                {current.correction && <p className="mt-2 font-medium text-green-700">Correct: "{current.correction}"</p>}
+                            </div>
+                        )}
+                    </div>
+
+                    {showFeedback && (
+                        <div className="flex justify-end">
+                            <Button onClick={next} variant="primary">
+                                {currentIndex < items.length - 1 ? 'Next' : 'Finish'} <Icon name="arrow-right" size={18} />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- MATCHING ACTIVITY ---
+        const MatchingActivity = ({ pairs, onComplete, onScore }) => {
+            const [selected, setSelected] = useState({ left: null, right: null });
+            const [matched, setMatched] = useState([]);
+            const [wrong, setWrong] = useState(null);
+            const [hasAttempted, setHasAttempted] = useState(false);
+            const [revealed, setRevealed] = useState(false);
+            const [completionTriggered, setCompletionTriggered] = useState(false);
+            const [reported, setReported] = useState(false);
+
+            const triggerComplete = useCallback(() => {
+                setCompletionTriggered(prev => {
+                    if (!prev && onComplete) onComplete();
+                    return true;
+                });
+            }, [onComplete]);
+
+            const leftItems = pairs.map(p => p.phrasal);
+            const rightItems = useMemo(() => [...pairs.map(p => p.formal)].sort(() => Math.random() - 0.5), []);
+
+            const handleSelect = (side, item) => {
+                const newSelected = { ...selected, [side]: item };
+                setSelected(newSelected);
+                setWrong(null);
+
+                if (newSelected.left && newSelected.right) {
+                    setHasAttempted(true);
+                    const pair = pairs.find(p => p.phrasal === newSelected.left);
+                    if (pair && pair.formal === newSelected.right) {
+                        setMatched(m => {
+                            const updated = [...m, newSelected.left];
+                            if (onScore) onScore(updated.length, pairs.length);
+                            if (updated.length === pairs.length) {
+                                setTimeout(triggerComplete, 800);
+                            }
+                            return updated;
+                        });
+                        setSelected({ left: null, right: null });
+                    } else {
+                        setWrong(newSelected);
+                        setTimeout(() => {
+                            setSelected({ left: null, right: null });
+                            setWrong(null);
+                        }, 800);
+                    }
+                }
+            };
+
+            const revealAnswers = () => {
+                setMatched(pairs.map(p => p.phrasal));
+                setSelected({ left: null, right: null });
+                setWrong(null);
+                setRevealed(true);
+                if (onScore) onScore(pairs.length, pairs.length);
+            };
+
+            useEffect(() => {
+                if (!reported && (matched.length === pairs.length || revealed)) {
+                    if (onScore) onScore(matched.length, pairs.length);
+                    setReported(true);
+                }
+            }, [matched.length, pairs.length, revealed, reported, onScore]);
+
+            return (
+                <div className="space-y-6">
+                    <p className="text-slate-600 text-center">Match the prepositions (left) with their meanings (right)</p>
+                    <div className="flex justify-center text-sm font-medium text-indigo-600">
+                        Matched: {matched.length}/{pairs.length}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+                        <div className="space-y-2">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Prepositions</p>
+                            {leftItems.map(item => {
+                                const isMatched = matched.includes(item);
+                                const isSelected = selected.left === item;
+                                const isWrong = wrong?.left === item;
+                                return (
+                                    <button
+                                        key={item}
+                                        onClick={() => !isMatched && !revealed && handleSelect('left', item)}
+                                        disabled={isMatched || revealed}
+                                        className={`w-full p-3 rounded-xl font-bold text-left transition-all ${isMatched ? 'bg-green-100 text-green-700 opacity-60' :
+                                            isWrong ? 'bg-red-100 border-2 border-red-400 text-red-700' :
+                                                isSelected ? 'bg-indigo-100 border-2 border-indigo-500 text-indigo-700' :
+                                                    'bg-white border-2 border-slate-200 hover:border-indigo-300'
+                                            }`}
+                                    >
+                                        {item}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Meanings</p>
+                            {rightItems.map(item => {
+                                const matchedPair = pairs.find(p => p.formal === item);
+                                const isMatched = matched.includes(matchedPair?.phrasal);
+                                const isSelected = selected.right === item;
+                                const isWrong = wrong?.right === item;
+                                return (
+                                    <button
+                                        key={item}
+                                        onClick={() => !isMatched && !revealed && handleSelect('right', item)}
+                                        disabled={isMatched || revealed}
+                                        className={`w-full p-3 rounded-xl font-bold text-left transition-all ${isMatched ? 'bg-green-100 text-green-700 opacity-60' :
+                                            isWrong ? 'bg-red-100 border-2 border-red-400 text-red-700' :
+                                                isSelected ? 'bg-indigo-100 border-2 border-indigo-500 text-indigo-700' :
+                                                    'bg-white border-2 border-slate-200 hover:border-indigo-300'
+                                            }`}
+                                    >
+                                        {item}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {revealed && (
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 max-w-2xl mx-auto fade-in">
+                            <h4 className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                                <Icon name="eye" size={16} /> Answer key
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-700">
+                                {pairs.map(pair => (
+                                    <div key={pair.phrasal} className="flex items-center gap-2 bg-white/60 px-3 py-2 rounded-lg border border-indigo-100">
+                                        <span className="font-bold text-indigo-900">{pair.phrasal}</span>
+                                        <Icon name="arrow-right" size={14} className="text-indigo-500" />
+                                        <span>{pair.formal}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex flex-wrap justify-center gap-3">
+                        {hasAttempted && !revealed && matched.length < pairs.length && (
+                            <Button variant="secondary" onClick={revealAnswers} size="sm">
+                                <Icon name="eye" size={16} /> Reveal answers
+                            </Button>
+                        )}
+                        {(revealed || matched.length === pairs.length) && (
+                            <Button variant="primary" onClick={triggerComplete} size="sm" disabled={completionTriggered}>
+                                Continue <Icon name="arrow-right" size={16} />
+                            </Button>
+                        )}
+                    </div>
+
+                    {matched.length === pairs.length && (
+                        <div className="text-center p-4 bg-green-100 rounded-xl text-green-800 font-bold fade-in">
+                            🎉 All matched! Great job!
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- SENTENCE BUILDER ACTIVITY ---
+        const SentenceBuilderActivity = ({ items, onComplete, onScoreUpdate }) => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [selected, setSelected] = useState([]);
+            const [available, setAvailable] = useState([]);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [score, setScore] = useState(0);
+
+            const current = items[currentIndex];
+
+            useEffect(() => {
+                setAvailable([...current.words].sort(() => Math.random() - 0.5));
+                setSelected([]);
+                setShowFeedback(false);
+            }, [currentIndex]);
+
+            const handleWordClick = (word, fromSelected) => {
+                if (showFeedback) return;
+                if (fromSelected) {
+                    setSelected(s => s.filter((w, i) => i !== selected.indexOf(word) || s.indexOf(word) !== s.lastIndexOf(word) ? w !== word || i !== selected.lastIndexOf(word) : true).filter((_, i) => i !== selected.lastIndexOf(word)));
+                    setAvailable(a => [...a, word]);
+                } else {
+                    setAvailable(a => {
+                        const idx = a.indexOf(word);
+                        return a.filter((_, i) => i !== idx);
+                    });
+                    setSelected(s => [...s, word]);
+                }
+            };
+
+            const checkAnswer = () => {
+                const userAnswer = selected.join(' ');
+                const isCorrect = current.correct.includes(userAnswer);
+                setShowFeedback(true);
+                const nextScore = isCorrect ? score + 1 : score;
+                if (isCorrect) setScore(nextScore);
+                if (onScoreUpdate) onScoreUpdate(nextScore, items.length);
+            };
+
+            const next = () => {
+                if (currentIndex < items.length - 1) {
+                    setCurrentIndex(i => i + 1);
+                } else {
+                    onComplete && onComplete(score, items.length);
+                }
+            };
+
+            const isCorrect = showFeedback && current.correct.includes(selected.join(' '));
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-500">Sentence {currentIndex + 1} of {items.length}</span>
+                        <span className="font-bold text-indigo-600">Score: {score}</span>
+                    </div>
+                    <ProgressBar current={currentIndex + 1} total={items.length} />
+
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <p className="text-slate-500 mb-4">Arrange the words to form a correct sentence:</p>
+
+                        {/* Answer area */}
+                        <div className={`min-h-16 p-4 rounded-xl border-2 border-dashed mb-6 flex flex-wrap gap-2 ${showFeedback ? (isCorrect ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300') : 'bg-slate-50 border-slate-300'
+                            }`}>
+                            {selected.length === 0 && <span className="text-slate-400 italic">Click words below to build your sentence...</span>}
+                            {selected.map((word, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleWordClick(word, true)}
+                                    disabled={showFeedback}
+                                    className="px-4 py-2 bg-indigo-100 text-indigo-800 rounded-lg font-bold hover:bg-indigo-200 transition-all"
+                                >
+                                    {word}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Available words */}
+                        <div className="flex flex-wrap gap-2 justify-center">
+                            {available.map((word, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleWordClick(word, false)}
+                                    disabled={showFeedback}
+                                    className="px-4 py-2 bg-white border-2 border-slate-200 rounded-lg font-bold hover:border-indigo-400 hover:bg-indigo-50 transition-all"
+                                >
+                                    {word}
+                                </button>
+                            ))}
+                        </div>
+
+                        {showFeedback && (
+                            <div className={`mt-6 p-4 rounded-xl ${isCorrect ? 'bg-green-100' : 'bg-amber-100'}`}>
+                                <p className="font-bold mb-2">{isCorrect ? '✓ Correct!' : '✗ Not quite right'}</p>
+                                <p className="text-slate-700">Correct answer: "{current.correct[0]}"</p>
+                                {current.explanation && <p className="text-sm text-slate-500 mt-2">{current.explanation}</p>}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex justify-between">
+                        <Button
+                            variant="outline"
+                            onClick={() => { setAvailable([...current.words].sort(() => Math.random() - 0.5)); setSelected([]); }}
+                            disabled={showFeedback}
+                            size="sm"
+                        >
+                            <Icon name="refresh-cw" size={16} /> Reset
+                        </Button>
+                        {!showFeedback ? (
+                            <Button onClick={checkAnswer} variant="primary" disabled={selected.length === 0}>
+                                Check Answer <Icon name="check" size={18} />
+                            </Button>
+                        ) : (
+                            <Button onClick={next} variant="primary">
+                                {currentIndex < items.length - 1 ? 'Next' : 'Finish'} <Icon name="arrow-right" size={18} />
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- QUIZ INTERFACE ---
+        const QuizInterface = ({ questions, onComplete, onScoreUpdate, title = "Quiz" }) => {
+            const questionBank = useMemo(() => {
+                return questions.map((q, idx) => ({ ...q, __id: q.id ?? idx }));
+            }, [questions]);
+
+            const [mode, setMode] = useState('quiz');
+            const [activeQuestions, setActiveQuestions] = useState(() => shuffleArray(questionBank));
+            const [idx, setIdx] = useState(0);
+            const [history, setHistory] = useState({});
+            const [answered, setAnswered] = useState(false);
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [mastery, setMastery] = useState(() => new Set());
+
+            useEffect(() => {
+                setActiveQuestions(shuffleArray(questionBank));
+                setIdx(0);
+                setMode('quiz');
+                setHistory({});
+                setAnswered(false);
+                setSelectedOption(null);
+                setMastery(new Set());
+            }, [questionBank]);
+
+            const q = activeQuestions[idx];
+            const shuffledOptions = useMemo(() => (q ? shuffleArray(q.opts) : []), [q?.__id]);
+            const total = questionBank.length;
+            const score = mastery.size;
+
+            const reportScore = useCallback((nextMastery) => {
+                if (onScoreUpdate) onScoreUpdate(nextMastery.size, total);
+            }, [onScoreUpdate, total]);
+
+            const handleAnswer = (choice) => {
+                if (answered) return;
+                const isCorrect = choice === q.a || (Array.isArray(q.a) && q.a.includes(choice));
+                setSelectedOption(choice);
+                setAnswered(true);
+                setHistory(prev => ({ ...prev, [q.__id]: { q, selected: choice, isCorrect, skipped: false } }));
+
+                if (isCorrect && !mastery.has(q.__id)) {
+                    const nextMastery = new Set(mastery);
+                    nextMastery.add(q.__id);
+                    setMastery(nextMastery);
+                    reportScore(nextMastery);
+                } else {
+                    reportScore(mastery);
+                }
+            };
+
+            const handleSkip = () => {
+                if (answered) return;
+                setHistory(prev => ({ ...prev, [q.__id]: { q, selected: null, isCorrect: false, skipped: true } }));
+                next();
+            };
+
+            const next = () => {
+                setAnswered(false);
+                setSelectedOption(null);
+                if (idx < activeQuestions.length - 1) {
+                    setIdx(idx + 1);
+                } else {
+                    setMode('review');
+                }
+            };
+
+            const handleRetryMistakes = () => {
+                const mistakes = questionBank.filter(item => !mastery.has(item.__id));
+                if (mistakes.length === 0) return;
+                setActiveQuestions(shuffleArray(mistakes));
+                setHistory({});
+                setIdx(0);
+                setMode('quiz');
+                setAnswered(false);
+                setSelectedOption(null);
+            };
+
+            if (mode === 'review') {
+                const mistakes = Object.values(history).filter(h => !h.isCorrect);
+                const pending = questionBank.filter(item => !mastery.has(item.__id));
+                const percent = getPercent(score, total);
+                const rank = getRankInfo(percent);
+                const stars = getStars(percent);
+
+                return (
+                    <div className="w-full fade-in bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-center text-white">
+                            <h2 className="text-3xl font-black mb-2">{title} Complete!</h2>
+                            <div className="text-5xl font-black mb-2">{score}/{total}</div>
+                            <p className="text-indigo-200">{percent}% | Rank: {rank.label} | Stars: {stars}/3</p>
+                            <p className="text-indigo-200 mt-1">{score === total ? "Perfect score! 🎉" : "Good effort! Review your mistakes below."}</p>
+                        </div>
+
+                        <div className="p-6">
+                            {mistakes.length > 0 && (
+                                <div className="mb-6">
+                                    <h3 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
+                                        <Icon name="alert-circle" size={20} /> Review Mistakes
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {mistakes.map((m, i) => (
+                                            <div key={i} className="bg-red-50 p-4 rounded-xl border border-red-100">
+                                                <p className="font-medium text-slate-800 mb-2">{m.q.q}</p>
+                                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                                    <span className="text-red-600">
+                                                        <Icon name="x" size={14} className="inline" /> {m.skipped ? 'Skipped' : <>Your answer: <strong>{m.selected}</strong></>}
+                                                    </span>
+                                                    <span className="text-green-600"><Icon name="check" size={14} className="inline" /> Correct: <strong>{Array.isArray(m.q.a) ? m.q.a[0] : m.q.a}</strong></span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex flex-wrap gap-3 justify-center">
+                                {pending.length > 0 && (
+                                    <Button onClick={handleRetryMistakes} variant="secondary">
+                                        <Icon name="refresh-cw" size={18} /> Retry Mistakes
+                                    </Button>
+                                )}
+                                <Button onClick={() => onComplete(score, total)} variant="primary">
+                                    Continue <Icon name="arrow-right" size={18} />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!q) {
+                return (
+                    <div className="w-full fade-in bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+                        <div className="p-6 text-center text-slate-500">No quiz questions available.</div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="w-full fade-in">
+                    <div className="mb-4 flex justify-between items-center text-sm">
+                        <span className="text-slate-500 font-medium">Question {idx + 1}/{activeQuestions.length}</span>
+                        <span className="font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Score: {score}</span>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                        <ProgressBar current={idx + 1} total={activeQuestions.length} />
+
+                        <div className="p-6 sm:p-8">
+                            <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6 leading-relaxed">
+                                {q.q.split('___').map((part, i, arr) => (
+                                    <React.Fragment key={i}>
+                                        {part}
+                                        {i < arr.length - 1 && <span className="inline-block min-w-20 border-b-4 border-indigo-400 mx-1"></span>}
+                                    </React.Fragment>
+                                ))}
+                            </h3>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                                {shuffledOptions.map((opt, i) => {
+                                    const isCorrectAnswer = opt === q.a || (Array.isArray(q.a) && q.a.includes(opt));
+                                    let btnClass = "bg-white border-2 border-slate-200 hover:border-indigo-400";
+
+                                    if (answered) {
+                                        if (isCorrectAnswer) btnClass = "bg-green-100 border-2 border-green-500";
+                                        else if (opt === selectedOption) btnClass = "bg-red-100 border-2 border-red-400";
+                                        else btnClass = "bg-slate-50 border-2 border-slate-100 opacity-50";
+                                    }
+
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => handleAnswer(opt)}
+                                            disabled={answered}
+                                            className={`p-4 rounded-xl font-medium text-left transition-all ${btnClass}`}
+                                        >
+                                            {opt}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {answered && (
+                                <div className="bg-indigo-50 rounded-xl p-4 border-l-4 border-indigo-500 mb-4 fade-in">
+                                    <p className="font-bold text-indigo-900 mb-1">
+                                        {selectedOption === q.a || (Array.isArray(q.a) && q.a.includes(selectedOption)) ? '✓ Correct!' : 'Explanation:'}
+                                    </p>
+                                    <p className="text-indigo-800">{q.expl}</p>
+                                </div>
+                            )}
+
+                            {!answered && (
+                                <div className="flex justify-end mb-4">
+                                    <Button onClick={handleSkip} variant="ghost" size="sm">
+                                        Skip <Icon name="skip-forward" size={18} />
+                                    </Button>
+                                </div>
+                            )}
+
+                            {answered && (
+                                <div className="flex justify-end">
+                                    <Button onClick={next} variant="primary">
+                                        {idx < activeQuestions.length - 1 ? 'Next' : 'View Results'} <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MODULE WRAPPER ---
+        const ModuleWrapper = ({ title, subtitle, icon, color, children, onBack }) => (
+            <div className="max-w-4xl w-full mx-auto p-4">
+                <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors">
+                    <Icon name="arrow-left" size={20} /> Back to Menu
+                </button>
+
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+                    <div className={`${color} p-6 sm:p-8`}>
+                        <div className="flex items-center gap-4">
+                            <div className="bg-white/20 p-3 rounded-xl">
+                                <Icon name={icon} size={32} className="text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl sm:text-3xl font-black text-white">{title}</h1>
+                                <p className="text-white/80">{subtitle}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="p-6 sm:p-8">
+                        {children}
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- MODULE 1: PREPOSITIONS OF LOCATION ---
+        const Module1 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
+            const steps = ['Learn', 'Model', 'Check', 'Sort', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m1);
+
+            // Track highest step reached and report to parent
+            React.useEffect(() => {
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
+
+            const conceptQuestions = [
+                { topic: "Meaning", question: "Which preposition means 'higher than'?", options: ["above", "below", "between", "near"], correctAnswer: "above", explanation: "'Above' means at a higher level than something else." },
+                { topic: "Opposite", question: "If two buildings face each other across a street, they are...", options: ["opposite", "in front of", "beside", "around"], correctAnswer: "opposite", explanation: "'Opposite' means facing each other across a space." },
+                { topic: "Between", question: "We use 'between' for...", options: ["two things", "many things", "inside", "on top"], correctAnswer: "two things", explanation: "'Between' is typically used for two items." },
+                { topic: "Inside/Outside", question: "Which preposition means 'not inside'?", options: ["outside", "inside", "around", "near"], correctAnswer: "outside", explanation: "'Outside' means not inside." },
+                { topic: "Near", question: "Which preposition means 'close to'?", options: ["near", "behind", "above", "between"], correctAnswer: "near", explanation: "'Near' means close to something." }
+            ];
+
+            const sortingItems = [
+                { word: "in front of", category: "front_back" },
+                { word: "behind", category: "front_back" },
+                { word: "opposite", category: "front_back" },
+                { word: "above", category: "vertical" },
+                { word: "under", category: "vertical" },
+                { word: "on top of", category: "vertical" },
+                { word: "inside", category: "inside_out" },
+                { word: "outside", category: "inside_out" },
+                { word: "near", category: "inside_out" }
+            ];
+
+            const sortingCategories = [
+                { id: "front_back", name: "Facing / Behind", icon: "arrow-left-right", color: "bg-blue-50 border-blue-200" },
+                { id: "vertical", name: "Above / Below", icon: "arrow-up-down", color: "bg-emerald-50 border-emerald-200" },
+                { id: "inside_out", name: "Inside / Outside", icon: "box", color: "bg-amber-50 border-amber-200" }
+            ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m1);
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
+
+            const renderContent = () => {
+                switch (step) {
+                    case 0: // Learn
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <h2 className="text-2xl font-bold text-slate-800">Prepositions of Location</h2>
+                                <p className="text-lg text-slate-600">
+                                    We use prepositions of location to talk about where people, things or places are.
+                                </p>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+                                        <h3 className="font-bold text-indigo-900 mb-2">Front / Back / Opposite</h3>
+                                        <ul className="text-sm text-indigo-900 space-y-1 list-disc list-inside">
+                                            <li>in front of</li>
+                                            <li>behind</li>
+                                            <li>opposite</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                                        <h3 className="font-bold text-emerald-900 mb-2">Above / Below / Around</h3>
+                                        <ul className="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                            <li>above</li>
+                                            <li>below / under</li>
+                                            <li>on top of</li>
+                                            <li>around</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <h3 className="font-bold text-amber-900 mb-2">Left / Right / Between</h3>
+                                        <ul className="text-sm text-amber-900 space-y-1 list-disc list-inside">
+                                            <li>to the left of</li>
+                                            <li>to the right of</li>
+                                            <li>between</li>
+                                            <li>beside / next to</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-sky-50 p-4 rounded-xl border border-sky-200">
+                                        <h3 className="font-bold text-sky-900 mb-2">Inside / Outside / Position</h3>
+                                        <ul className="text-sm text-sky-900 space-y-1 list-disc list-inside">
+                                            <li>inside</li>
+                                            <li>outside</li>
+                                            <li>in the middle of</li>
+                                            <li>in the corner of</li>
+                                            <li>near</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-slate-700 text-sm leading-relaxed">
+                                        The apple is <strong>in front of</strong> the plate. The lights are <strong>above</strong> the table.
+                                        The pear is <strong>between</strong> the knife and the apple.
+                                    </p>
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <Button onClick={() => setStep(1)} variant="primary">
+                                        See Examples <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 1: // Model
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <TeacherModel title="Finding the Location" icon="map-pin">
+                                    <p className="mb-4">Notice how the preposition shows where something is:</p>
+
+                                    <WorkedExample
+                                        sentence="The apple is in front of the plate."
+                                        parts={[
+                                            { word: "The apple", type: "other", label: "Subject" },
+                                            { word: "is", type: "other", label: "Verb" },
+                                            { word: "in front of", type: "preposition", label: "Preposition" },
+                                            { word: "the plate", type: "object", label: "Object" }
+                                        ]}
+                                        note="'In front of' shows position before another object."
+                                    />
+
+                                    <WorkedExample
+                                        sentence="The lights are above the table."
+                                        parts={[
+                                            { word: "The lights", type: "other", label: "Subject" },
+                                            { word: "are", type: "other", label: "Verb" },
+                                            { word: "above", type: "preposition", label: "Preposition" },
+                                            { word: "the table", type: "object", label: "Object" }
+                                        ]}
+                                        note="'Above' means at a higher level."
+                                    />
+
+                                    <WorkedExample
+                                        sentence="The shoes are under the table."
+                                        parts={[
+                                            { word: "The shoes", type: "other", label: "Subject" },
+                                            { word: "are", type: "other", label: "Verb" },
+                                            { word: "under", type: "preposition", label: "Preposition" },
+                                            { word: "the table", type: "object", label: "Object" }
+                                        ]}
+                                        note="'Under' means below something."
+                                    />
+                                </TeacherModel>
+
+                                <div className="flex justify-between">
+                                    <Button onClick={() => setStep(0)} variant="outline">
+                                        <Icon name="arrow-left" size={18} /> Back
+                                    </Button>
+                                    <Button onClick={() => setStep(2)} variant="primary">
+                                        Quick Check <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 2: // Check
+                        return (
+                            <ConceptCheckStep
+                                questions={conceptQuestions}
+                                onComplete={() => setStep(3)}
+                                onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
+                            />
+                        );
+
+                    case 3: // Sort
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <div className="text-center mb-6">
+                                    <h3 className="text-xl font-bold text-slate-800 mb-2">Sorting Practice</h3>
+                                    <p className="text-slate-600">Sort each preposition into the correct group</p>
+                                </div>
+
+                                <SortingActivity
+                                    items={sortingItems}
+                                    categories={sortingCategories}
+                                    onComplete={() => setStep(4)}
+                                    onScore={(correct, total) => updateScore('practice', correct, total)}
+                                />
+
+                                <div className="flex justify-start mt-4">
+                                    <Button onClick={() => setStep(2)} variant="outline" size="sm">
+                                        <Icon name="arrow-left" size={16} /> Back
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 4: // Quiz
+                        return (
+                            <div className="fade-in">
+                                <QuizInterface
+                                    questions={QUIZ_DATA.m1}
+                                    title="Module 1 Quiz"
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
+                                />
+                            </div>
+                        );
+                }
+            };
+
+            return (
+                <ModuleWrapper
+                    title="Prepositions of Location"
+                    subtitle="Module 1: Where things are"
+                    icon="map-pin"
+                    color="bg-gradient-to-r from-blue-600 to-indigo-600"
+                    onBack={onBack}
+                >
+                    <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
+                    {renderContent()}
+                </ModuleWrapper>
+            );
+        };
+
+        // --- MODULE 2: AT, IN & ON ---
+        const Module2 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
+            const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m2);
+
+            React.useEffect(() => {
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
+
+            const conceptQuestions = [
+                { topic: "Addresses", question: "I live ___ 23 Henderson Road.", options: ["at", "in", "on", "to"], correctAnswer: "at", explanation: "Use 'at' for exact addresses." },
+                { topic: "Countries", question: "China is ___ Asia.", options: ["in", "at", "on", "to"], correctAnswer: "in", explanation: "Use 'in' with countries and continents." },
+                { topic: "Surfaces", question: "The plates are ___ the table.", options: ["on", "in", "at", "under"], correctAnswer: "on", explanation: "Use 'on' for surfaces." },
+                { topic: "Events", question: "We saw Jill ___ the concert.", options: ["at", "in", "on", "to"], correctAnswer: "at", explanation: "Use 'at' for events or activities." }
+            ];
+
+            const errorItems = [
+                { sentence: "Let's meet in the Star Ferry Pier.", hasError: true, errorType: "wrong_preposition", explanation: "Use 'at' for specific places or meeting points.", correction: "Let's meet at the Star Ferry Pier." },
+                { sentence: "My aunt is working on Japan at the moment.", hasError: true, errorType: "wrong_preposition", explanation: "Use 'in' with countries.", correction: "My aunt is working in Japan at the moment." },
+                { sentence: "I live on 23 Henderson Road.", hasError: true, errorType: "wrong_preposition", explanation: "Use 'at' for exact addresses.", correction: "I live at 23 Henderson Road." },
+                { sentence: "I live on Kennedy Road.", hasError: false, errorType: "correct", explanation: "We can use on or in with streets or roads." },
+                { sentence: "There is a cafe at the corner of the street.", hasError: false, errorType: "correct", explanation: "Use 'at the corner of the street'." }
+            ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m2);
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
+
+            const renderContent = () => {
+                switch (step) {
+                    case 0: // Learn
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <h2 className="text-2xl font-bold text-slate-800">At, In & On</h2>
+                                <p className="text-lg text-slate-600">
+                                    We use <strong>at</strong>, <strong>in</strong> and <strong>on</strong> to talk about locations in different ways.
+                                </p>
+
+                                <div className="grid md:grid-cols-3 gap-4">
+                                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+                                        <h3 className="font-bold text-indigo-900 mb-2">At</h3>
+                                        <ul className="text-sm text-indigo-900 space-y-1 list-disc list-inside">
+                                            <li>places / buildings / shops</li>
+                                            <li>addresses</li>
+                                            <li>events or activities</li>
+                                            <li>at home / school / work</li>
+                                        </ul>
+                                        <p className="text-xs text-indigo-800 mt-3">Example: Let's meet at the Star Ferry Pier.</p>
+                                    </div>
+                                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                                        <h3 className="font-bold text-emerald-900 mb-2">In</h3>
+                                        <ul className="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                            <li>rooms / buildings / areas</li>
+                                            <li>countries / cities</li>
+                                            <li>containers</li>
+                                            <li>in bed / class / the sky</li>
+                                        </ul>
+                                        <p className="text-xs text-emerald-800 mt-3">Example: There is a gift shop in the museum.</p>
+                                    </div>
+                                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <h3 className="font-bold text-amber-900 mb-2">On</h3>
+                                        <ul className="text-sm text-amber-900 space-y-1 list-disc list-inside">
+                                            <li>surfaces</li>
+                                            <li>floors</li>
+                                            <li>islands</li>
+                                            <li>on a farm / on a plane</li>
+                                        </ul>
+                                        <p className="text-xs text-amber-800 mt-3">Example: The plates are on the table.</p>
+                                    </div>
+                                </div>
+
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-slate-700 text-sm">
+                                        <strong>Quick idea:</strong> <strong>at</strong> focuses on a point or activity, <strong>in</strong> means inside an area, and <strong>on</strong> means on a surface.
+                                    </p>
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <Button onClick={() => setStep(1)} variant="primary">
+                                        See Examples <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 1: // Model
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <TeacherModel title="Choosing At, In or On" icon="compass">
+                                    <p className="mb-4">Choose the preposition that matches the type of place:</p>
+
+                                    <WorkedExample
+                                        sentence="Let's meet at the Star Ferry Pier."
+                                        parts={[
+                                            { word: "Let's meet", type: "other", label: "Verb" },
+                                            { word: "at", type: "preposition", label: "Preposition" },
+                                            { word: "the Star Ferry Pier", type: "object", label: "Place" }
+                                        ]}
+                                        note="'At' is used for specific places and meeting points."
+                                    />
+
+                                    <WorkedExample
+                                        sentence="There is a gift shop in the museum."
+                                        parts={[
+                                            { word: "There is", type: "other", label: "Verb" },
+                                            { word: "in", type: "preposition", label: "Preposition" },
+                                            { word: "the museum", type: "object", label: "Place" }
+                                        ]}
+                                        note="'In' shows being inside a building or area."
+                                    />
+
+                                    <WorkedExample
+                                        sentence="The plates are on the table."
+                                        parts={[
+                                            { word: "The plates are", type: "other", label: "Verb" },
+                                            { word: "on", type: "preposition", label: "Preposition" },
+                                            { word: "the table", type: "object", label: "Surface" }
+                                        ]}
+                                        note="'On' is used for surfaces."
+                                    />
+                                </TeacherModel>
+
+                                <div className="flex justify-between">
+                                    <Button onClick={() => setStep(0)} variant="outline">
+                                        <Icon name="arrow-left" size={18} /> Back
+                                    </Button>
+                                    <Button onClick={() => setStep(2)} variant="primary">
+                                        Quick Check <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 2: // Check
+                        return (
+                            <ConceptCheckStep
+                                questions={conceptQuestions}
+                                onComplete={() => setStep(3)}
+                                onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
+                            />
+                        );
+
+                    case 3: // Practice
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <div className="text-center mb-4">
+                                    <h3 className="text-xl font-bold text-slate-800">Error Correction Practice</h3>
+                                    <p className="text-slate-600">Are these sentences correct? Identify any errors.</p>
+                                </div>
+
+                                <ErrorCorrectionActivity
+                                    items={errorItems}
+                                    onComplete={(score, total) => {
+                                        updateScore('practice', score, total);
+                                        setStep(4);
+                                    }}
+                                    onScoreUpdate={(correct, total) => updateScore('practice', correct, total)}
+                                />
+                            </div>
+                        );
+
+                    case 4: // Quiz
+                        return (
+                            <div className="fade-in">
+                                <QuizInterface
+                                    questions={QUIZ_DATA.m2}
+                                    title="Module 2 Quiz"
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
+                                />
+                            </div>
+                        );
+                }
+            };
+
+            return (
+                <ModuleWrapper
+                    title="At, In & On"
+                    subtitle="Module 2: Addresses, areas and surfaces"
+                    icon="compass"
+                    color="bg-gradient-to-r from-emerald-600 to-teal-600"
+                    onBack={onBack}
+                >
+                    <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
+                    {renderContent()}
+                </ModuleWrapper>
+            );
+        };
+
+        // --- MODULE 3: TRICKY LOCATION ERRORS ---
+        const Module3 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
+            const steps = ['Learn', 'Model', 'Check', 'Build', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m3);
+
+            React.useEffect(() => {
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
+
+            const conceptQuestions = [
+                { topic: "Opposite", question: "The clinic is ___ the bank.", options: ["opposite", "opposite to", "in front of", "beside"], correctAnswer: "opposite", explanation: "'Opposite' is a preposition. Do not add 'to'." },
+                { topic: "Opposite to", question: "'Opposite to' is used as an...", options: ["adjective meaning completely different", "adverb for direction", "preposition for location", "verb for movement"], correctAnswer: "adjective meaning completely different", explanation: "'Opposite to' is an adjective (Her opinion is opposite to mine)." },
+                { topic: "In front of", question: "The bus stop is directly outside the school entrance.", options: ["in front of", "opposite", "behind", "beside"], correctAnswer: "in front of", explanation: "'In front of' means directly outside the entrance." },
+                { topic: "In the tree", question: "There is a bird ___ the tree.", options: ["in", "on", "under", "behind"], correctAnswer: "in", explanation: "Birds are usually 'in' the tree (among the branches)." }
+            ];
+
+            const sentenceItems = [
+                { words: ["The", "clinic", "is", "opposite", "the", "bank", "."], correct: ["The clinic is opposite the bank ."], explanation: "Opposite is a preposition here." },
+                { words: ["Her", "opinion", "is", "opposite", "to", "mine", "."], correct: ["Her opinion is opposite to mine ."], explanation: "'Opposite to' is an adjective meaning completely different." },
+                { words: ["The", "bus", "stop", "is", "opposite", "the", "school", "."], correct: ["The bus stop is opposite the school ."], explanation: "Opposite means facing across a street." },
+                { words: ["The", "bus", "stop", "is", "in", "front", "of", "the", "school", "."], correct: ["The bus stop is in front of the school ."], explanation: "In front of means directly outside the entrance." },
+                { words: ["I'm", "at", "the", "cinema", "."], correct: ["I'm at the cinema ."], explanation: "Use 'at' when focusing on the activity." }
+            ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m3);
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
+
+            const renderContent = () => {
+                switch (step) {
+                    case 0: // Learn
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <h2 className="text-2xl font-bold text-slate-800">Tricky Location Errors</h2>
+                                <p className="text-lg text-slate-600">Some prepositions of location are easy to mix up. Watch out for these common errors.</p>
+
+                                <div className="grid md:grid-cols-3 gap-4">
+                                    <div className="bg-violet-50 p-4 rounded-xl border border-violet-200">
+                                        <h3 className="font-bold text-violet-900 mb-2">Opposite vs Opposite to</h3>
+                                        <p className="text-sm text-violet-900">Preposition: The clinic is <strong>opposite</strong> the bank.</p>
+                                        <p className="text-sm text-violet-900 mt-2">Adjective: Her opinion is <strong>opposite to</strong> mine.</p>
+                                    </div>
+                                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <h3 className="font-bold text-amber-900 mb-2">Opposite vs In front of</h3>
+                                        <p className="text-sm text-amber-900">Opposite = facing across a street.</p>
+                                        <p className="text-sm text-amber-900 mt-2">In front of = directly outside the entrance.</p>
+                                    </div>
+                                    <div className="bg-sky-50 p-4 rounded-xl border border-sky-200">
+                                        <h3 className="font-bold text-sky-900 mb-2">Other tricky pairs</h3>
+                                        <p className="text-sm text-sky-900">Birds are usually <strong>in</strong> a tree, apples are <strong>on</strong> a tree.</p>
+                                        <p className="text-sm text-sky-900 mt-2"><strong>At</strong> the cinema = the activity, <strong>in</strong> the cinema = the building.</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <Button onClick={() => setStep(1)} variant="primary">
+                                        See Examples <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 1: // Model
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <TeacherModel title="Fixing Common Mistakes" icon="check-circle">
+                                    <div className="space-y-4">
+                                        <div className="bg-white p-4 rounded-xl">
+                                            <p className="font-bold text-slate-700 mb-2">Example 1</p>
+                                            <p className="text-slate-600 mb-2">"The clinic is opposite to the bank."</p>
+                                            <p className="text-red-600 mb-2">Wrong: 'opposite' is a preposition here.</p>
+                                            <p className="text-green-700">Correct: "The clinic is <strong>opposite</strong> the bank."</p>
+                                        </div>
+
+                                        <div className="bg-white p-4 rounded-xl">
+                                            <p className="font-bold text-slate-700 mb-2">Example 2</p>
+                                            <p className="text-slate-600 mb-2">"The bus stop is in front of the school."</p>
+                                            <p className="text-slate-600">This means it is directly outside the entrance, not across the street.</p>
+                                        </div>
+
+                                        <div className="bg-white p-4 rounded-xl">
+                                            <p className="font-bold text-slate-700 mb-2">Example 3</p>
+                                            <p className="text-slate-600 mb-2">"I'm at the cinema."</p>
+                                            <p className="text-slate-600">Use <strong>at</strong> for the activity, <strong>in</strong> for the building.</p>
+                                        </div>
+                                    </div>
+                                </TeacherModel>
+
+                                <div className="flex justify-between">
+                                    <Button onClick={() => setStep(0)} variant="outline">
+                                        <Icon name="arrow-left" size={18} /> Back
+                                    </Button>
+                                    <Button onClick={() => setStep(2)} variant="primary">
+                                        Quick Check <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 2: // Check
+                        return (
+                            <ConceptCheckStep
+                                questions={conceptQuestions}
+                                onComplete={() => setStep(3)}
+                                onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
+                            />
+                        );
+
+                    case 3: // Build
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <div className="text-center mb-4">
+                                    <h3 className="text-xl font-bold text-slate-800">Sentence Building</h3>
+                                    <p className="text-slate-600">Arrange the words in the correct order</p>
+                                </div>
+
+                                <SentenceBuilderActivity
+                                    items={sentenceItems}
+                                    onComplete={(score, total) => {
+                                        updateScore('practice', score, total);
+                                        setStep(4);
+                                    }}
+                                    onScoreUpdate={(correct, total) => updateScore('practice', correct, total)}
+                                />
+                            </div>
+                        );
+
+                    case 4: // Quiz
+                        return (
+                            <div className="fade-in">
+                                <QuizInterface
+                                    questions={QUIZ_DATA.m3}
+                                    title="Module 3 Quiz"
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
+                                />
+                            </div>
+                        );
+                }
+            };
+
+            return (
+                <ModuleWrapper
+                    title="Tricky Location Errors"
+                    subtitle="Module 3: Avoid these common mistakes"
+                    icon="alert-octagon"
+                    color="bg-gradient-to-r from-violet-600 to-purple-600"
+                    onBack={onBack}
+                >
+                    <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
+                    {renderContent()}
+                </ModuleWrapper>
+            );
+        };
+
+        // --- MODULE 4: PREPOSITIONS OF MOVEMENT ---
+        const Module4 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
+            const steps = ['Learn', 'Model', 'Check', 'Match', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m4);
+
+            React.useEffect(() => {
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
+
+            const conceptQuestions = [
+                { topic: "Into", question: "Which preposition shows movement to the inside?", options: ["into", "in", "onto", "on"], correctAnswer: "into", explanation: "'Into' shows movement to the inside." },
+                { topic: "Onto", question: "Which preposition shows movement to a surface?", options: ["onto", "on", "into", "over"], correctAnswer: "onto", explanation: "'Onto' shows movement to a surface." },
+                { topic: "Direction", question: "Which preposition means 'in the direction of'?", options: ["towards", "from", "past", "behind"], correctAnswer: "towards", explanation: "'Towards' means in the direction of something." }
+            ];
+
+            const matchingPairs = [
+                { phrasal: "onto", formal: "movement to a surface" },
+                { phrasal: "into", formal: "movement to the inside" },
+                { phrasal: "out of", formal: "movement from inside to outside" },
+                { phrasal: "across", formal: "from one side to the other" },
+                { phrasal: "through", formal: "from one end to the other inside" },
+                { phrasal: "towards", formal: "in the direction of" }
+            ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m4);
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
+
+            const renderContent = () => {
+                switch (step) {
+                    case 0: // Learn
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <h2 className="text-2xl font-bold text-slate-800">Prepositions of Movement</h2>
+                                <p className="text-lg text-slate-600">
+                                    We use prepositions of movement to describe how people or things move.
+                                </p>
+
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-slate-700 text-sm leading-relaxed">
+                                        Look! John is getting <strong>onto</strong> a boat. Vicki is walking <strong>over</strong> the bridge.
+                                        Cathy is walking <strong>along</strong> the canal. Chloe is going <strong>up</strong> the lift and Mark is coming <strong>down</strong>.
+                                        Sarah is walking <strong>towards</strong> the clothes shop. Eric is coming <strong>out of</strong> the bookshop.
+                                        Karen is going <strong>into</strong> the camera shop. Ivy and Paul are walking <strong>from</strong> the restaurant <strong>to</strong> the camera shop.
+                                    </p>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                                        <h3 className="font-bold text-emerald-900 mb-2">Other movement prepositions</h3>
+                                        <p className="text-emerald-900 text-sm">across, off, through, around / round, past</p>
+                                    </div>
+                                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <p className="text-amber-900 text-sm"><strong>Tip:</strong> Movement prepositions answer the question <strong>"Where to?"</strong></p>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <Button onClick={() => setStep(1)} variant="primary">
+                                        See Examples <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 1: // Model
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <TeacherModel title="Tracking Movement" icon="route">
+                                    <p className="mb-4">Notice how the preposition shows the direction of movement:</p>
+
+                                    <WorkedExample
+                                        sentence="John is getting onto a boat."
+                                        parts={[
+                                            { word: "John", type: "other", label: "Subject" },
+                                            { word: "is getting", type: "other", label: "Verb" },
+                                            { word: "onto", type: "preposition", label: "Preposition" },
+                                            { word: "a boat", type: "object", label: "Destination" }
+                                        ]}
+                                        note="'Onto' = movement to a surface."
+                                    />
+
+                                    <WorkedExample
+                                        sentence="Eric is coming out of the bookshop."
+                                        parts={[
+                                            { word: "Eric", type: "other", label: "Subject" },
+                                            { word: "is coming", type: "other", label: "Verb" },
+                                            { word: "out of", type: "preposition", label: "Preposition" },
+                                            { word: "the bookshop", type: "object", label: "Source" }
+                                        ]}
+                                        note="'Out of' = movement from inside to outside."
+                                    />
+
+                                    <WorkedExample
+                                        sentence="Cathy is walking along the canal."
+                                        parts={[
+                                            { word: "Cathy", type: "other", label: "Subject" },
+                                            { word: "is walking", type: "other", label: "Verb" },
+                                            { word: "along", type: "preposition", label: "Preposition" },
+                                            { word: "the canal", type: "object", label: "Path" }
+                                        ]}
+                                        note="'Along' = movement following the length of something."
+                                    />
+                                </TeacherModel>
+
+                                <div className="flex justify-between">
+                                    <Button onClick={() => setStep(0)} variant="outline">
+                                        <Icon name="arrow-left" size={18} /> Back
+                                    </Button>
+                                    <Button onClick={() => setStep(2)} variant="primary">
+                                        Quick Check <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 2: // Check
+                        return (
+                            <ConceptCheckStep
+                                questions={conceptQuestions}
+                                onComplete={() => setStep(3)}
+                                onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
+                            />
+                        );
+
+                    case 3: // Match
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <div className="text-center mb-4">
+                                    <h3 className="text-xl font-bold text-slate-800">Matching Activity</h3>
+                                    <p className="text-slate-600">Match prepositions with their meanings</p>
+                                </div>
+
+                                <MatchingActivity
+                                    pairs={matchingPairs}
+                                    onComplete={() => setStep(4)}
+                                    onScore={(correct, total) => updateScore('practice', correct, total)}
+                                />
+                            </div>
+                        );
+
+                    case 4: // Quiz
+                        return (
+                            <div className="fade-in">
+                                <QuizInterface
+                                    questions={QUIZ_DATA.m4}
+                                    title="Module 4 Quiz"
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
+                                />
+                            </div>
+                        );
+                }
+            };
+
+            return (
+                <ModuleWrapper
+                    title="Prepositions of Movement"
+                    subtitle="Module 4: Describing movement and direction"
+                    icon="route"
+                    color="bg-gradient-to-r from-orange-500 to-amber-500"
+                    onBack={onBack}
+                >
+                    <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
+                    {renderContent()}
+                </ModuleWrapper>
+            );
+        };
+
+        // --- MODULE 5: COMMON MOVEMENT ERRORS ---
+        const Module5 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
+            const [step, setStep] = useState(initialState?.step || 0);
+            const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
+            const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
+            const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m5);
+
+            React.useEffect(() => {
+                const newMax = Math.max(step, maxStepReached);
+                if (newMax > maxStepReached) setMaxStepReached(newMax);
+                if (onProgress) onProgress(step, newMax);
+            }, [step, maxStepReached, onProgress]);
+
+            React.useEffect(() => {
+                if (onScoreUpdate) onScoreUpdate(scoreMap);
+            }, [scoreMap, onScoreUpdate]);
+
+            const conceptQuestions = [
+                { topic: "Get on/off", question: "We say 'get on' a bus, plane, ship or train.", options: ["True", "False"], correctAnswer: "True", explanation: "Public transport: get on / get off." },
+                { topic: "Get into/out of", question: "We say 'get into' a car or taxi.", options: ["True", "False"], correctAnswer: "True", explanation: "Cars/taxis: get into / get out of." },
+                { topic: "Choose the right one", question: "Which is correct for a taxi?", options: ["Get into the taxi", "Get on the taxi"], correctAnswer: "Get into the taxi", explanation: "We use 'get into' for cars and taxis." }
+            ];
+
+            const errorItems = [
+                { sentence: "We got into the bus.", hasError: true, errorType: "wrong_preposition", explanation: "We say 'get on' a bus, plane, ship or train.", correction: "We got on the bus." },
+                { sentence: "Hurry up and get on the car now.", hasError: true, errorType: "wrong_preposition", explanation: "We say 'get into' a car or taxi.", correction: "Hurry up and get into the car now." },
+                { sentence: "Everyone was excited when they got out of the ship.", hasError: true, errorType: "wrong_preposition", explanation: "We say 'get off' a ship, plane or train.", correction: "Everyone was excited when they got off the ship." },
+                { sentence: "The cat is jumping off the sofa.", hasError: false, errorType: "correct", explanation: "Correct: 'off' shows movement away from a surface." },
+                { sentence: "Andy is walking past the bakery.", hasError: false, errorType: "correct", explanation: "Correct: 'past' means going by a place." }
+            ];
+
+            const finalizeUnit = (quizScore, quizTotal) => {
+                const nextTotals = getScoreTotals({ ...scoreMap, quiz: { correct: quizScore, total: quizTotal } }, MODULE_BASE_TOTALS.m5);
+                updateScore('quiz', quizScore, quizTotal);
+                if (onComplete) onComplete(nextTotals.correct, nextTotals.total);
+            };
+
+            const renderContent = () => {
+                switch (step) {
+                    case 0: // Learn
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <h2 className="text-2xl font-bold text-slate-800">Common Movement Errors</h2>
+                                <p className="text-lg text-slate-600">Be careful with these common mistakes.</p>
+
+                                <div className="bg-red-50 p-4 rounded-xl border border-red-200">
+                                    <h3 className="font-bold text-red-900 mb-2">Error 1: Get on vs Get into</h3>
+                                    <div className="bg-white p-3 rounded-lg text-sm">
+                                        <p className="text-red-600">? We got into the bus.</p>
+                                        <p className="text-green-700">? We got <strong>on</strong> the bus.</p>
+                                    </div>
+                                </div>
+
+                                <div className="bg-red-50 p-4 rounded-xl border border-red-200">
+                                    <h3 className="font-bold text-red-900 mb-2">Error 2: Get off vs Get out of</h3>
+                                    <div className="bg-white p-3 rounded-lg text-sm">
+                                        <p className="text-red-600">? Everyone got out of the ship.</p>
+                                        <p className="text-green-700">? Everyone got <strong>off</strong> the ship.</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <Button onClick={() => setStep(1)} variant="primary">
+                                        See Examples <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 1: // Model
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <TeacherModel title="Choosing the Right Transport Preposition" icon="bus">
+                                    <div className="space-y-4">
+                                        <div className="bg-white p-4 rounded-xl">
+                                            <p className="font-bold text-slate-700 mb-2">Example 1</p>
+                                            <p className="text-slate-600 mb-2">"We got into the bus."</p>
+                                            <p className="text-red-600 mb-2">? Wrong: buses use <strong>on/off</strong>.</p>
+                                            <p className="text-green-700">? Correct: "We got <strong>on</strong> the bus."</p>
+                                        </div>
+
+                                        <div className="bg-white p-4 rounded-xl">
+                                            <p className="font-bold text-slate-700 mb-2">Example 2</p>
+                                            <p className="text-slate-600 mb-2">"Hurry up and get on the car."</p>
+                                            <p className="text-red-600 mb-2">? Wrong: cars use <strong>into/out of</strong>.</p>
+                                            <p className="text-green-700">? Correct: "Hurry up and get <strong>into</strong> the car."</p>
+                                        </div>
+                                    </div>
+                                </TeacherModel>
+
+                                <div className="flex justify-between">
+                                    <Button onClick={() => setStep(0)} variant="outline">
+                                        <Icon name="arrow-left" size={18} /> Back
+                                    </Button>
+                                    <Button onClick={() => setStep(2)} variant="primary">
+                                        Quick Check <Icon name="arrow-right" size={18} />
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+
+                    case 2: // Check
+                        return (
+                            <ConceptCheckStep
+                                questions={conceptQuestions}
+                                onComplete={() => setStep(3)}
+                                onReviewRequest={() => setStep(0)}
+                                onScore={(correct, total) => updateScore('check', correct, total)}
+                            />
+                        );
+
+                    case 3: // Practice
+                        return (
+                            <div className="space-y-6 fade-in">
+                                <div className="text-center mb-4">
+                                    <h3 className="text-xl font-bold text-slate-800">Error Identification</h3>
+                                    <p className="text-slate-600">Find and identify the errors in these sentences</p>
+                                </div>
+
+                                <ErrorCorrectionActivity
+                                    items={errorItems}
+                                    onComplete={(score, total) => {
+                                        updateScore('practice', score, total);
+                                        setStep(4);
+                                    }}
+                                    onScoreUpdate={(correct, total) => updateScore('practice', correct, total)}
+                                />
+                            </div>
+                        );
+
+                    case 4: // Quiz
+                        return (
+                            <div className="fade-in">
+                                <QuizInterface
+                                    questions={QUIZ_DATA.m5}
+                                    title="Module 5 Quiz"
+                                    onComplete={(score, total) => finalizeUnit(score, total)}
+                                    onScoreUpdate={(correct, total) => updateScore('quiz', correct, total)}
+                                />
+                            </div>
+                        );
+                }
+            };
+
+            return (
+                <ModuleWrapper
+                    title="Common Movement Errors"
+                    subtitle="Module 5: Transport and movement mistakes"
+                    icon="alert-triangle"
+                    color="bg-gradient-to-r from-red-500 to-rose-500"
+                    onBack={onBack}
+                >
+                    <StepIndicator steps={steps} current={step} maxReached={maxStepReached} onStepClick={setStep} />
+                    <UnitScoreHUD correct={totals.correct} total={totals.total} />
+                    {renderContent()}
+                </ModuleWrapper>
+            );
+        };
+
+        // --- FINAL CHALLENGE ---
+        const FinalChallenge = ({ onComplete, onBack, onScoreUpdate }) => {
+            // Generate 15 random questions from the pool on mount
+            const questions = useMemo(() => generateTestQuestions(15), []);
+
+            return (
+                <ModuleWrapper
+                    title="Final Challenge"
+                    subtitle="Test your mastery of location and movement prepositions!"
+                    icon="trophy"
+                    color="bg-gradient-to-r from-slate-800 to-slate-900"
+                    onBack={onBack}
+                >
+                    <QuizInterface
+                        questions={questions}
+                        title="Final Challenge"
+                        onComplete={(score, total) => onComplete(score, total)}
+                        onScoreUpdate={(correct, total) => {
+                            if (onScoreUpdate) onScoreUpdate({ quiz: { correct, total } });
+                        }}
+                    />
+                </ModuleWrapper>
+            );
+        };
+
+        // --- MAIN APP ---
+        const App = () => {
+            const [screen, setScreen] = useState('menu');
+            const [scores, setScores] = useState(() => {
+                try {
+                    const stored = localStorage.getItem('s1-prepositions-scores');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        const normalized = { m1: {}, m2: {}, m3: {}, m4: {}, m5: {}, final: {} };
+                        ['m1', 'm2', 'm3', 'm4', 'm5', 'final'].forEach((key) => {
+                            const value = parsed?.[key];
+                            if (value && typeof value.correct === 'number' && typeof value.total === 'number') {
+                                normalized[key] = { overall: { correct: value.correct, total: value.total } };
+                            } else {
+                                normalized[key] = value || {};
+                            }
+                        });
+                        return normalized;
+                    }
+                } catch (err) {
+                    return { m1: {}, m2: {}, m3: {}, m4: {}, m5: {}, final: {} };
+                }
+                return { m1: {}, m2: {}, m3: {}, m4: {}, m5: {}, final: {} };
+            });
+            const [moduleProgress, setModuleProgress] = useState({
+                m1: { step: 0, maxStep: 0 },
+                m2: { step: 0, maxStep: 0 },
+                m3: { step: 0, maxStep: 0 },
+                m4: { step: 0, maxStep: 0 },
+                m5: { step: 0, maxStep: 0 }
+            });
+
+            const handleComplete = (moduleId, correct, total) => {
+                if (moduleId === 'final') {
+                    setScores(prev => ({ ...prev, final: { quiz: { correct, total } } }));
+                }
+                setScreen('menu');
+            };
+
+            const handleProgress = (moduleId, step, maxStep) => {
+                setModuleProgress(prev => ({
+                    ...prev,
+                    [moduleId]: { step, maxStep: Math.max(maxStep, prev[moduleId]?.maxStep || 0) }
+                }));
+            };
+
+            const handleScoreUpdate = (moduleId, scoreMap) => {
+                setScores(prev => ({ ...prev, [moduleId]: scoreMap }));
+            };
+
+            useEffect(() => {
+                try {
+                    localStorage.setItem('s1-prepositions-scores', JSON.stringify(scores));
+                } catch (err) {
+                    // ignore storage failures
+                }
+            }, [scores]);
+
+            const modules = [
+                { id: 'm1', title: "Prepositions of Location", desc: "Where things are: in front of, behind, above, between", icon: "map-pin", color: "from-blue-500 to-indigo-500" },
+                { id: 'm2', title: "At, In & On", desc: "Addresses, areas and surfaces", icon: "compass", color: "from-emerald-500 to-teal-500" },
+                { id: 'm3', title: "Tricky Location Errors", desc: "Opposite vs in front of, in/on the tree, at vs in", icon: "alert-octagon", color: "from-violet-500 to-purple-500" },
+                { id: 'm4', title: "Prepositions of Movement", desc: "Into, onto, across, through, towards and more", icon: "route", color: "from-orange-500 to-amber-500" },
+                { id: 'm5', title: "Movement Errors", desc: "Get on/off vs get into/out of", icon: "alert-triangle", color: "from-red-500 to-rose-500" }
+            ];
+
+            if (screen === 'menu') {
+                return (
+                    <div className="min-h-screen p-4 sm:p-8">
+                        <div className="max-w-4xl mx-auto">
+                            <header className="text-center mb-12 fade-in">
+                                <div className="inline-flex p-6 bg-indigo-100 text-indigo-600 rounded-full mb-6">
+                                    <Icon name="book-open" size={64} />
+                                </div>
+                                <h1 className="text-4xl sm:text-5xl font-black text-slate-900 mb-3">Prepositions of Location & Movement</h1>
+                                <p className="text-xl text-slate-500">Unit 7 • Interactive Grammar Training</p>
+                            </header>
+
+                            <div className="space-y-4 mb-8">
+                                {modules.map((mod, i) => {
+                                    const scoreMap = scores[mod.id] || {};
+                                    const baseTotal = MODULE_BASE_TOTALS[mod.id] || 0;
+                                    const totals = getScoreTotals(scoreMap, baseTotal);
+                                    const percent = getPercent(totals.correct, totals.total);
+                                    const rank = getRankInfo(percent);
+
+                                    return (
+                                        <button
+                                            key={mod.id}
+                                            onClick={() => setScreen(mod.id)}
+                                            className="w-full bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-100 hover:border-indigo-200 hover:shadow-lg transition-all text-left flex items-center gap-4 group fade-in"
+                                            style={{ animationDelay: `${i * 0.1}s` }}
+                                        >
+                                            <div className={`bg-gradient-to-br ${mod.color} text-white p-4 rounded-xl shadow-lg group-hover:scale-110 transition-transform`}>
+                                                <Icon name={mod.icon} size={28} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-bold text-slate-800 text-lg">{i + 1}. {mod.title}</h3>
+                                                <p className="text-slate-500 text-sm truncate">{mod.desc}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className={`px-3 py-1 rounded-full text-sm font-bold ${rank.bg} ${rank.text}`}>
+                                                    Score {percent}% | {rank.label}
+                                                </div>
+                                                <div className="text-xs text-slate-400 mt-1">{totals.correct}/{totals.total} correct</div>
+                                                {moduleProgress[mod.id]?.maxStep > 0 && (
+                                                    <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 mt-2">
+                                                        <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                                        Step {moduleProgress[mod.id].maxStep + 1}/5
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <Icon name="chevron-right" size={24} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <button
+                                onClick={() => setScreen('final')}
+                                className="w-full bg-gradient-to-r from-slate-800 to-slate-900 p-6 rounded-2xl shadow-xl text-white text-left flex items-center gap-4 hover:from-slate-700 hover:to-slate-800 transition-all group fade-in"
+                            >
+                                <div className="bg-yellow-500 text-slate-900 p-4 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
+                                    <Icon name="trophy" size={32} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-black text-xl">Final Challenge</h3>
+                                    <p className="text-slate-400">15 questions from all modules</p>
+                                </div>
+                                {(() => {
+                                    const finalTotals = getScoreTotals(scores['final'] || {}, MODULE_BASE_TOTALS.final);
+                                    const finalPercent = getPercent(finalTotals.correct, finalTotals.total);
+                                    return (
+                                        <div className="bg-yellow-500 text-slate-900 px-4 py-2 rounded-full font-bold">
+                                            {finalTotals.correct}/{finalTotals.total}  {finalPercent}%
+                                        </div>
+                                    );
+                                })()}
+                                <Icon name="arrow-right" size={28} className="text-slate-500 group-hover:text-white transition-colors" />
+                            </button>
+
+                            <footer className="text-center mt-12 text-slate-400">
+                                S.1 English • Unit 7
+                            </footer>
+                        </div>
+                    </div>
+                );
+            }
+
+            const renderModule = () => {
+                switch (screen) {
+                    case 'm1': return <Module1 initialState={moduleProgress.m1} initialScores={scores.m1} onProgress={(s, m) => handleProgress('m1', s, m)} onComplete={(s, t) => handleComplete('m1', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m1', map)} onBack={() => setScreen('menu')} />;
+                    case 'm2': return <Module2 initialState={moduleProgress.m2} initialScores={scores.m2} onProgress={(s, m) => handleProgress('m2', s, m)} onComplete={(s, t) => handleComplete('m2', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m2', map)} onBack={() => setScreen('menu')} />;
+                    case 'm3': return <Module3 initialState={moduleProgress.m3} initialScores={scores.m3} onProgress={(s, m) => handleProgress('m3', s, m)} onComplete={(s, t) => handleComplete('m3', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m3', map)} onBack={() => setScreen('menu')} />;
+                    case 'm4': return <Module4 initialState={moduleProgress.m4} initialScores={scores.m4} onProgress={(s, m) => handleProgress('m4', s, m)} onComplete={(s, t) => handleComplete('m4', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m4', map)} onBack={() => setScreen('menu')} />;
+                    case 'm5': return <Module5 initialState={moduleProgress.m5} initialScores={scores.m5} onProgress={(s, m) => handleProgress('m5', s, m)} onComplete={(s, t) => handleComplete('m5', s, t)} onScoreUpdate={(map) => handleScoreUpdate('m5', map)} onBack={() => setScreen('menu')} />;
+                    case 'final': return <FinalChallenge onComplete={(s, t) => handleComplete('final', s, t)} onScoreUpdate={(map) => handleScoreUpdate('final', map)} onBack={() => setScreen('menu')} />;
+                    default: return null;
+                }
+            };
+
+            return (
+                <div className="min-h-screen py-8">
+                    {renderModule()}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
