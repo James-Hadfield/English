@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S3 Speaking: Keywords & Skills</title>
+
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f4f8;
+      overflow: hidden;
+      /* Prevent scrolling during presentation */
+    }
+
+    .slide-enter {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .btn-primary {
+      @apply bg-blue-600 text-white px-6 py-2 rounded-full hover: bg-blue-700 transition shadow-lg font-bold flex items-center gap-2;
+    }
+
+    .btn-secondary {
+      @apply bg-gray-600 text-white px-6 py-2 rounded-full hover: bg-gray-700 transition shadow-lg font-bold flex items-center gap-2;
+    }
+
+    .card {
+      @apply bg-white rounded-2xl shadow-xl p-8 max-w-5xl mx-auto w-full border border-gray-200;
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .teacher-badge {
+      @apply bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 inline-block border border-yellow-500 shadow-sm;
+    }
+
+    .timer-bar {
+      transition: width 1s linear;
+    }
+
+    .input-line {
+      border-bottom: 2px solid #cbd5e1;
+      outline: none;
+      padding: 4px;
+      width: 100%;
+      background: transparent;
+      font-family: 'Courier New', monospace;
+      color: #1e293b;
+    }
+
+    .input-line:focus {
+      border-color: #3b82f6;
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+
+    const { useState, useEffect, useRef } = React;
+
+// --- Components ---
+
+// Icon Component Wrapper (using Lucide global)
+const Icon = ({ name, size = 24, color = "currentColor", className="" }) => {
+    // This is just a placeholder logic as we rely on lucide.createIcons() in useEffect
+    return <i data-lucide={name} className={className} style={{fontSize: size, color: color}}></i>;
+};
+
+// Timer Component
+const Timer = ({ initialSeconds, onFinish }) => {
+    const [seconds, setSeconds] = useState(initialSeconds);
+    const [isActive, setIsActive] = useState(false);
+    
+    useEffect(() => {
+        let interval = null;
+        if (isActive && seconds > 0) {
+            interval = setInterval(() => {
+                setSeconds(s => s - 1);
+            }, 1000);
+        } else if (seconds === 0) {
+            clearInterval(interval);
+            setIsActive(false);
+            if(onFinish) onFinish();
+        }
+        return () => clearInterval(interval);
+    }, [isActive, seconds]);
+
+    const formatTime = (sec) => {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
+    const progress = (seconds / initialSeconds) * 100;
+
+    return (
+        <div className="w-full max-w-md mx-auto mt-4 p-4 bg-gray-100 rounded-xl border border-gray-300">
+            <div className="flex justify-between items-center mb-2">
+                <span className="text-2xl font-mono font-bold text-gray-800">{formatTime(seconds)}</span>
+                <div className="space-x-2">
+                    <button onClick={() => setIsActive(!isActive)} className={`px-4 py-1 rounded text-white font-bold ${isActive ? 'bg-yellow-500' : 'bg-green-600'}`}>
+                        {isActive ? 'Pause' : 'Start'}
+                    </button>
+                    <button onClick={() => { setIsActive(false); setSeconds(initialSeconds); }} className="px-4 py-1 rounded bg-red-500 text-white font-bold">
+                        Reset
+                    </button>
+                </div>
+            </div>
+            <div className="w-full bg-gray-300 rounded-full h-4 overflow-hidden">
+                <div 
+                    className={`h-full ${seconds < 10 ? 'bg-red-500' : 'bg-blue-500'} timer-bar`} 
+                    style={{ width: `${progress}%` }}
+                ></div>
+            </div>
+        </div>
+    );
+};
+
+// --- Main App Component ---
+
+const App = () => {
+    const [slide, setSlide] = useState(0);
+    const [showTransition, setShowTransition] = useState(false);
+    const totalSlides = 12;
+
+    // Trigger Lucide icons on render
+    useEffect(() => {
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }, [slide, showTransition]);
+
+    const nextSlide = () => {
+        if (slide < totalSlides - 1) {
+            // Check if we need a transition slide
+            const transitionSlides = [2, 5, 8]; // Slides indices after which we show transition
+            if (transitionSlides.includes(slide) && !showTransition) {
+                setShowTransition(true);
+                setTimeout(() => {
+                    setShowTransition(false);
+                    setSlide(s => s + 1);
+                }, 2000);
+            } else {
+                setSlide(s => s + 1);
+            }
+        }
+    };
+
+    const prevSlide = () => {
+        if (slide > 0) setSlide(s => s - 1);
+    };
+
+    // --- Content Rendering ---
+
+    const renderSlide = () => {
+        if (showTransition) {
+            return (
+                <div className="flex flex-col items-center justify-center h-full animate-pulse bg-blue-900 text-white rounded-2xl">
+                    <h1 className="text-5xl font-bold mb-4">Moving On...</h1>
+                    <p className="text-xl">Get ready for the next activity!</p>
+                </div>
+            );
+        }
+
+        switch (slide) {
+            case 0: return <SlideTitle />;
+            case 1: return <SlideWarmer />;
+            case 2: return <SlideConcept />;
+            case 3: return <SlideModelActivity4 />;
+            case 4: return <SlidePracticeActivity4 />;
+            case 5: return <SlideSpeakingPractice1 />;
+            case 6: return <SlidePaper2Intro />;
+            case 7: return <SlidePaper2Model />;
+            case 8: return <SlidePaper2Prep />;
+            case 9: return <SlidePaper2Speak />;
+            case 10: return <SlideHomework />;
+            case 11: return <SlideExtensionGame />;
+            default: return <SlideTitle />;
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="w-full max-w-6xl">
+                
+                {/* Navbar */}
+                <div className="flex justify-between items-center mb-4 px-4">
+                    <div className="text-gray-500 font-semibold">
+                        S3 ESL • Week 4 • Paper 2
+                    </div>
+                    <div className="text-blue-800 font-bold text-lg">
+                        Slide {slide + 1} of {totalSlides}
+                    </div>
+                </div>
+
+                {/* Main Slide Card */}
+                <div className="card slide-enter relative">
+                    {renderSlide()}
+                </div>
+
+                {/* Navigation */}
+                <div className="flex justify-between mt-6 px-4">
+                    <button 
+                        onClick={prevSlide} 
+                        disabled={slide === 0}
+                        className={`btn-secondary ${slide === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        <i data-lucide="arrow-left"></i> Previous
+                    </button>
+                    <button 
+                        onClick={nextSlide} 
+                        disabled={slide === totalSlides - 1}
+                        className={`btn-primary ${slide === totalSlides - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        Next <i data-lucide="arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Individual Slide Components ---
+
+const SlideTitle = () => (
+    <div className="flex flex-col items-center justify-center h-full text-center">
+        <div className="bg-blue-100 p-6 rounded-full mb-6">
+            <i data-lucide="mic" className="w-16 h-16 text-blue-600" style={{width: 64, height: 64}}></i>
+        </div>
+        <h1 className="text-5xl font-extrabold text-gray-800 mb-4 tracking-tight">S.3 Speaking</h1>
+        <h2 className="text-2xl text-blue-600 font-semibold mb-8">The Power of Keywords</h2>
+        <div className="bg-white border-l-4 border-blue-500 p-6 shadow-md text-left max-w-2xl w-full">
+            <h3 className="font-bold text-gray-700 mb-2">Today's Mission:</h3>
+            <ul className="space-y-2 text-gray-600">
+                <li className="flex items-center"><i data-lucide="check-circle" className="w-5 h-5 mr-2 text-green-500"></i> Stop reading like a robot.</li>
+                <li className="flex items-center"><i data-lucide="check-circle" className="w-5 h-5 mr-2 text-green-500"></i> Plan with <b>Keywords Only</b> (Activity 4).</li>
+                <li className="flex items-center"><i data-lucide="check-circle" className="w-5 h-5 mr-2 text-green-500"></i> <b>$10,000 Challenge</b> (Paper 2, p.8).</li>
+            </ul>
+        </div>
+    </div>
+);
+
+const SlideWarmer = () => {
+    return (
+        <div className="flex flex-col h-full">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Warmer: The $500 Speed-Chat</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow items-center">
+                {/* Scenario Side */}
+                <div className="bg-green-50 p-6 rounded-xl border border-green-300 shadow-md">
+                    <div className="flex items-center justify-center mb-4 text-green-700">
+                        <i data-lucide="banknote" className="w-16 h-16 mr-2"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-center text-green-800 mb-4">The Scenario</h3>
+                    <p className="text-xl text-center leading-relaxed text-gray-700">
+                        "You just found <span className="font-bold text-green-600 bg-green-100 px-2 rounded">HK$500</span> in your pocket. You must spend it <span className="underline">right now</span>."
+                    </p>
+                </div>
+
+                {/* Task Side */}
+                <div className="bg-white p-6 rounded-xl border-2 border-blue-200 shadow-xl">
+                    <h3 className="text-xl font-bold text-blue-600 mb-4 border-b pb-2">The Task (Stand Up & Mix!)</h3>
+                    
+                    <div className="space-y-6">
+                        <div className="flex items-start">
+                            <span className="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full mr-3">A</span>
+                            <div>
+                                <p className="font-bold text-gray-700">Say what you will buy.</p>
+                                <p className="text-gray-500 italic">"I'm going to buy a new mouse."</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-start">
+                             <span className="bg-red-100 text-red-800 font-bold px-3 py-1 rounded-full mr-3">B</span>
+                            <div>
+                                <p className="font-bold text-gray-700">Ask a "Wh-" Question (Skeptic).</p>
+                                <p className="text-gray-500 italic">"Why that one?" / "Where from?"</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start">
+                             <span className="bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full mr-3">A</span>
+                            <div>
+                                <p className="font-bold text-gray-700">Give ONE specific detail.</p>
+                                <p className="text-gray-500 italic">"Because the Logitech one is wireless."</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 text-center bg-yellow-50 p-2 rounded border border-yellow-200 text-yellow-800 font-bold">
+                        <i data-lucide="refresh-cw" className="inline w-4 h-4 mr-2"></i>
+                        Swap partners every 45 seconds!
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SlideConcept = () => (
+    <div className="flex flex-col items-center justify-center h-full">
+        <h2 className="text-4xl font-bold text-gray-800 mb-8">Why Keywords?</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+            <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-red-500 text-center transform hover:-translate-y-2 transition duration-300">
+                <i data-lucide="eye-off" className="w-12 h-12 mx-auto text-red-500 mb-4"></i>
+                <h3 className="font-bold text-xl mb-2">Full Sentences</h3>
+                <p className="text-gray-600">"I trap my eyes on the paper. I cannot look at you."</p>
+            </div>
+
+            <div className="flex items-center justify-center">
+                <i data-lucide="arrow-right" className="w-16 h-16 text-gray-300 hidden md:block"></i>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-green-500 text-center transform hover:-translate-y-2 transition duration-300">
+                <i data-lucide="eye" className="w-12 h-12 mx-auto text-green-500 mb-4"></i>
+                <h3 className="font-bold text-xl mb-2">Keywords</h3>
+                <p className="text-gray-600">"I glance down for 1 second, then I speak to YOU."</p>
+            </div>
+        </div>
+        
+        <div className="mt-12 bg-yellow-50 border-l-4 border-yellow-400 p-4 max-w-2xl">
+            <p className="font-semibold text-yellow-800 text-lg">
+                <i data-lucide="lightbulb" className="inline w-6 h-6 mr-2"></i>
+                Rule: If you write a full sentence, you will read a full sentence. Don't do it!
+            </p>
+        </div>
+    </div>
+);
+
+const SlideModelActivity4 = () => {
+    const [mode, setMode] = useState('bad'); // 'bad' or 'good'
+
+    return (
+        <div className="flex flex-col h-full">
+            <div className="flex justify-between items-center border-b pb-4 mb-4">
+                <div>
+                    <span className="teacher-badge">Teacher Model</span>
+                    <h2 className="text-2xl font-bold text-gray-800">Activity 4: Planning (p.6)</h2>
+                </div>
+                <div className="flex space-x-2">
+                    <button 
+                        onClick={() => setMode('bad')}
+                        className={`px-4 py-2 rounded-lg font-bold transition ${mode === 'bad' ? 'bg-red-500 text-white shadow-inner' : 'bg-gray-200 text-gray-500'}`}
+                    >
+                        Bad Planning
+                    </button>
+                    <button 
+                        onClick={() => setMode('good')}
+                        className={`px-4 py-2 rounded-lg font-bold transition ${mode === 'good' ? 'bg-green-600 text-white shadow-inner' : 'bg-gray-200 text-gray-500'}`}
+                    >
+                        Good Planning
+                    </button>
+                </div>
+            </div>
+
+            <div className="flex-grow flex items-center justify-center">
+                <div className={`w-full max-w-2xl p-8 rounded-xl shadow-2xl transition-all duration-500 ${mode === 'bad' ? 'bg-white' : 'bg-yellow-50 rotate-1'}`}>
+                    <h3 className="text-xl font-bold mb-4 text-center underline">Topic: My Dream Holiday (Japan)</h3>
+                    
+                    {mode === 'bad' ? (
+                        <div className="font-serif text-gray-800 space-y-4">
+                            <p>"Good morning everyone. Today I want to tell you about my dream holiday."</p>
+                            <p>"First of all, I want to go to Japan because I love eating sushi and ramen very much."</p>
+                            <p>"Also, I want to visit Tokyo Disneyland because the rides are fun."</p>
+                            <p>"To sum up, Japan is great for food and fun. Thank you."</p>
+                            <div className="mt-6 p-2 bg-red-100 text-red-700 text-center font-bold rounded">
+                                ❌ TOO MANY WORDS!
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="font-mono text-lg text-blue-900 space-y-6">
+                            <div className="border-b border-gray-300 pb-2">
+                                <span className="font-bold text-gray-500 text-sm block">Intro:</span> 
+                                Greeting + Topic
+                            </div>
+                            <div className="border-b border-gray-300 pb-2">
+                                <span className="font-bold text-gray-500 text-sm block">Point 1 (First of all):</span> 
+                                Japan -> Food (Sushi / Ramen)
+                            </div>
+                            <div className="border-b border-gray-300 pb-2">
+                                <span className="font-bold text-gray-500 text-sm block">Point 2 (Also):</span> 
+                                Tokyo Disneyland -> Rides
+                            </div>
+                            <div>
+                                <span className="font-bold text-gray-500 text-sm block">Conclusion (To sum up):</span> 
+                                Food + Fun -> Thank you.
+                            </div>
+                            <div className="mt-6 p-2 bg-green-100 text-green-700 text-center font-bold rounded">
+                                ✅ KEYWORDS ONLY!
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SlidePracticeActivity4 = () => {
+    const [scaffold, setScaffold] = useState(false);
+
+    return (
+        <div className="flex flex-col h-full overflow-y-auto">
+             <div className="flex justify-between items-center border-b pb-2 mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">Your Turn: Activity 4 (p.6)</h2>
+                <button 
+                    onClick={() => setScaffold(!scaffold)}
+                    className="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-bold hover:bg-purple-200"
+                >
+                    {scaffold ? 'Hide Help' : 'Need Help?'}
+                </button>
+            </div>
+
+            <p className="mb-4 text-gray-600">Choose Topic: <b>A person I like</b> OR <b>My dream holiday</b>. Fill in your book (p.6) using KEYWORDS ONLY.</p>
+
+            <div className="bg-white border-2 border-gray-300 p-6 rounded-lg shadow-inner max-w-3xl mx-auto w-full">
+                {/* Intro */}
+                <div className="mb-4">
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold uppercase mr-2">Intro</span>
+                    <span className="text-gray-400 text-sm">Greeting + Topic</span>
+                </div>
+
+                {/* Point 1 */}
+                <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 p-3 rounded">
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Signpost Word</label>
+                        <div className="font-bold text-blue-600">First of all...</div>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded">
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Main Idea {scaffold && <span className="text-purple-500 font-normal">(e.g., Kind / Beautiful)</span>}</label>
+                        <input type="text" className="input-line" placeholder="Write keyword here..." />
+                    </div>
+                    <div className="col-span-1 md:col-span-2 bg-gray-50 p-3 rounded">
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Details {scaffold && <span className="text-purple-500 font-normal">(Who? Why? e.g., helps me study)</span>}</label>
+                        <input type="text" className="input-line" placeholder="Write keywords here..." />
+                    </div>
+                </div>
+
+                {/* Point 2 */}
+                <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="bg-gray-50 p-3 rounded">
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Signpost Word</label>
+                        <div className="font-bold text-blue-600">Another thing is...</div>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded">
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Main Idea</label>
+                        <input type="text" className="input-line" placeholder="Write keyword here..." />
+                    </div>
+                    <div className="col-span-1 md:col-span-2 bg-gray-50 p-3 rounded">
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Details</label>
+                        <input type="text" className="input-line" placeholder="Write keywords here..." />
+                    </div>
+                </div>
+
+                {/* Conclusion */}
+                 <div className="mb-2">
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold uppercase mr-2">Ending</span>
+                    <span className="font-bold text-gray-700">"To sum up..."</span> + <span className="italic text-gray-500">Repeat Point 1 & 2</span> + "Thank you."
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SlideSpeakingPractice1 = () => (
+    <div className="flex flex-col items-center justify-center h-full text-center">
+        <h2 className="text-3xl font-bold text-gray-800 mb-6">Activity 5: 1-Minute Challenge</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mb-8">
+            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left">
+                <h3 className="font-bold text-xl text-blue-600 mb-4 border-b pb-2">Instructions</h3>
+                <ol className="list-decimal list-inside space-y-3 text-gray-700">
+                    <li>Stand up.</li>
+                    <li>Hold your notes (p.6).</li>
+                    <li>Look at your partner, NOT the book.</li>
+                    <li>Use the <b>Ending Formula</b>!</li>
+                </ol>
+            </div>
+            
+            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-left">
+                 <h3 className="font-bold text-xl text-green-600 mb-4 border-b pb-2">Partner Checklist</h3>
+                 <ul className="space-y-3 text-gray-700">
+                    <li className="flex items-center"><input type="checkbox" className="mr-3 w-5 h-5" /> Eye Contact?</li>
+                    <li className="flex items-center"><input type="checkbox" className="mr-3 w-5 h-5" /> Signposts (First, Next)?</li>
+                    <li className="flex items-center"><input type="checkbox" className="mr-3 w-5 h-5" /> Details?</li>
+                    <li className="flex items-center"><input type="checkbox" className="mr-3 w-5 h-5" /> Ending Formula?</li>
+                 </ul>
+            </div>
+        </div>
+
+        <Timer initialSeconds={60} />
+    </div>
+);
+
+const SlidePaper2Intro = () => (
+    <div className="flex flex-col h-full">
+        <h2 className="text-3xl font-bold text-gray-800 mb-4 border-b pb-2">Paper 2: The $10,000 Challenge (p.8)</h2>
+        <div className="flex-grow flex items-center justify-center">
+             <div className="bg-green-50 p-8 rounded-2xl border-2 border-green-200 w-full max-w-3xl relative overflow-hidden shadow-xl">
+                 <div className="absolute top-0 right-0 p-4 opacity-10">
+                     <i data-lucide="dollar-sign" className="w-64 h-64 text-green-800"></i>
+                 </div>
+                 
+                 <h3 className="text-2xl font-bold text-green-800 mb-6 text-center">Topic: If I had HK$10,000...</h3>
+                 
+                 <div className="grid grid-cols-2 gap-6 relative z-10">
+                     <div className="bg-white p-4 rounded-lg shadow flex items-center gap-3">
+                         <div className="bg-blue-100 p-2 rounded-full"><i data-lucide="plane" className="text-blue-600"></i></div>
+                         <span className="font-bold text-gray-700">Travelling</span>
+                     </div>
+                     <div className="bg-white p-4 rounded-lg shadow flex items-center gap-3">
+                         <div className="bg-red-100 p-2 rounded-full"><i data-lucide="heart" className="text-red-600"></i></div>
+                         <span className="font-bold text-gray-700">Helping People</span>
+                     </div>
+                     <div className="bg-white p-4 rounded-lg shadow flex items-center gap-3">
+                         <div className="bg-purple-100 p-2 rounded-full"><i data-lucide="music" className="text-purple-600"></i></div>
+                         <span className="font-bold text-gray-700">Taking a Course</span>
+                     </div>
+                     <div className="bg-white p-4 rounded-lg shadow flex items-center gap-3">
+                         <div className="bg-orange-100 p-2 rounded-full"><i data-lucide="shopping-bag" className="text-orange-600"></i></div>
+                         <span className="font-bold text-gray-700">Enjoying Life</span>
+                     </div>
+                 </div>
+
+                 <div className="mt-8 text-center text-gray-600 font-semibold bg-white/50 p-2 rounded">
+                     Use the mind map on Page 8 to plan your speech.
+                 </div>
+             </div>
+        </div>
+    </div>
+);
+
+const SlidePaper2Model = () => {
+    const [step, setStep] = useState(0);
+    const steps = [
+        { title: "1. Choose 2 Points", content: "I will choose: Travelling & Enjoying Life." },
+        { title: "2. Add 'Wh' Details", content: "Travelling -> Where? (Korea). Why? (K-Pop). \nEnjoying Life -> What? (New Phone). Why? (Games)." },
+        { title: "3. Write Keywords", content: "Point 1: Korea / K-Pop Concert\nPoint 2: iPhone 16 / Play Genshin" }
+    ];
+
+    return (
+        <div className="flex flex-col h-full">
+            <div className="mb-4">
+                 <span className="teacher-badge">Teacher Brainstorming</span>
+                 <h2 className="text-2xl font-bold text-gray-800">How to plan in 3 minutes?</h2>
+            </div>
+            
+            <div className="flex-grow flex flex-col justify-center items-center space-y-6">
+                {steps.map((s, idx) => (
+                    <div 
+                        key={idx}
+                        className={`w-full max-w-2xl bg-white p-6 rounded-xl shadow transition-all duration-500 transform ${idx <= step ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10 hidden'}`}
+                    >
+                        <h3 className="text-lg font-bold text-blue-600 mb-2">{s.title}</h3>
+                        <p className="font-mono text-gray-700 whitespace-pre-line">{s.content}</p>
+                    </div>
+                ))}
+
+                <button 
+                    onClick={() => setStep(s => Math.min(s + 1, 2))}
+                    disabled={step >= 2}
+                    className={`mt-4 btn-primary ${step >= 2 ? 'opacity-0' : ''}`}
+                >
+                    Next Step <i data-lucide="chevron-down"></i>
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const SlidePaper2Prep = () => (
+    <div className="flex flex-col items-center h-full">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Preparation Time</h2>
+        <p className="text-gray-500 mb-8">Page 8 - Write Keywords ONLY.</p>
+        
+        <div className="w-full max-w-4xl bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 flex flex-col items-center justify-center flex-grow shadow-inner">
+             <i data-lucide="pencil" className="w-16 h-16 text-yellow-600 mb-4 animate-bounce"></i>
+             <h3 className="text-2xl font-bold text-yellow-800 mb-6">3 Minutes</h3>
+             <div className="w-full max-w-md">
+                <Timer initialSeconds={180} />
+             </div>
+             <div className="mt-8 text-center text-gray-600">
+                 <b>Goal:</b> Intro + Point 1 (Details) + Point 2 (Details) + Summary
+             </div>
+        </div>
+    </div>
+);
+
+const SlidePaper2Speak = () => (
+    <div className="flex flex-col items-center h-full">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Speaking Time</h2>
+        <p className="text-gray-500 mb-8">Put your pens down. Notes only.</p>
+        
+        <div className="w-full max-w-4xl bg-green-50 border-2 border-green-200 rounded-xl p-6 flex flex-col items-center justify-center flex-grow shadow-inner">
+             <i data-lucide="mic" className="w-16 h-16 text-green-600 mb-4 animate-pulse"></i>
+             <h3 className="text-2xl font-bold text-green-800 mb-6">2 Minutes</h3>
+             <div className="w-full max-w-md">
+                <Timer initialSeconds={120} />
+             </div>
+             
+             <div className="grid grid-cols-3 gap-4 mt-8 w-full max-w-2xl text-center">
+                 <div className="bg-white p-2 rounded shadow text-sm font-bold text-gray-600">1. Eye Contact</div>
+                 <div className="bg-white p-2 rounded shadow text-sm font-bold text-gray-600">2. Signposts</div>
+                 <div className="bg-white p-2 rounded shadow text-sm font-bold text-gray-600">3. Elaboration</div>
+             </div>
+        </div>
+    </div>
+);
+
+const SlideHomework = () => (
+    <div className="flex flex-col h-full">
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Wrap Up</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
+            {/* Homework Card */}
+            <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
+                <h3 className="text-xl font-bold text-blue-800 mb-4 flex items-center">
+                    <i data-lucide="book-open" className="mr-2"></i> Homework
+                </h3>
+                <ul className="list-disc list-inside space-y-3 text-lg text-gray-700">
+                    <li>Complete <b>p.6 & p.8</b> in booklet (if not finished).</li>
+                    <li>Practice the "$10,000" speech in front of a mirror.</li>
+                    <li><b>Next Week:</b> Individual Presentations (Assessed!).</li>
+                </ul>
+            </div>
+
+            {/* Extension Teaser */}
+            <div className="bg-purple-50 p-6 rounded-xl border border-purple-200 flex flex-col items-center justify-center text-center">
+                <h3 className="text-2xl font-bold text-purple-800 mb-4">Finished Early?</h3>
+                <p className="text-gray-600 mb-6">Let's play a review game!</p>
+                <i data-lucide="gamepad-2" className="w-24 h-24 text-purple-400 mb-4"></i>
+                <p className="font-bold text-purple-600">Go to Next Slide for Tic-Tac-Toe</p>
+            </div>
+        </div>
+    </div>
+);
+
+// NEW COMPONENT: Tic-Tac-Toe Review Game
+const SlideExtensionGame = () => {
+    // 9 Challenges based on previous weeks (Signposting, Elaboration, Formulas)
+    const challenges = [
+        { id: 0, q: "Signposting", detail: "Say 3 signpost words." },
+        { id: 1, q: "Elaboration", detail: "Add a 'Why' detail to: 'I like Summer.'" },
+        { id: 2, q: "Formula", detail: "Say the 'To sum up' formula." },
+        { id: 3, q: "Topic", detail: "Give 1 point for: 'Dream School'." },
+        { id: 4, q: "Structure", detail: "What are the 3 parts of a speech?" },
+        { id: 5, q: "Elaboration", detail: "Add a 'Who' detail to: 'I play games.'" },
+        { id: 6, q: "Vocab", detail: "Correct this: 'I am agree with you.'" },
+        { id: 7, q: "Planning", detail: "Why do we use Keywords?" },
+        { id: 8, q: "Wildcard", detail: "Speak for 20s about: 'Lunch'." }
+    ];
+
+    const [board, setBoard] = useState(Array(9).fill(null)); // null, 'X', 'O'
+    const [revealed, setRevealed] = useState(null); // ID of currently revealed question
+
+    const handleCellClick = (idx) => {
+        if (board[idx]) return; // Already taken
+        setRevealed(idx);
+    };
+
+    const markSquare = (team) => {
+        if (revealed === null) return;
+        const newBoard = [...board];
+        newBoard[revealed] = team;
+        setBoard(newBoard);
+        setRevealed(null);
+    };
+
+    const resetGame = () => {
+        setBoard(Array(9).fill(null));
+        setRevealed(null);
+    };
+
+    return (
+        <div className="flex flex-col h-full">
+            <div className="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 className="text-3xl font-bold text-gray-800">Extension: Speaking Tic-Tac-Toe</h2>
+                <button onClick={resetGame} className="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded font-bold text-gray-600">
+                    Reset Game
+                </button>
+            </div>
+
+            <div className="flex-grow flex gap-8">
+                {/* Game Board */}
+                <div className="flex-1 grid grid-cols-3 gap-3 h-full max-h-[500px]">
+                    {challenges.map((item, idx) => (
+                        <div 
+                            key={idx}
+                            onClick={() => handleCellClick(idx)}
+                            className={`
+                                relative rounded-xl shadow-md cursor-pointer flex items-center justify-center border-2 transition-all transform hover:scale-105
+                                ${board[idx] === 'X' ? 'bg-blue-100 border-blue-400' : 
+                                  board[idx] === 'O' ? 'bg-red-100 border-red-400' : 
+                                  'bg-white border-gray-200 hover:bg-gray-50'}
+                            `}
+                        >
+                            {board[idx] ? (
+                                <span className={`text-6xl font-black ${board[idx] === 'X' ? 'text-blue-600' : 'text-red-600'}`}>
+                                    {board[idx]}
+                                </span>
+                            ) : (
+                                <div className="text-center p-2">
+                                    <span className="text-3xl font-bold text-gray-300">#{idx + 1}</span>
+                                    <div className="text-sm font-bold text-gray-500 mt-1 uppercase tracking-wider">{item.q}</div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Challenge Panel */}
+                <div className="w-1/3 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-center">
+                    {revealed !== null ? (
+                        <div className="animate-fade-in w-full">
+                            <h3 className="text-gray-400 font-bold uppercase tracking-widest mb-4">Current Challenge</h3>
+                            <div className="bg-white p-6 rounded-lg shadow-lg border-l-4 border-purple-500 mb-8">
+                                <p className="text-2xl font-bold text-gray-800">{challenges[revealed].detail}</p>
+                            </div>
+                            
+                            <div className="space-y-3">
+                                <p className="text-sm text-gray-500 font-bold">Who answered correctly?</p>
+                                <div className="flex gap-4 justify-center">
+                                    <button onClick={() => markSquare('X')} className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 shadow flex items-center gap-2">
+                                        Team X
+                                    </button>
+                                    <button onClick={() => markSquare('O')} className="bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 shadow flex items-center gap-2">
+                                        Team O
+                                    </button>
+                                </div>
+                                <button onClick={() => setRevealed(null)} className="text-gray-400 text-sm hover:text-gray-600 mt-2 block w-full">
+                                    Cancel / Close
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-gray-400">
+                            <i data-lucide="hand-pointer" className="w-16 h-16 mx-auto mb-2 opacity-50"></i>
+                            <p>Click a number on the grid to reveal a speaking challenge.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Render ---
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+</script>
+
+</body>
+
+</html>
