@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phrasal Verbs Master - Unit 16</title>
+    <title>Prepositions of Location & Movement - Unit 7</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -116,93 +116,82 @@
             return copy;
         };
 
-        // --- PHRASAL VERB DATA ---
-        const PHRASAL_VERBS = {
-            // Verb + Adverb
-            "stay up": { type: "v+adv", meaning: "not go to bed", example: "My brother stayed up all night.", transitive: false },
-            "put away": { type: "v+adv", meaning: "store in the correct place", example: "Could you put away your books?", transitive: true, separable: true },
-            "call off": { type: "v+adv", meaning: "cancel", example: "The meeting was called off.", transitive: true, separable: true },
-            "get up": { type: "v+adv", meaning: "rise from bed", example: "What time did you get up?", transitive: false },
-            "work out": { type: "v+adv", meaning: "exercise", example: "Jack works out every day.", transitive: false },
-            "clean up": { type: "v+adv", meaning: "make tidy", example: "I'll clean the place up tomorrow.", transitive: true, separable: true },
-            "pick up": { type: "v+adv", meaning: "lift/collect", example: "Can you pick up those books?", transitive: true, separable: true },
-            "turn down": { type: "v+adv", meaning: "refuse", example: "Sandy turned down the job offer.", transitive: true, separable: true },
-            "sort out": { type: "v+adv", meaning: "resolve", example: "We need to sort the problem out.", transitive: true, separable: true },
-            "find out": { type: "v+adv", meaning: "discover", example: "You can find out more online.", transitive: true, separable: true },
-            "give up": { type: "v+adv", meaning: "stop doing something", example: "He gave up smoking.", transitive: true, separable: true },
-            "give in": { type: "v+adv", meaning: "finally agree/surrender", example: "She eventually gave in.", transitive: false },
-            "blow up": { type: "v+adv", meaning: "inflate OR become angry", example: "We blew up the balloons.", transitive: "both", separable: true },
-            "break down": { type: "v+adv", meaning: "stop working OR collapse", example: "The car broke down.", transitive: "both", separable: true },
-            "make up": { type: "v+adv", meaning: "invent/create OR reconcile", example: "He made up an excuse.", transitive: true, separable: true },
-            "look up": { type: "v+adv", meaning: "search for information", example: "Look the word up in your dictionary.", transitive: true, separable: true },
-
-            // Verb + Preposition
-            "wait for": { type: "v+prep", meaning: "await", example: "Jeff has been waiting for the bus.", transitive: true, separable: false },
-            "talk into": { type: "v+prep", meaning: "persuade", example: "She was talked into going.", transitive: true, separable: false },
-            "bump into": { type: "v+prep", meaning: "meet by chance", example: "I bumped into Roy today.", transitive: true, separable: false },
-            "look after": { type: "v+prep", meaning: "take care of", example: "Please look after my goldfish.", transitive: true, separable: false },
-            "look into": { type: "v+prep", meaning: "investigate", example: "Police are looking into the case.", transitive: true, separable: false },
-            "look for": { type: "v+prep", meaning: "try to find", example: "I'm looking for Cathy.", transitive: true, separable: false },
-            "pick on": { type: "v+prep", meaning: "treat unfairly", example: "You shouldn't pick on Lisa.", transitive: true, separable: false },
-
-            // Verb + Adverb + Preposition
-            "look forward to": { type: "v+adv+prep", meaning: "anticipate with pleasure", example: "Are you looking forward to the weekend?", transitive: true, separable: false },
-            "get on with": { type: "v+adv+prep", meaning: "have a good relationship", example: "Fiona doesn't get on with her sister.", transitive: true, separable: false },
-            "put up with": { type: "v+adv+prep", meaning: "tolerate", example: "I can't put up with this noise.", transitive: true, separable: false },
-
-            // Special: Must separate
-            "show around": { type: "v+adv", meaning: "give a tour", example: "I'll show my friends around.", transitive: true, separable: "must" },
-            "ask out": { type: "v+adv", meaning: "invite on a date", example: "Tim asked Jenny out.", transitive: true, separable: "must" }
-        };
-
-        const FORMAL_EQUIVALENTS = {
-            "look into": "investigate",
-            "find out": "discover",
-            "turn down": "refuse",
-            "sort out": "resolve",
-            "call off": "cancel",
-            "put off": "postpone",
-            "give up": "quit",
-            "make up": "invent"
+        // --- PREPOSITION REFERENCE ---
+        const PREPOSITION_REFERENCE = {
+            location: [
+                "in front of",
+                "behind",
+                "above",
+                "below / under",
+                "to the left of",
+                "to the right of",
+                "in the middle of",
+                "near",
+                "opposite",
+                "on top of",
+                "inside",
+                "outside",
+                "between",
+                "beside / next to",
+                "around",
+                "in the corner of"
+            ],
+            movement: [
+                "onto",
+                "over",
+                "along",
+                "up",
+                "down",
+                "towards",
+                "out of",
+                "into",
+                "from",
+                "to",
+                "across",
+                "off",
+                "through",
+                "around / round",
+                "past"
+            ]
         };
 
         // --- QUIZ DATA BY MODULE ---
         const QUIZ_DATA = {
             m1: [
-                { id: 101, q: "My brother ___ all night playing games.", a: "stayed up", opts: ["stayed up", "stayed for", "stay upping", "stayed into"], expl: "'Stay up' (verb + adverb) means to not go to bed." },
-                { id: 102, q: "She was ___ going to the party by Simon.", a: "talked into", opts: ["talked into", "talked up", "talked for", "talk into"], expl: "'Talk into' (verb + preposition) means to persuade someone." },
-                { id: 103, q: "Are you ___ the weekend?", a: "looking forward to", opts: ["looking forward to", "looking forward", "looking for to", "look forward to"], expl: "'Look forward to' (verb + adverb + preposition) means to anticipate with pleasure." },
-                { id: 104, q: "Could you ___ your books, please?", a: "put away", opts: ["put away", "put into", "put for", "putting away"], expl: "'Put away' means to store something in its correct place." },
-                { id: 105, q: "The barbecue was ___ because of rain.", a: "called off", opts: ["called off", "called for", "calling off", "called up"], expl: "'Call off' means to cancel something." }
+                { id: 101, q: "The apple is ___ the plate.", a: "in front of", opts: ["in front of", "behind", "between", "opposite"], expl: "Use 'in front of' for something directly before another object." },
+                { id: 102, q: "The lights are ___ the table.", a: "above", opts: ["above", "below", "inside", "near"], expl: "'Above' means at a higher level." },
+                { id: 103, q: "The shoes are ___ the table.", a: "under", opts: ["under", "between", "beside", "opposite"], expl: "'Under' or 'below' means lower than and covered by something." },
+                { id: 104, q: "The pear is ___ the knife and the apple.", a: "between", opts: ["between", "beside", "behind", "opposite"], expl: "'Between' is used for something in the middle of two things." },
+                { id: 105, q: "Is there anybody ___ the room?", a: "outside", opts: ["outside", "inside", "around", "near"], expl: "'Outside' means not inside." }
             ],
             m2: [
-                { id: 201, q: "What time did you ___ this morning?", a: "get up", opts: ["get up", "get up it", "get it up", "getting up"], expl: "'Get up' is intransitive - it doesn't need an object." },
-                { id: 202, q: "I ___ Roy at the Cultural Centre today.", a: "bumped into", opts: ["bumped into", "bumped", "bump into", "bumped up"], expl: "'Bump into' is transitive - it needs an object (Roy)." },
-                { id: 203, q: "Our car ___ yesterday.", a: "broke down", opts: ["broke down", "broke down it", "broke it down", "was broke down"], expl: "'Break down' (stop working) is intransitive - no object needed." },
-                { id: 204, q: "Mr Ting ___ when he saw the mess.", a: "blew up", opts: ["blew up", "blew up it", "blew it up", "blown up"], expl: "'Blow up' (become angry) is intransitive - no object." },
-                { id: 205, q: "We found balloons so we ___ for the party.", a: "blew them up", opts: ["blew them up", "blew up them", "blown them up", "blew up"], expl: "'Blow up' (inflate) is transitive and needs an object." }
+                { id: 201, q: "Let's meet ___ the Star Ferry Pier.", a: "at", opts: ["at", "in", "on", "to"], expl: "We use 'at' for specific places or meeting points." },
+                { id: 202, q: "My aunt is working ___ Japan at the moment.", a: "in", opts: ["in", "at", "on", "to"], expl: "We use 'in' with countries and cities." },
+                { id: 203, q: "The plates are ___ the table.", a: "on", opts: ["on", "in", "at", "between"], expl: "We use 'on' for surfaces." },
+                { id: 204, q: "I live ___ 23 Henderson Road.", a: "at", opts: ["at", "in", "on", "to"], expl: "We use 'at' for exact addresses." },
+                { id: 205, q: "I live ___ the sixth floor.", a: "on", opts: ["on", "in", "at", "to"], expl: "We use 'on' with floors of buildings." }
             ],
             m3: [
-                { id: 301, q: "Can you pick ___ please?", a: "them up", opts: ["them up", "up them", "they up", "them"], expl: "With pronouns, separable phrasal verbs MUST be split: pick + pronoun + up." },
-                { id: 302, q: "Can you pick ___ please?", a: "up those books / those books up", opts: ["up those books / those books up", "only 'up those books'", "only 'those books up'", "those books"], expl: "With noun objects, either order works: pick up the books OR pick the books up." },
-                { id: 303, q: "Please look ___ while I'm on holiday.", a: "after my goldfish", opts: ["after my goldfish", "my goldfish after", "after it", "it after"], expl: "'Look after' is inseparable - the object must come after the whole phrasal verb." },
-                { id: 304, q: "I can't put ___.", a: "up with it", opts: ["up with it", "it up with", "up it with", "with it up"], expl: "Three-part phrasal verbs (verb + adverb + preposition) are NEVER separated." },
-                { id: 305, q: "I'm going to show ___ my new house.", a: "my friends around", opts: ["my friends around", "around my friends", "them around", "around them"], expl: "'Show around' MUST be separated - the object goes between show and around." },
-                { id: 306, q: "Tim is too shy to ask ___ to dinner.", a: "Jenny out", opts: ["Jenny out", "out Jenny", "her out", "out her"], expl: "'Ask out' MUST be separated - the object goes between ask and out." }
+                { id: 301, q: "The clinic is ___ the bank.", a: "opposite", opts: ["opposite", "opposite to", "in front of", "beside"], expl: "'Opposite' is a preposition. Do not add 'to'." },
+                { id: 302, q: "Her opinion is ___ mine.", a: "opposite to", opts: ["opposite to", "opposite", "in front of", "behind"], expl: "'Opposite to' is an adjective meaning 'completely different from'." },
+                { id: 303, q: "The bus stop is ___ the school. (Directly outside the entrance)", a: "in front of", opts: ["in front of", "opposite", "behind", "beside"], expl: "'In front of' means directly outside the entrance." },
+                { id: 304, q: "The bus stop is ___ the school. (Facing across a street)", a: "opposite", opts: ["opposite", "in front of", "behind", "next to"], expl: "'Opposite' means facing each other across a street." },
+                { id: 305, q: "There is a bird ___ the tree.", a: "in", opts: ["in", "on", "under", "behind"], expl: "Birds are usually 'in' the tree (among the branches)." },
+                { id: 306, q: "I'm ___ the cinema. I'll call you later.", a: "at", opts: ["at", "in", "on", "to"], expl: "Use 'at' when focusing on the activity (watching a film)." }
             ],
             m4: [
-                { id: 401, q: "The police are ___ the murder case. (formal: investigating)", a: "looking into", opts: ["looking into", "looking for", "looking up", "looking after"], expl: "'Look into' is the informal equivalent of 'investigate'." },
-                { id: 402, q: "Sandy ___ the job offer. (formal: refused)", a: "turned down", opts: ["turned down", "turned off", "turned up", "turned into"], expl: "'Turn down' is the informal equivalent of 'refuse'." },
-                { id: 403, q: "We need to ___ the problem. (formal: resolve)", a: "sort out", opts: ["sort out", "sort up", "sort into", "sort for"], expl: "'Sort out' is the informal equivalent of 'resolve'." },
-                { id: 404, q: "You can ___ more by visiting our website. (formal: discover)", a: "find out", opts: ["find out", "find up", "find into", "find for"], expl: "'Find out' is the informal equivalent of 'discover'." }
+                { id: 401, q: "Look! John is getting ___ a boat.", a: "onto", opts: ["onto", "into", "over", "under"], expl: "'Onto' shows movement to a surface." },
+                { id: 402, q: "Eric is coming ___ the bookshop.", a: "out of", opts: ["out of", "into", "over", "past"], expl: "'Out of' shows movement from inside to outside." },
+                { id: 403, q: "Cathy is walking ___ the canal.", a: "along", opts: ["along", "across", "through", "towards"], expl: "'Along' means following the side or length of something." },
+                { id: 404, q: "Sarah is walking ___ the clothes shop.", a: "towards", opts: ["towards", "from", "past", "behind"], expl: "'Towards' means in the direction of." }
             ],
             m5: [
-                { id: 501, q: "I'm really looking forward ___ our vacation.", a: "to", opts: ["to", "our vacation to", "for", ""], expl: "Three-part phrasal verbs cannot be separated. 'Looking forward to' stays together." },
-                { id: 502, q: "Sarah eventually ___ and bought her son a bicycle.", a: "gave in", opts: ["gave in", "gave up", "give in", "given in"], expl: "'Give in' means to finally agree. 'Give up' means to stop doing something." },
-                { id: 503, q: "Lawrence ___ drinking because of health problems.", a: "gave up", opts: ["gave up", "gave in", "give up", "given up"], expl: "'Give up' means to stop doing something permanently." },
-                { id: 504, q: "I'm ___ Cathy. Have you seen her?", a: "looking for", opts: ["looking for", "looking up", "looking into", "looking after"], expl: "'Look for' means to try to find someone/something." },
-                { id: 505, q: "___ the word in your dictionary.", a: "Look up", opts: ["Look up", "Look for", "Look into", "Look after"], expl: "'Look up' means to search for information in a reference source." },
-                { id: 506, q: "Which sentence is CORRECT?", a: "I'm going to show my friends around.", opts: ["I'm going to show my friends around.", "I'm going to show around my friends.", "I'm going to show around them.", "I show my friends around going to."], expl: "'Show around' must be separated - object goes between show and around." }
+                { id: 501, q: "We ___ the bus at 7:30.", a: "got on", opts: ["got on", "got into", "got off", "got out of"], expl: "We say 'get on' a bus, plane, ship or train." },
+                { id: 502, q: "Please get ___ the taxi.", a: "into", opts: ["into", "on", "off", "out of"], expl: "We say 'get into' a car or taxi." },
+                { id: 503, q: "Everyone was excited when they got ___ the ship.", a: "off", opts: ["off", "out of", "into", "onto"], expl: "We say 'get off' a ship, train or plane." },
+                { id: 504, q: "Hurry up and get ___ the car now.", a: "into", opts: ["into", "on", "off", "out of"], expl: "We say 'get into' a car." },
+                { id: 505, q: "She got ___ the train and found a seat.", a: "on", opts: ["on", "into", "off", "out of"], expl: "We say 'get on' a train." },
+                { id: 506, q: "He got ___ the car and closed the door.", a: "out of", opts: ["out of", "off", "into", "onto"], expl: "We say 'get out of' a car or taxi." }
             ]
         };
 
@@ -215,64 +204,48 @@
             final: 15
         };
 
-        // --- COMPREHENSIVE PHRASAL VERB TEST POOL ---
-        // Each phrasal verb with a distinct meaning is a separate entry
-        const PHRASAL_VERB_POOL = [
-            // Module 1: Types of Phrasal Verbs
-            { pv: "stay up", meaning: "remain awake", type: "v+adv", q: "My brother ___ all night playing games.", a: "stayed up", opts: ["stayed up", "stayed for", "stay upping", "stayed into"], expl: "'Stay up' (verb + adverb) means to not go to bed." },
-            { pv: "put away", meaning: "store/tidy", type: "v+adv", q: "Could you ___ your books, please?", a: "put away", opts: ["put away", "put into", "put for", "putting away"], expl: "'Put away' means to store something in its correct place." },
-            { pv: "call off", meaning: "cancel", type: "v+adv", q: "The barbecue was ___ because of rain.", a: "called off", opts: ["called off", "called for", "calling off", "called up"], expl: "'Call off' means to cancel something." },
-            { pv: "look over", meaning: "review/examine", type: "v+adv", q: "I need to ___ this pile of documents today.", a: "look over", opts: ["look over", "look up", "look into", "look for"], expl: "'Look over' means to examine or review something." },
-            { pv: "put off", meaning: "postpone", type: "v+adv", q: "Can we ask our boss to ___ the meeting until tomorrow?", a: "put off", opts: ["put off", "put away", "put up", "put down"], expl: "'Put off' means to postpone or delay something." },
-            { pv: "talk into", meaning: "persuade", type: "v+prep", q: "She was ___ going to the party by Simon.", a: "talked into", opts: ["talked into", "talked up", "talked for", "talk into"], expl: "'Talk into' means to persuade someone to do something." },
-            { pv: "wait for", meaning: "await", type: "v+prep", q: "Jeff has been ___ the bus for over an hour.", a: "waiting for", opts: ["waiting for", "waiting up", "wait for", "waited into"], expl: "'Wait for' means to stay until someone/something arrives." },
-            { pv: "look forward to", meaning: "anticipate with pleasure", type: "v+adv+prep", q: "Are you ___ the weekend?", a: "looking forward to", opts: ["looking forward to", "looking forward", "looking for to", "look forward to"], expl: "'Look forward to' is a 3-part phrasal verb meaning to anticipate with pleasure." },
-            { pv: "get on with", meaning: "have good relationship", type: "v+adv+prep", q: "Fiona doesn't ___ her sister.", a: "get on with", opts: ["get on with", "get up with", "get into", "get for"], expl: "'Get on with' means to have a good relationship with someone." },
-
-            // Module 2: Transitive vs Intransitive
-            { pv: "get up", meaning: "wake and rise", type: "v+adv", trans: "intrans", q: "What time did you ___ this morning?", a: "get up", opts: ["get up", "get up it", "get it up", "getting up"], expl: "'Get up' is intransitive - it doesn't need an object." },
-            { pv: "work out", meaning: "exercise", type: "v+adv", trans: "intrans", q: "Jack ___ every day at the gym.", a: "works out", opts: ["works out", "works out it", "works it out", "work out"], expl: "'Work out' (exercise) is intransitive - no object needed." },
-            { pv: "bump into", meaning: "meet by chance", type: "v+prep", trans: "trans", q: "I ___ Roy at the Cultural Centre today.", a: "bumped into", opts: ["bumped into", "bumped", "bump into", "bumped up"], expl: "'Bump into' is transitive - it needs an object (the person you met)." },
-            { pv: "clean up", meaning: "tidy", type: "v+adv", trans: "trans", q: "I'll ___ the place tomorrow.", a: "clean up", opts: ["clean up", "clean into", "clean for", "cleaning up"], expl: "'Clean up' means to tidy or make clean." },
-            { pv: "blow up (inflate)", meaning: "fill with air", type: "v+adv", trans: "trans", q: "We found balloons so we ___ for the party.", a: "blew them up", opts: ["blew them up", "blew up them", "blown them up", "blew up"], expl: "'Blow up' (inflate) is transitive and needs an object." },
-            { pv: "blow up (angry)", meaning: "become very angry", type: "v+adv", trans: "intrans", q: "Mr Ting ___ when he saw the messy classroom.", a: "blew up", opts: ["blew up", "blew up it", "blew it up", "blown up"], expl: "'Blow up' (become angry) is intransitive - no object." },
-            { pv: "break down (destroy)", meaning: "knock to ground", type: "v+adv", trans: "trans", q: "The police ___ the door.", a: "broke down", opts: ["broke down", "break down", "broke it down", "broken down"], expl: "'Break down' (destroy) is transitive - needs an object." },
-            { pv: "break down (stop working)", meaning: "stop functioning", type: "v+adv", trans: "intrans", q: "Our car ___ yesterday.", a: "broke down", opts: ["broke down", "broke down it", "broke it down", "was broke down"], expl: "'Break down' (stop working) is intransitive - no object needed." },
-
-            // Module 3: Separable vs Inseparable
-            { pv: "pick up", meaning: "collect/lift", type: "v+adv", sep: true, q: "Can you pick ___ please? (those books)", a: "up those books / those books up", opts: ["up those books / those books up", "only 'up those books'", "only 'those books up'", "those books"], expl: "With noun objects, either order works for separable verbs." },
-            { pv: "pick up (pronoun)", meaning: "collect/lift", type: "v+adv", sep: "must", q: "Can you pick ___ please? (them)", a: "them up", opts: ["them up", "up them", "they up", "them"], expl: "With pronouns, separable phrasal verbs MUST be split: pick + pronoun + up." },
-            { pv: "look after", meaning: "take care of", type: "v+prep", sep: false, q: "Please look ___ while I'm on holiday.", a: "after my goldfish", opts: ["after my goldfish", "my goldfish after", "after it", "it after"], expl: "'Look after' is inseparable - object must come after the whole verb." },
-            { pv: "put up with", meaning: "tolerate", type: "v+adv+prep", sep: false, q: "I can't put ___.", a: "up with it", opts: ["up with it", "it up with", "up it with", "with it up"], expl: "Three-part phrasal verbs are NEVER separated." },
-            { pv: "show around", meaning: "give a tour", type: "v+adv", sep: "must", q: "I'm going to show ___ my new house.", a: "my friends around", opts: ["my friends around", "around my friends", "them around", "around them"], expl: "'Show around' MUST be separated - object goes between." },
-            { pv: "ask out", meaning: "invite on date", type: "v+adv", sep: "must", q: "Tim is too shy to ask ___ to dinner.", a: "Jenny out", opts: ["Jenny out", "out Jenny", "her out", "out her"], expl: "'Ask out' MUST be separated - object goes between." },
-
-            // Module 4: Formal vs Informal
-            { pv: "look into", meaning: "investigate", type: "v+prep", formal: "investigate", q: "The police are ___ the murder case. (formal: investigating)", a: "looking into", opts: ["looking into", "looking for", "looking up", "looking after"], expl: "'Look into' is the informal equivalent of 'investigate'." },
-            { pv: "find out", meaning: "discover", type: "v+adv", formal: "discover", q: "You can ___ more by visiting our website. (formal: discover)", a: "find out", opts: ["find out", "find up", "find into", "find for"], expl: "'Find out' is the informal equivalent of 'discover'." },
-            { pv: "turn down", meaning: "refuse", type: "v+adv", formal: "refuse", q: "Sandy ___ the job offer. (formal: refused)", a: "turned down", opts: ["turned down", "turned off", "turned up", "turned into"], expl: "'Turn down' is the informal equivalent of 'refuse'." },
-            { pv: "sort out", meaning: "resolve", type: "v+adv", formal: "resolve", q: "We need to ___ the problem. (formal: resolve)", a: "sort out", opts: ["sort out", "sort up", "sort into", "sort for"], expl: "'Sort out' is the informal equivalent of 'resolve'." },
-
-            // Module 5: Common Errors
-            { pv: "give in", meaning: "finally agree", type: "v+adv", q: "Sarah eventually ___ and bought her son a bicycle.", a: "gave in", opts: ["gave in", "gave up", "give in", "given in"], expl: "'Give in' means to finally agree. Don't confuse with 'give up'!" },
-            { pv: "give up", meaning: "stop doing", type: "v+adv", q: "Lawrence ___ drinking because of health problems.", a: "gave up", opts: ["gave up", "gave in", "give up", "given up"], expl: "'Give up' means to stop doing something permanently." },
-            { pv: "look for", meaning: "try to find", type: "v+prep", q: "I'm ___ Cathy. Have you seen her?", a: "looking for", opts: ["looking for", "looking up", "looking into", "looking after"], expl: "'Look for' means to try to find someone/something that is lost." },
-            { pv: "look up", meaning: "search for info", type: "v+adv", q: "___ the word in your dictionary.", a: "Look up", opts: ["Look up", "Look for", "Look into", "Look after"], expl: "'Look up' means to search for information in a reference source." },
-            { pv: "pick on", meaning: "treat unfairly", type: "v+prep", q: "You shouldn't ___ Lisa.", a: "pick on", opts: ["pick on", "pick up", "pick out", "pick into"], expl: "'Pick on' means to treat someone unfairly or bully them." },
-            { pv: "make up (prepare)", meaning: "prepare/put together", type: "v+adv", q: "Can you ___ a list of all the things we need?", a: "make up", opts: ["make up", "make out", "make into", "make for"], expl: "'Make up' can mean to prepare something by putting things together." },
-            { pv: "make up (pretend)", meaning: "invent/deceive", type: "v+adv", q: "I think Stephen is just ___ the whole story.", a: "making up", opts: ["making up", "making out", "making into", "making for"], expl: "'Make up' can also mean to invent or pretend something is true." }
+        // --- COMPREHENSIVE PREPOSITION TEST POOL ---
+        // Each question targets a specific preposition rule or meaning
+        const PREPOSITION_POOL = [
+            { focus: "location", q: "The apple is ___ the plate.", a: "in front of", opts: ["in front of", "behind", "between", "opposite"], expl: "'In front of' shows position before something." },
+            { focus: "location", q: "The lights are ___ the table.", a: "above", opts: ["above", "below", "inside", "near"], expl: "'Above' means higher than." },
+            { focus: "location", q: "The cup is ___ the plate.", a: "to the left of", opts: ["to the left of", "between", "behind", "inside"], expl: "'To the left of' shows position on the left side." },
+            { focus: "location", q: "The book is ___ the flowers.", a: "behind", opts: ["behind", "in front of", "between", "opposite"], expl: "'Behind' means at the back." },
+            { focus: "location", q: "The shoes are ___ the table.", a: "under", opts: ["under", "between", "above", "opposite"], expl: "'Under' means lower than and covered by." },
+            { focus: "location", q: "The pear is ___ the knife and the apple.", a: "between", opts: ["between", "beside", "behind", "opposite"], expl: "'Between' is used for two things." },
+            { focus: "location", q: "The cap is ___ the book.", a: "beside", opts: ["beside", "between", "above", "inside"], expl: "'Beside' means next to." },
+            { focus: "location", q: "There is a ribbon ___ the table.", a: "around", opts: ["around", "through", "under", "between"], expl: "'Around' shows a surrounding position." },
+            { focus: "location", q: "The bag is ___ the corner of the room.", a: "in", opts: ["in", "on", "at", "to"], expl: "We say 'in the corner of the room'." },
+            { focus: "location", q: "Is there anybody ___ the room?", a: "outside", opts: ["outside", "inside", "around", "near"], expl: "'Outside' means not inside." },
+            { focus: "at-in-on", q: "Let's meet ___ the Star Ferry Pier.", a: "at", opts: ["at", "in", "on", "to"], expl: "Use 'at' for specific places." },
+            { focus: "at-in-on", q: "My aunt is working ___ Japan at the moment.", a: "in", opts: ["in", "at", "on", "to"], expl: "Use 'in' with countries." },
+            { focus: "at-in-on", q: "The plates are ___ the table.", a: "on", opts: ["on", "in", "at", "under"], expl: "Use 'on' for surfaces." },
+            { focus: "at-in-on", q: "I live ___ 23 Henderson Road.", a: "at", opts: ["at", "in", "on", "to"], expl: "Use 'at' for addresses." },
+            { focus: "at-in-on", q: "I live ___ the sixth floor.", a: "on", opts: ["on", "in", "at", "to"], expl: "Use 'on' with floors." },
+            { focus: "errors", q: "There is a bird ___ the tree.", a: "in", opts: ["in", "on", "under", "behind"], expl: "Birds are usually 'in' the tree." },
+            { focus: "errors", q: "There are some apples ___ the tree.", a: "on", opts: ["on", "in", "under", "behind"], expl: "Apples grow 'on' the tree." },
+            { focus: "movement", q: "Look! John is getting ___ a boat.", a: "onto", opts: ["onto", "into", "over", "under"], expl: "'Onto' shows movement to a surface." },
+            { focus: "movement", q: "The train is going ___ the tunnel.", a: "through", opts: ["through", "across", "over", "past"], expl: "'Through' means from one end to the other inside." },
+            { focus: "movement", q: "Ted is walking ___ the grass.", a: "across", opts: ["across", "along", "through", "towards"], expl: "'Across' means from one side to the other." },
+            { focus: "movement", q: "Karen is going ___ the camera shop.", a: "into", opts: ["into", "onto", "over", "past"], expl: "'Into' shows movement to the inside." },
+            { focus: "movement", q: "Sarah is walking ___ the clothes shop.", a: "towards", opts: ["towards", "from", "past", "behind"], expl: "'Towards' means in the direction of." },
+            { focus: "movement", q: "Andy is walking ___ the bakery.", a: "past", opts: ["past", "through", "over", "behind"], expl: "'Past' means going by a place." },
+            { focus: "movement", q: "Jojo is running ___ a tree.", a: "around", opts: ["around", "through", "across", "into"], expl: "'Around' shows movement encircling something." },
+            { focus: "movement", q: "We ___ the bus.", a: "got on", opts: ["got on", "got into", "got off", "got out of"], expl: "We say 'get on' a bus, plane or train." },
+            { focus: "movement", q: "Hurry up and get ___ the car.", a: "into", opts: ["into", "on", "off", "out of"], expl: "We say 'get into' a car or taxi." },
+            { focus: "movement", q: "Everyone was excited when they got ___ the ship.", a: "off", opts: ["off", "out of", "into", "onto"], expl: "We say 'get off' a ship." }
         ];
 
         // Generate random test questions from the pool
         const generateTestQuestions = (count = 15) => {
-            const shuffled = [...PHRASAL_VERB_POOL].sort(() => Math.random() - 0.5);
+            const shuffled = [...PREPOSITION_POOL].sort(() => Math.random() - 0.5);
             return shuffled.slice(0, count).map((item, index) => ({
                 id: 1000 + index,
                 q: item.q,
                 a: item.a,
                 opts: [...item.opts].sort(() => Math.random() - 0.5), // Randomize options too
                 expl: item.expl,
-                pv: item.pv
+                focus: item.focus
             }));
         };
 
@@ -972,14 +945,14 @@
 
             return (
                 <div className="space-y-6">
-                    <p className="text-slate-600 text-center">Match the phrasal verbs (left) with their formal equivalents (right)</p>
+                    <p className="text-slate-600 text-center">Match the prepositions (left) with their meanings (right)</p>
                     <div className="flex justify-center text-sm font-medium text-indigo-600">
                         Matched: {matched.length}/{pairs.length}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
                         <div className="space-y-2">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Phrasal Verbs (Informal)</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Prepositions</p>
                             {leftItems.map(item => {
                                 const isMatched = matched.includes(item);
                                 const isSelected = selected.left === item;
@@ -1001,7 +974,7 @@
                             })}
                         </div>
                         <div className="space-y-2">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Single Verbs (Formal)</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Meanings</p>
                             {rightItems.map(item => {
                                 const matchedPair = pairs.find(p => p.formal === item);
                                 const isMatched = matched.includes(matchedPair?.phrasal);
@@ -1424,7 +1397,7 @@
             </div>
         );
 
-        // --- MODULE 1: TYPES OF PHRASAL VERBS ---
+        // --- MODULE 1: PREPOSITIONS OF LOCATION ---
         const Module1 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
@@ -1443,29 +1416,29 @@
             }, [scoreMap, onScoreUpdate]);
 
             const conceptQuestions = [
-                { topic: "Adverbs", question: "What is an adverb?", options: ["A word that describes a verb", "A word that names a thing", "A word that joins sentences", "A word that shows time"], correctAnswer: "A word that describes a verb", explanation: "Adverbs describe HOW something happens. In phrasal verbs, words like 'up', 'down', 'away' are adverbs." },
-                { topic: "Prepositions", question: "What is a preposition?", options: ["A word that links to a noun or pronoun", "A word that shows action", "A word that describes feelings", "A word that replaces names"], correctAnswer: "A word that links to a noun or pronoun", explanation: "Prepositions connect to objects. Words like 'for', 'into', 'with' are prepositions." },
-                { topic: "Phrasal verb types", question: "'Stay up' has a verb + adverb. What about 'wait for'?", options: ["Verb + preposition", "Verb + adverb", "Verb + adverb + preposition", "Just a verb"], correctAnswer: "Verb + preposition", explanation: "'For' is a preposition that connects to an object (the bus, a friend, etc.)." },
-                { topic: "Three-part phrasal verbs", question: "'Look forward to' has how many parts?", options: ["Three: verb + adverb + preposition", "Two: verb + adverb", "Two: verb + preposition", "One: just the verb"], correctAnswer: "Three: verb + adverb + preposition", explanation: "Look (verb) + forward (adverb) + to (preposition) = three parts." },
-                { topic: "Unpredictable meanings", question: "Why must you memorize phrasal verbs?", options: ["The meaning often can't be guessed from the words", "They are always formal", "They have no grammar rules", "They only appear in writing"], correctAnswer: "The meaning often can't be guessed from the words", explanation: "'Call off' means 'cancel' - you can't guess this from 'call' + 'off'!" }
+                { topic: "Meaning", question: "Which preposition means 'higher than'?", options: ["above", "below", "between", "near"], correctAnswer: "above", explanation: "'Above' means at a higher level than something else." },
+                { topic: "Opposite", question: "If two buildings face each other across a street, they are...", options: ["opposite", "in front of", "beside", "around"], correctAnswer: "opposite", explanation: "'Opposite' means facing each other across a space." },
+                { topic: "Between", question: "We use 'between' for...", options: ["two things", "many things", "inside", "on top"], correctAnswer: "two things", explanation: "'Between' is typically used for two items." },
+                { topic: "Inside/Outside", question: "Which preposition means 'not inside'?", options: ["outside", "inside", "around", "near"], correctAnswer: "outside", explanation: "'Outside' means not inside." },
+                { topic: "Near", question: "Which preposition means 'close to'?", options: ["near", "behind", "above", "between"], correctAnswer: "near", explanation: "'Near' means close to something." }
             ];
 
             const sortingItems = [
-                { word: "stay up", category: "v+adv" },
-                { word: "put away", category: "v+adv" },
-                { word: "call off", category: "v+adv" },
-                { word: "wait for", category: "v+prep" },
-                { word: "bump into", category: "v+prep" },
-                { word: "look after", category: "v+prep" },
-                { word: "look forward to", category: "v+adv+prep" },
-                { word: "get on with", category: "v+adv+prep" },
-                { word: "put up with", category: "v+adv+prep" }
+                { word: "in front of", category: "front_back" },
+                { word: "behind", category: "front_back" },
+                { word: "opposite", category: "front_back" },
+                { word: "above", category: "vertical" },
+                { word: "under", category: "vertical" },
+                { word: "on top of", category: "vertical" },
+                { word: "inside", category: "inside_out" },
+                { word: "outside", category: "inside_out" },
+                { word: "near", category: "inside_out" }
             ];
 
             const sortingCategories = [
-                { id: "v+adv", name: "Verb + Adverb", icon: "zap", color: "bg-blue-50 border-blue-200 text-blue-800" },
-                { id: "v+prep", name: "Verb + Preposition", icon: "link", color: "bg-green-50 border-green-200 text-green-800" },
-                { id: "v+adv+prep", name: "Verb + Adv + Prep", icon: "layers", color: "bg-purple-50 border-purple-200 text-purple-800" }
+                { id: "front_back", name: "Facing / Behind", icon: "arrow-left-right", color: "bg-blue-50 border-blue-200" },
+                { id: "vertical", name: "Above / Below", icon: "arrow-up-down", color: "bg-emerald-50 border-emerald-200" },
+                { id: "inside_out", name: "Inside / Outside", icon: "box", color: "bg-amber-50 border-amber-200" }
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
@@ -1476,59 +1449,57 @@
 
             const renderContent = () => {
                 switch (step) {
-                    case 0: // Learn - clean, no concept checks
+                    case 0: // Learn
                         return (
                             <div className="space-y-6 fade-in">
-                                <h2 className="text-2xl font-bold text-slate-800">What are Phrasal Verbs?</h2>
+                                <h2 className="text-2xl font-bold text-slate-800">Prepositions of Location</h2>
                                 <p className="text-lg text-slate-600">
-                                    Phrasal verbs are verbs made up of <strong>two or more words</strong>. They are very common in everyday English!
+                                    We use prepositions of location to talk about where people, things or places are.
                                 </p>
 
-                                {/* Key terms box */}
-                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
-                                    <h3 className="font-bold text-indigo-900 mb-3">Key Terms</h3>
-                                    <div className="grid md:grid-cols-2 gap-3 text-sm">
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Adverb:</strong> describes a verb (up, down, away, out)
-                                        </div>
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Preposition:</strong> links to a noun/pronoun (for, into, with)
-                                        </div>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+                                        <h3 className="font-bold text-indigo-900 mb-2">Front / Back / Opposite</h3>
+                                        <ul className="text-sm text-indigo-900 space-y-1 list-disc list-inside">
+                                            <li>in front of</li>
+                                            <li>behind</li>
+                                            <li>opposite</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                                        <h3 className="font-bold text-emerald-900 mb-2">Above / Below / Around</h3>
+                                        <ul className="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                            <li>above</li>
+                                            <li>below / under</li>
+                                            <li>on top of</li>
+                                            <li>around</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <h3 className="font-bold text-amber-900 mb-2">Left / Right / Between</h3>
+                                        <ul className="text-sm text-amber-900 space-y-1 list-disc list-inside">
+                                            <li>to the left of</li>
+                                            <li>to the right of</li>
+                                            <li>between</li>
+                                            <li>beside / next to</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-sky-50 p-4 rounded-xl border border-sky-200">
+                                        <h3 className="font-bold text-sky-900 mb-2">Inside / Outside / Position</h3>
+                                        <ul className="text-sm text-sky-900 space-y-1 list-disc list-inside">
+                                            <li>inside</li>
+                                            <li>outside</li>
+                                            <li>in the middle of</li>
+                                            <li>in the corner of</li>
+                                            <li>near</li>
+                                        </ul>
                                     </div>
                                 </div>
 
-                                {/* Type 1 */}
-                                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                                    <h3 className="font-bold text-blue-900 mb-2">Type 1: Verb + Adverb</h3>
-                                    <p className="text-blue-800 text-sm mb-2">The adverb changes the verb's meaning.</p>
-                                    <div className="bg-white p-3 rounded-lg text-blue-900">
-                                        "My brother <strong>stayed up</strong> all night." (stayed + up)
-                                    </div>
-                                </div>
-
-                                {/* Type 2 */}
-                                <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-                                    <h3 className="font-bold text-green-900 mb-2">Type 2: Verb + Preposition</h3>
-                                    <p className="text-green-800 text-sm mb-2">The preposition connects to an object.</p>
-                                    <div className="bg-white p-3 rounded-lg text-green-900">
-                                        "Jeff has been <strong>waiting for</strong> the bus." (waiting + for)
-                                    </div>
-                                </div>
-
-                                {/* Type 3 */}
-                                <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
-                                    <h3 className="font-bold text-purple-900 mb-2">Type 3: Verb + Adverb + Preposition</h3>
-                                    <p className="text-purple-800 text-sm mb-2">Three-part phrasal verbs - the most complex!</p>
-                                    <div className="bg-white p-3 rounded-lg text-purple-900">
-                                        "Are you <strong>looking forward to</strong> the weekend?" (look + forward + to)
-                                    </div>
-                                </div>
-
-                                {/* Important note */}
-                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
-                                    <p className="text-amber-800 text-sm">
-                                        <strong>⚠️ Important:</strong> Phrasal verb meanings are often unpredictable.
-                                        "Call off" means "cancel" - you can't guess this from the words!
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-slate-700 text-sm leading-relaxed">
+                                        The apple is <strong>in front of</strong> the plate. The lights are <strong>above</strong> the table.
+                                        The pear is <strong>between</strong> the knife and the apple.
                                     </p>
                                 </div>
 
@@ -1543,48 +1514,42 @@
                     case 1: // Model
                         return (
                             <div className="space-y-6 fade-in">
-                                <TeacherModel title="Let's Identify Phrasal Verb Types Together" icon="users">
-                                    <p className="mb-4">Watch how I break down each phrasal verb to identify its type:</p>
+                                <TeacherModel title="Finding the Location" icon="map-pin">
+                                    <p className="mb-4">Notice how the preposition shows where something is:</p>
 
                                     <WorkedExample
-                                        sentence="The barbecue was called off because of rain."
+                                        sentence="The apple is in front of the plate."
                                         parts={[
-                                            { word: "called", type: "verb", label: "Verb" },
-                                            { word: "off", type: "adverb", label: "Adverb" }
+                                            { word: "The apple", type: "other", label: "Subject" },
+                                            { word: "is", type: "other", label: "Verb" },
+                                            { word: "in front of", type: "preposition", label: "Preposition" },
+                                            { word: "the plate", type: "object", label: "Object" }
                                         ]}
-                                        note="Verb + Adverb → 'call off' means 'cancel'"
+                                        note="'In front of' shows position before another object."
                                     />
 
                                     <WorkedExample
-                                        sentence="Lily was talked into going to the party."
+                                        sentence="The lights are above the table."
                                         parts={[
-                                            { word: "talked", type: "verb", label: "Verb" },
-                                            { word: "into", type: "preposition", label: "Preposition" }
+                                            { word: "The lights", type: "other", label: "Subject" },
+                                            { word: "are", type: "other", label: "Verb" },
+                                            { word: "above", type: "preposition", label: "Preposition" },
+                                            { word: "the table", type: "object", label: "Object" }
                                         ]}
-                                        note="Verb + Preposition → 'talk into' means 'persuade'"
+                                        note="'Above' means at a higher level."
                                     />
 
                                     <WorkedExample
-                                        sentence="Fiona doesn't get on with her sister."
+                                        sentence="The shoes are under the table."
                                         parts={[
-                                            { word: "get", type: "verb", label: "Verb" },
-                                            { word: "on", type: "adverb", label: "Adverb" },
-                                            { word: "with", type: "preposition", label: "Preposition" }
+                                            { word: "The shoes", type: "other", label: "Subject" },
+                                            { word: "are", type: "other", label: "Verb" },
+                                            { word: "under", type: "preposition", label: "Preposition" },
+                                            { word: "the table", type: "object", label: "Object" }
                                         ]}
-                                        note="Verb + Adverb + Preposition → 'get on with' means 'have a good relationship with'"
+                                        note="'Under' means below something."
                                     />
                                 </TeacherModel>
-
-                                <div className="bg-slate-100 p-5 rounded-xl">
-                                    <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
-                                        <Icon name="help-circle" size={20} /> How to identify the type:
-                                    </h4>
-                                    <ol className="space-y-2 text-slate-600">
-                                        <li><strong>1.</strong> Find the main verb</li>
-                                        <li><strong>2.</strong> Look at what follows - is it an adverb (up, down, off, away) or preposition (for, into, with)?</li>
-                                        <li><strong>3.</strong> Count the parts: 2 parts or 3 parts?</li>
-                                    </ol>
-                                </div>
 
                                 <div className="flex justify-between">
                                     <Button onClick={() => setStep(0)} variant="outline">
@@ -1597,7 +1562,7 @@
                             </div>
                         );
 
-                    case 2: // Check - concept checks after examples
+                    case 2: // Check
                         return (
                             <ConceptCheckStep
                                 questions={conceptQuestions}
@@ -1612,7 +1577,7 @@
                             <div className="space-y-6 fade-in">
                                 <div className="text-center mb-6">
                                     <h3 className="text-xl font-bold text-slate-800 mb-2">Sorting Practice</h3>
-                                    <p className="text-slate-600">Sort each phrasal verb into the correct category</p>
+                                    <p className="text-slate-600">Sort each preposition into the correct group</p>
                                 </div>
 
                                 <SortingActivity
@@ -1646,9 +1611,9 @@
 
             return (
                 <ModuleWrapper
-                    title="Types of Phrasal Verbs"
-                    subtitle="Module 1: Understanding the three types"
-                    icon="layers"
+                    title="Prepositions of Location"
+                    subtitle="Module 1: Where things are"
+                    icon="map-pin"
                     color="bg-gradient-to-r from-blue-600 to-indigo-600"
                     onBack={onBack}
                 >
@@ -1659,14 +1624,13 @@
             );
         };
 
-        // --- MODULE 2: TRANSITIVE VS INTRANSITIVE ---
+        // --- MODULE 2: AT, IN & ON ---
         const Module2 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
             const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m2);
 
-            // Track highest step reached and report to parent
             React.useEffect(() => {
                 const newMax = Math.max(step, maxStepReached);
                 if (newMax > maxStepReached) setMaxStepReached(newMax);
@@ -1678,18 +1642,18 @@
             }, [scoreMap, onScoreUpdate]);
 
             const conceptQuestions = [
-                { topic: "Objects", question: "In 'I kicked the ball', what is the object?", options: ["the ball", "I", "kicked"], correctAnswer: "the ball", explanation: "The ball receives the action of kicking. Objects receive the action of the verb." },
-                { topic: "Transitive", question: "'I ran into my friend.' - Does 'run into' need an object?", options: ["Yes, it needs an object", "No, it's complete alone", "It depends"], correctAnswer: "Yes, it needs an object", explanation: "You must say WHO you ran into. 'Run into' is transitive - it needs an object." },
-                { topic: "Intransitive", question: "'I woke up early.' - Does 'wake up' need an object?", options: ["No, it's complete alone", "Yes, it needs an object", "It depends"], correctAnswer: "No, it's complete alone", explanation: "'Wake up' doesn't need an object. It's intransitive - complete on its own." },
-                { topic: "Both types", question: "'The bomb blew up.' vs 'We blew up balloons.' - What's the difference?", options: ["First has no object, second has object", "First has object, second has no object", "Both are the same"], correctAnswer: "First has no object, second has object", explanation: "No object = intransitive (exploded). With object = transitive (inflated)." }
+                { topic: "Addresses", question: "I live ___ 23 Henderson Road.", options: ["at", "in", "on", "to"], correctAnswer: "at", explanation: "Use 'at' for exact addresses." },
+                { topic: "Countries", question: "China is ___ Asia.", options: ["in", "at", "on", "to"], correctAnswer: "in", explanation: "Use 'in' with countries and continents." },
+                { topic: "Surfaces", question: "The plates are ___ the table.", options: ["on", "in", "at", "under"], correctAnswer: "on", explanation: "Use 'on' for surfaces." },
+                { topic: "Events", question: "We saw Jill ___ the concert.", options: ["at", "in", "on", "to"], correctAnswer: "at", explanation: "Use 'at' for events or activities." }
             ];
 
             const errorItems = [
-                { sentence: "What time did you get up this morning?", hasError: false, errorType: "correct", explanation: "'Get up' is intransitive - it doesn't need an object. This is correct!" },
-                { sentence: "I bumped into at the shops.", hasError: true, errorType: "wrong_order", explanation: "'Bump into' is transitive - it NEEDS an object. Who did you bump into?", correction: "I bumped into Sarah at the shops." },
-                { sentence: "Jack works out every day.", hasError: false, errorType: "correct", explanation: "'Work out' (exercise) is intransitive - no object needed. Correct!" },
-                { sentence: "Mr Ting blew up the balloons.", hasError: false, errorType: "correct", explanation: "'Blow up' (inflate) is transitive here and has an object (the balloons). Correct!" },
-                { sentence: "Our car broke down it yesterday.", hasError: true, errorType: "wrong_separation", explanation: "'Break down' (stop working) is intransitive - it doesn't take an object!", correction: "Our car broke down yesterday." }
+                { sentence: "Let's meet in the Star Ferry Pier.", hasError: true, errorType: "wrong_preposition", explanation: "Use 'at' for specific places or meeting points.", correction: "Let's meet at the Star Ferry Pier." },
+                { sentence: "My aunt is working on Japan at the moment.", hasError: true, errorType: "wrong_preposition", explanation: "Use 'in' with countries.", correction: "My aunt is working in Japan at the moment." },
+                { sentence: "I live on 23 Henderson Road.", hasError: true, errorType: "wrong_preposition", explanation: "Use 'at' for exact addresses.", correction: "I live at 23 Henderson Road." },
+                { sentence: "I live on Kennedy Road.", hasError: false, errorType: "correct", explanation: "We can use on or in with streets or roads." },
+                { sentence: "There is a cafe at the corner of the street.", hasError: false, errorType: "correct", explanation: "Use 'at the corner of the street'." }
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
@@ -1700,52 +1664,50 @@
 
             const renderContent = () => {
                 switch (step) {
-                    case 0: // Learn - clean
+                    case 0: // Learn
                         return (
                             <div className="space-y-6 fade-in">
-                                <h2 className="text-2xl font-bold text-slate-800">Transitive vs Intransitive</h2>
+                                <h2 className="text-2xl font-bold text-slate-800">At, In & On</h2>
                                 <p className="text-lg text-slate-600">
-                                    Some phrasal verbs need an <strong>object</strong> (transitive), others don't (intransitive).
+                                    We use <strong>at</strong>, <strong>in</strong> and <strong>on</strong> to talk about locations in different ways.
                                 </p>
 
-                                {/* Key terms */}
-                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
-                                    <h3 className="font-bold text-indigo-900 mb-3">Key Terms</h3>
-                                    <div className="grid md:grid-cols-3 gap-3 text-sm">
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Object:</strong> receives the action (the ball, him, her)
-                                        </div>
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Transitive:</strong> needs an object
-                                        </div>
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Intransitive:</strong> no object needed
-                                        </div>
+                                <div className="grid md:grid-cols-3 gap-4">
+                                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+                                        <h3 className="font-bold text-indigo-900 mb-2">At</h3>
+                                        <ul className="text-sm text-indigo-900 space-y-1 list-disc list-inside">
+                                            <li>places / buildings / shops</li>
+                                            <li>addresses</li>
+                                            <li>events or activities</li>
+                                            <li>at home / school / work</li>
+                                        </ul>
+                                        <p className="text-xs text-indigo-800 mt-3">Example: Let's meet at the Star Ferry Pier.</p>
+                                    </div>
+                                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                                        <h3 className="font-bold text-emerald-900 mb-2">In</h3>
+                                        <ul className="text-sm text-emerald-900 space-y-1 list-disc list-inside">
+                                            <li>rooms / buildings / areas</li>
+                                            <li>countries / cities</li>
+                                            <li>containers</li>
+                                            <li>in bed / class / the sky</li>
+                                        </ul>
+                                        <p className="text-xs text-emerald-800 mt-3">Example: There is a gift shop in the museum.</p>
+                                    </div>
+                                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <h3 className="font-bold text-amber-900 mb-2">On</h3>
+                                        <ul className="text-sm text-amber-900 space-y-1 list-disc list-inside">
+                                            <li>surfaces</li>
+                                            <li>floors</li>
+                                            <li>islands</li>
+                                            <li>on a farm / on a plane</li>
+                                        </ul>
+                                        <p className="text-xs text-amber-800 mt-3">Example: The plates are on the table.</p>
                                     </div>
                                 </div>
 
-                                {/* Intransitive */}
-                                <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
-                                    <h3 className="font-bold text-emerald-900 mb-2">Intransitive (no object)</h3>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="bg-white p-3 rounded-lg">"What time did you <strong>get up</strong>?" ✓</div>
-                                        <div className="bg-white p-3 rounded-lg">"Jack <strong>works out</strong> every day." ✓</div>
-                                    </div>
-                                </div>
-
-                                {/* Transitive */}
-                                <div className="bg-sky-50 p-4 rounded-xl border border-sky-200">
-                                    <h3 className="font-bold text-sky-900 mb-2">Transitive (needs object)</h3>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="bg-white p-3 rounded-lg">"I <strong>bumped into</strong> <u>Roy</u>." ✓</div>
-                                        <div className="bg-white p-3 rounded-lg">"I'll <strong>clean up</strong> <u>the place</u>." ✓</div>
-                                    </div>
-                                </div>
-
-                                {/* Warning */}
-                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
-                                    <p className="text-amber-800 text-sm">
-                                        <strong>⚠️ Tricky:</strong> Some can be both! "Blow up the balloons" (transitive) vs "Mr Ting blew up" (intransitive, = got angry)
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-slate-700 text-sm">
+                                        <strong>Quick idea:</strong> <strong>at</strong> focuses on a point or activity, <strong>in</strong> means inside an area, and <strong>on</strong> means on a surface.
                                     </p>
                                 </div>
 
@@ -1760,27 +1722,37 @@
                     case 1: // Model
                         return (
                             <div className="space-y-6 fade-in">
-                                <TeacherModel title="Identifying Transitive & Intransitive" icon="search">
-                                    <p className="mb-4">Ask yourself: "Does this phrasal verb need something/someone after it?"</p>
+                                <TeacherModel title="Choosing At, In or On" icon="compass">
+                                    <p className="mb-4">Choose the preposition that matches the type of place:</p>
 
                                     <WorkedExample
-                                        sentence="The car broke down yesterday."
+                                        sentence="Let's meet at the Star Ferry Pier."
                                         parts={[
-                                            { word: "The car", type: "other", label: "Subject" },
-                                            { word: "broke down", type: "verb", label: "Phrasal Verb" },
-                                            { word: "yesterday", type: "other", label: "Time" }
+                                            { word: "Let's meet", type: "other", label: "Verb" },
+                                            { word: "at", type: "preposition", label: "Preposition" },
+                                            { word: "the Star Ferry Pier", type: "object", label: "Place" }
                                         ]}
-                                        note="No object! 'Broke down' is INTRANSITIVE here (= stopped working)"
+                                        note="'At' is used for specific places and meeting points."
                                     />
 
                                     <WorkedExample
-                                        sentence="The police broke down the door."
+                                        sentence="There is a gift shop in the museum."
                                         parts={[
-                                            { word: "The police", type: "other", label: "Subject" },
-                                            { word: "broke down", type: "verb", label: "Phrasal Verb" },
-                                            { word: "the door", type: "object", label: "Object" }
+                                            { word: "There is", type: "other", label: "Verb" },
+                                            { word: "in", type: "preposition", label: "Preposition" },
+                                            { word: "the museum", type: "object", label: "Place" }
                                         ]}
-                                        note="Has an object! 'Broke down' is TRANSITIVE here (= destroyed)"
+                                        note="'In' shows being inside a building or area."
+                                    />
+
+                                    <WorkedExample
+                                        sentence="The plates are on the table."
+                                        parts={[
+                                            { word: "The plates are", type: "other", label: "Verb" },
+                                            { word: "on", type: "preposition", label: "Preposition" },
+                                            { word: "the table", type: "object", label: "Surface" }
+                                        ]}
+                                        note="'On' is used for surfaces."
                                     />
                                 </TeacherModel>
 
@@ -1840,9 +1812,9 @@
 
             return (
                 <ModuleWrapper
-                    title="Transitive & Intransitive"
-                    subtitle="Module 2: Does the phrasal verb need an object?"
-                    icon="git-branch"
+                    title="At, In & On"
+                    subtitle="Module 2: Addresses, areas and surfaces"
+                    icon="compass"
                     color="bg-gradient-to-r from-emerald-600 to-teal-600"
                     onBack={onBack}
                 >
@@ -1853,14 +1825,13 @@
             );
         };
 
-        // --- MODULE 3: SEPARABLE VS INSEPARABLE ---
+        // --- MODULE 3: TRICKY LOCATION ERRORS ---
         const Module3 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Build', 'Quiz'];
             const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m3);
 
-            // Track highest step reached and report to parent
             React.useEffect(() => {
                 const newMax = Math.max(step, maxStepReached);
                 if (newMax > maxStepReached) setMaxStepReached(newMax);
@@ -1870,19 +1841,20 @@
             React.useEffect(() => {
                 if (onScoreUpdate) onScoreUpdate(scoreMap);
             }, [scoreMap, onScoreUpdate]);
+
             const conceptQuestions = [
-                { topic: "Particles", question: "What is a 'particle' in a phrasal verb?", options: ["The adverb or preposition part", "The main verb", "The object", "The subject"], correctAnswer: "The adverb or preposition part", explanation: "In 'pick up', 'up' is the particle. It's the adverb/preposition attached to the verb." },
-                { topic: "Separable verbs", question: "'Separable' means...", options: ["The object can go between verb and particle", "The verb can never be split", "It has three parts", "It needs no object"], correctAnswer: "The object can go between verb and particle", explanation: "Separable = we CAN put the object between: 'pick up the book' OR 'pick the book up'." },
-                { topic: "Pronoun rule", question: "With pronouns, separable verbs MUST...", options: ["Be split: pick IT up, not pick up it", "Stay together: pick up it", "Change meaning", "Become formal"], correctAnswer: "Be split: pick IT up, not pick up it", explanation: "Pronouns go BETWEEN: 'pick it up' ✓, 'pick up it' ✗. This is a key rule!" },
-                { topic: "Inseparable verbs", question: "'Inseparable' means...", options: ["Object can only go AFTER the whole verb", "Object can go in the middle", "Has no object", "Is always formal"], correctAnswer: "Object can only go AFTER the whole verb", explanation: "'Look after the cat' ✓, 'look the cat after' ✗. The phrasal verb stays together." }
+                { topic: "Opposite", question: "The clinic is ___ the bank.", options: ["opposite", "opposite to", "in front of", "beside"], correctAnswer: "opposite", explanation: "'Opposite' is a preposition. Do not add 'to'." },
+                { topic: "Opposite to", question: "'Opposite to' is used as an...", options: ["adjective meaning completely different", "adverb for direction", "preposition for location", "verb for movement"], correctAnswer: "adjective meaning completely different", explanation: "'Opposite to' is an adjective (Her opinion is opposite to mine)." },
+                { topic: "In front of", question: "The bus stop is directly outside the school entrance.", options: ["in front of", "opposite", "behind", "beside"], correctAnswer: "in front of", explanation: "'In front of' means directly outside the entrance." },
+                { topic: "In the tree", question: "There is a bird ___ the tree.", options: ["in", "on", "under", "behind"], correctAnswer: "in", explanation: "Birds are usually 'in' the tree (among the branches)." }
             ];
 
             const sentenceItems = [
-                { words: ["Can", "you", "pick", "them", "up", "?"], correct: ["Can you pick them up ?"], explanation: "With pronouns, separable verbs MUST be split: pick + them + up" },
-                { words: ["Please", "look", "after", "my", "goldfish", "."], correct: ["Please look after my goldfish ."], explanation: "'Look after' is inseparable - the object comes after the whole phrasal verb" },
-                { words: ["I", "can't", "put", "up", "with", "it", "."], correct: ["I can't put up with it ."], explanation: "Three-part phrasal verbs are NEVER separated" },
-                { words: ["Tim", "asked", "Jenny", "out", "to", "dinner", "."], correct: ["Tim asked Jenny out to dinner ."], explanation: "'Ask out' MUST be separated - the object goes between" },
-                { words: ["I'll", "show", "my", "friends", "around", "."], correct: ["I'll show my friends around ."], explanation: "'Show around' MUST be separated" }
+                { words: ["The", "clinic", "is", "opposite", "the", "bank", "."], correct: ["The clinic is opposite the bank ."], explanation: "Opposite is a preposition here." },
+                { words: ["Her", "opinion", "is", "opposite", "to", "mine", "."], correct: ["Her opinion is opposite to mine ."], explanation: "'Opposite to' is an adjective meaning completely different." },
+                { words: ["The", "bus", "stop", "is", "opposite", "the", "school", "."], correct: ["The bus stop is opposite the school ."], explanation: "Opposite means facing across a street." },
+                { words: ["The", "bus", "stop", "is", "in", "front", "of", "the", "school", "."], correct: ["The bus stop is in front of the school ."], explanation: "In front of means directly outside the entrance." },
+                { words: ["I'm", "at", "the", "cinema", "."], correct: ["I'm at the cinema ."], explanation: "Use 'at' when focusing on the activity." }
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
@@ -1893,55 +1865,28 @@
 
             const renderContent = () => {
                 switch (step) {
-                    case 0: // Learn - clean
+                    case 0: // Learn
                         return (
                             <div className="space-y-6 fade-in">
-                                <h2 className="text-2xl font-bold text-slate-800">Separable vs Inseparable</h2>
-                                <p className="text-lg text-slate-600">
-                                    Where does the <strong>object</strong> go? This is one of the trickiest parts!
-                                </p>
+                                <h2 className="text-2xl font-bold text-slate-800">Tricky Location Errors</h2>
+                                <p className="text-lg text-slate-600">Some prepositions of location are easy to mix up. Watch out for these common errors.</p>
 
-                                {/* Key terms */}
-                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
-                                    <h3 className="font-bold text-indigo-900 mb-3">Key Terms</h3>
-                                    <div className="grid md:grid-cols-3 gap-3 text-sm">
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Particle:</strong> the adverb/preposition part (up, down, after)
-                                        </div>
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Separable:</strong> object can go between
-                                        </div>
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Inseparable:</strong> object MUST go after
-                                        </div>
+                                <div className="grid md:grid-cols-3 gap-4">
+                                    <div className="bg-violet-50 p-4 rounded-xl border border-violet-200">
+                                        <h3 className="font-bold text-violet-900 mb-2">Opposite vs Opposite to</h3>
+                                        <p className="text-sm text-violet-900">Preposition: The clinic is <strong>opposite</strong> the bank.</p>
+                                        <p className="text-sm text-violet-900 mt-2">Adjective: Her opinion is <strong>opposite to</strong> mine.</p>
                                     </div>
-                                </div>
-
-                                {/* Separable */}
-                                <div className="bg-sky-50 p-4 rounded-xl border border-sky-200">
-                                    <h3 className="font-bold text-sky-900 mb-2">Separable (verb + adverb)</h3>
-                                    <p className="text-sky-800 text-sm mb-2">Object can go between OR after:</p>
-                                    <div className="bg-white p-3 rounded-lg text-sm">
-                                        <p>✓ "Pick <strong>up</strong> the book" OR "Pick the book <strong>up</strong>"</p>
-                                        <p className="text-red-600 mt-2">⚠️ With pronouns: MUST split! "Pick <strong>it</strong> up" ✓ "Pick up it" ✗</p>
+                                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <h3 className="font-bold text-amber-900 mb-2">Opposite vs In front of</h3>
+                                        <p className="text-sm text-amber-900">Opposite = facing across a street.</p>
+                                        <p className="text-sm text-amber-900 mt-2">In front of = directly outside the entrance.</p>
                                     </div>
-                                </div>
-
-                                {/* Inseparable */}
-                                <div className="bg-orange-50 p-4 rounded-xl border border-orange-200">
-                                    <h3 className="font-bold text-orange-900 mb-2">Inseparable (verb + preposition)</h3>
-                                    <p className="text-orange-800 text-sm mb-2">Object MUST go after the whole phrasal verb:</p>
-                                    <div className="bg-white p-3 rounded-lg text-sm">
-                                        <p>✓ "Look <strong>after</strong> the baby" ✗ "Look the baby after"</p>
+                                    <div className="bg-sky-50 p-4 rounded-xl border border-sky-200">
+                                        <h3 className="font-bold text-sky-900 mb-2">Other tricky pairs</h3>
+                                        <p className="text-sm text-sky-900">Birds are usually <strong>in</strong> a tree, apples are <strong>on</strong> a tree.</p>
+                                        <p className="text-sm text-sky-900 mt-2"><strong>At</strong> the cinema = the activity, <strong>in</strong> the cinema = the building.</p>
                                     </div>
-                                </div>
-
-                                {/* Must-separate */}
-                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
-                                    <p className="text-amber-800 text-sm">
-                                        <strong>⚠️ Must-Separate:</strong> Some verbs REQUIRE the object between!<br />
-                                        "Ask <strong>Jenny</strong> out" ✓ "Ask out Jenny" ✗
-                                    </p>
                                 </div>
 
                                 <div className="flex justify-end">
@@ -1952,30 +1897,28 @@
                             </div>
                         );
 
-                    case 1:
+                    case 1: // Model
                         return (
                             <div className="space-y-6 fade-in">
-                                <TeacherModel title="Working Out Word Order" icon="move">
+                                <TeacherModel title="Fixing Common Mistakes" icon="check-circle">
                                     <div className="space-y-4">
                                         <div className="bg-white p-4 rounded-xl">
-                                            <p className="font-bold text-slate-700 mb-2">Example 1: "them" (pronoun)</p>
-                                            <p className="text-slate-600 mb-2">Q: "Can you pick up them?"</p>
-                                            <p className="text-red-600 mb-2">A: ✗ Wrong! Pronouns must go between.</p>
-                                            <p className="text-green-700">✓ Correct: "Can you pick <strong>them</strong> up?"</p>
+                                            <p className="font-bold text-slate-700 mb-2">Example 1</p>
+                                            <p className="text-slate-600 mb-2">"The clinic is opposite to the bank."</p>
+                                            <p className="text-red-600 mb-2">Wrong: 'opposite' is a preposition here.</p>
+                                            <p className="text-green-700">Correct: "The clinic is <strong>opposite</strong> the bank."</p>
                                         </div>
 
                                         <div className="bg-white p-4 rounded-xl">
-                                            <p className="font-bold text-slate-700 mb-2">Example 2: "my goldfish" (noun)</p>
-                                            <p className="text-slate-600 mb-2">Q: Is "look after" separable?</p>
-                                            <p className="text-slate-600 mb-2">A: No! It's verb + preposition, so inseparable.</p>
-                                            <p className="text-green-700">✓ Correct: "Look after <strong>my goldfish</strong>."</p>
+                                            <p className="font-bold text-slate-700 mb-2">Example 2</p>
+                                            <p className="text-slate-600 mb-2">"The bus stop is in front of the school."</p>
+                                            <p className="text-slate-600">This means it is directly outside the entrance, not across the street.</p>
                                         </div>
 
                                         <div className="bg-white p-4 rounded-xl">
-                                            <p className="font-bold text-slate-700 mb-2">Example 3: Three-part verb</p>
-                                            <p className="text-slate-600 mb-2">Q: "I can't put it up with."</p>
-                                            <p className="text-red-600 mb-2">A: ✗ Never separate three-part phrasal verbs!</p>
-                                            <p className="text-green-700">✓ Correct: "I can't put up with <strong>it</strong>."</p>
+                                            <p className="font-bold text-slate-700 mb-2">Example 3</p>
+                                            <p className="text-slate-600 mb-2">"I'm at the cinema."</p>
+                                            <p className="text-slate-600">Use <strong>at</strong> for the activity, <strong>in</strong> for the building.</p>
                                         </div>
                                     </div>
                                 </TeacherModel>
@@ -2036,9 +1979,9 @@
 
             return (
                 <ModuleWrapper
-                    title="Separable vs Inseparable"
-                    subtitle="Module 3: Where does the object go?"
-                    icon="split"
+                    title="Tricky Location Errors"
+                    subtitle="Module 3: Avoid these common mistakes"
+                    icon="alert-octagon"
                     color="bg-gradient-to-r from-violet-600 to-purple-600"
                     onBack={onBack}
                 >
@@ -2049,14 +1992,13 @@
             );
         };
 
-        // --- MODULE 4: FORMAL VS INFORMAL ---
+        // --- MODULE 4: PREPOSITIONS OF MOVEMENT ---
         const Module4 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Match', 'Quiz'];
             const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m4);
 
-            // Track highest step reached and report to parent
             React.useEffect(() => {
                 const newMax = Math.max(step, maxStepReached);
                 if (newMax > maxStepReached) setMaxStepReached(newMax);
@@ -2068,18 +2010,18 @@
             }, [scoreMap, onScoreUpdate]);
 
             const conceptQuestions = [
-                { topic: "Register", question: "What is 'register' in language?", options: ["How formal or casual your words are", "The grammar of a sentence", "The spelling of words"], correctAnswer: "How formal or casual your words are", explanation: "Register = formality level. Essays need formal register, chatting needs informal." },
-                { topic: "Phrasal verbs register", question: "Are phrasal verbs formal or informal?", options: ["Informal - for speaking/casual writing", "Formal - for essays", "Both equally"], correctAnswer: "Informal - for speaking/casual writing", explanation: "Phrasal verbs are informal. Use single-word verbs in essays and reports." },
-                { topic: "Formal equivalents", question: "'Turn down' means the same as...", options: ["refuse", "cancel", "discover"], correctAnswer: "refuse", explanation: "'Turn down' = refuse. In an essay, write 'She refused the job' not 'She turned down the job'." }
+                { topic: "Into", question: "Which preposition shows movement to the inside?", options: ["into", "in", "onto", "on"], correctAnswer: "into", explanation: "'Into' shows movement to the inside." },
+                { topic: "Onto", question: "Which preposition shows movement to a surface?", options: ["onto", "on", "into", "over"], correctAnswer: "onto", explanation: "'Onto' shows movement to a surface." },
+                { topic: "Direction", question: "Which preposition means 'in the direction of'?", options: ["towards", "from", "past", "behind"], correctAnswer: "towards", explanation: "'Towards' means in the direction of something." }
             ];
 
             const matchingPairs = [
-                { phrasal: "look into", formal: "investigate" },
-                { phrasal: "find out", formal: "discover" },
-                { phrasal: "turn down", formal: "refuse" },
-                { phrasal: "sort out", formal: "resolve" },
-                { phrasal: "call off", formal: "cancel" },
-                { phrasal: "give up", formal: "quit" }
+                { phrasal: "onto", formal: "movement to a surface" },
+                { phrasal: "into", formal: "movement to the inside" },
+                { phrasal: "out of", formal: "movement from inside to outside" },
+                { phrasal: "across", formal: "from one side to the other" },
+                { phrasal: "through", formal: "from one end to the other inside" },
+                { phrasal: "towards", formal: "in the direction of" }
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
@@ -2090,45 +2032,30 @@
 
             const renderContent = () => {
                 switch (step) {
-                    case 0: // Learn - clean
+                    case 0: // Learn
                         return (
                             <div className="space-y-6 fade-in">
-                                <h2 className="text-2xl font-bold text-slate-800">Formal vs Informal</h2>
+                                <h2 className="text-2xl font-bold text-slate-800">Prepositions of Movement</h2>
                                 <p className="text-lg text-slate-600">
-                                    Phrasal verbs are <strong>informal</strong>. In formal writing, use single-word equivalents.
+                                    We use prepositions of movement to describe how people or things move.
                                 </p>
 
-                                {/* Key terms */}
-                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
-                                    <h3 className="font-bold text-indigo-900 mb-3">Key Term: Register</h3>
-                                    <p className="text-sm text-slate-600">Register = the level of formality in your language.</p>
-                                    <div className="grid md:grid-cols-2 gap-3 mt-3 text-sm">
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Formal:</strong> essays, reports, official documents
-                                        </div>
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <strong>Informal:</strong> conversations, texts, casual emails
-                                        </div>
-                                    </div>
+                                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                                    <p className="text-slate-700 text-sm leading-relaxed">
+                                        Look! John is getting <strong>onto</strong> a boat. Vicki is walking <strong>over</strong> the bridge.
+                                        Cathy is walking <strong>along</strong> the canal. Chloe is going <strong>up</strong> the lift and Mark is coming <strong>down</strong>.
+                                        Sarah is walking <strong>towards</strong> the clothes shop. Eric is coming <strong>out of</strong> the bookshop.
+                                        Karen is going <strong>into</strong> the camera shop. Ivy and Paul are walking <strong>from</strong> the restaurant <strong>to</strong> the camera shop.
+                                    </p>
                                 </div>
 
-                                {/* Comparison */}
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="bg-orange-50 p-4 rounded-xl border border-orange-200">
-                                        <h3 className="font-bold text-orange-900 mb-2">Informal (Phrasal)</h3>
-                                        <div className="space-y-1 text-sm">
-                                            <p className="bg-white p-2 rounded">"<strong>Look into</strong> the case"</p>
-                                            <p className="bg-white p-2 rounded">"<strong>Turn down</strong> the job"</p>
-                                            <p className="bg-white p-2 rounded">"<strong>Sort out</strong> the problem"</p>
-                                        </div>
+                                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                                        <h3 className="font-bold text-emerald-900 mb-2">Other movement prepositions</h3>
+                                        <p className="text-emerald-900 text-sm">across, off, through, around / round, past</p>
                                     </div>
-                                    <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
-                                        <h3 className="font-bold text-slate-900 mb-2">Formal (Single-word)</h3>
-                                        <div className="space-y-1 text-sm">
-                                            <p className="bg-white p-2 rounded">"<strong>Investigate</strong> the case"</p>
-                                            <p className="bg-white p-2 rounded">"<strong>Refuse</strong> the job"</p>
-                                            <p className="bg-white p-2 rounded">"<strong>Resolve</strong> the problem"</p>
-                                        </div>
+                                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <p className="text-amber-900 text-sm"><strong>Tip:</strong> Movement prepositions answer the question <strong>"Where to?"</strong></p>
                                     </div>
                                 </div>
 
@@ -2143,39 +2070,41 @@
                     case 1: // Model
                         return (
                             <div className="space-y-6 fade-in">
-                                <TeacherModel title="Choosing the Right Register" icon="toggle-left">
-                                    <p className="mb-4">When should you use phrasal verbs vs formal verbs?</p>
+                                <TeacherModel title="Tracking Movement" icon="route">
+                                    <p className="mb-4">Notice how the preposition shows the direction of movement:</p>
 
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div className="bg-white p-4 rounded-xl">
-                                            <p className="font-bold text-green-700 mb-2">✓ Use phrasal verbs:</p>
-                                            <ul className="text-slate-600 text-sm space-y-1">
-                                                <li>• Conversations</li>
-                                                <li>• Casual emails</li>
-                                                <li>• Text messages</li>
-                                                <li>• Friendly letters</li>
-                                            </ul>
-                                        </div>
-                                        <div className="bg-white p-4 rounded-xl">
-                                            <p className="font-bold text-blue-700 mb-2">✓ Use formal verbs:</p>
-                                            <ul className="text-slate-600 text-sm space-y-1">
-                                                <li>• Academic essays</li>
-                                                <li>• Business reports</li>
-                                                <li>• Official letters</li>
-                                                <li>• News articles</li>
-                                            </ul>
-                                        </div>
-                                    </div>
+                                    <WorkedExample
+                                        sentence="John is getting onto a boat."
+                                        parts={[
+                                            { word: "John", type: "other", label: "Subject" },
+                                            { word: "is getting", type: "other", label: "Verb" },
+                                            { word: "onto", type: "preposition", label: "Preposition" },
+                                            { word: "a boat", type: "object", label: "Destination" }
+                                        ]}
+                                        note="'Onto' = movement to a surface."
+                                    />
 
-                                    <div className="mt-4 p-4 bg-amber-50 rounded-xl">
-                                        <p className="font-bold text-amber-800">Example transformation:</p>
-                                        <p className="text-slate-700 mt-2">
-                                            <span className="text-orange-600">Informal:</span> "You can <strong>find out</strong> more by visiting our website."
-                                        </p>
-                                        <p className="text-slate-700 mt-1">
-                                            <span className="text-slate-600">Formal:</span> "People can <strong>discover</strong> more about the organisation by visiting their official website."
-                                        </p>
-                                    </div>
+                                    <WorkedExample
+                                        sentence="Eric is coming out of the bookshop."
+                                        parts={[
+                                            { word: "Eric", type: "other", label: "Subject" },
+                                            { word: "is coming", type: "other", label: "Verb" },
+                                            { word: "out of", type: "preposition", label: "Preposition" },
+                                            { word: "the bookshop", type: "object", label: "Source" }
+                                        ]}
+                                        note="'Out of' = movement from inside to outside."
+                                    />
+
+                                    <WorkedExample
+                                        sentence="Cathy is walking along the canal."
+                                        parts={[
+                                            { word: "Cathy", type: "other", label: "Subject" },
+                                            { word: "is walking", type: "other", label: "Verb" },
+                                            { word: "along", type: "preposition", label: "Preposition" },
+                                            { word: "the canal", type: "object", label: "Path" }
+                                        ]}
+                                        note="'Along' = movement following the length of something."
+                                    />
                                 </TeacherModel>
 
                                 <div className="flex justify-between">
@@ -2204,7 +2133,7 @@
                             <div className="space-y-6 fade-in">
                                 <div className="text-center mb-4">
                                     <h3 className="text-xl font-bold text-slate-800">Matching Activity</h3>
-                                    <p className="text-slate-600">Match phrasal verbs to their formal equivalents</p>
+                                    <p className="text-slate-600">Match prepositions with their meanings</p>
                                 </div>
 
                                 <MatchingActivity
@@ -2214,7 +2143,6 @@
                                 />
                             </div>
                         );
-
 
                     case 4: // Quiz
                         return (
@@ -2232,9 +2160,9 @@
 
             return (
                 <ModuleWrapper
-                    title="Formal vs Informal"
-                    subtitle="Module 4: Choosing the right register"
-                    icon="toggle-left"
+                    title="Prepositions of Movement"
+                    subtitle="Module 4: Describing movement and direction"
+                    icon="route"
                     color="bg-gradient-to-r from-orange-500 to-amber-500"
                     onBack={onBack}
                 >
@@ -2245,14 +2173,13 @@
             );
         };
 
-        // --- MODULE 5: COMMON ERRORS ---
+        // --- MODULE 5: COMMON MOVEMENT ERRORS ---
         const Module5 = ({ initialState, initialScores, onProgress, onComplete, onBack, onScoreUpdate }) => {
             const [step, setStep] = useState(initialState?.step || 0);
             const [maxStepReached, setMaxStepReached] = useState(initialState?.maxStep || 0);
             const steps = ['Learn', 'Model', 'Check', 'Practice', 'Quiz'];
             const { scoreMap, totals, updateScore } = useUnitScore(initialScores || {}, MODULE_BASE_TOTALS.m5);
 
-            // Track highest step reached and report to parent
             React.useEffect(() => {
                 const newMax = Math.max(step, maxStepReached);
                 if (newMax > maxStepReached) setMaxStepReached(newMax);
@@ -2264,17 +2191,17 @@
             }, [scoreMap, onScoreUpdate]);
 
             const conceptQuestions = [
-                { topic: "3-part verbs", question: "Can you split 'looking forward to'?", options: ["No - 3-part verbs NEVER split", "Yes - any verb can split", "Only with pronouns"], correctAnswer: "No - 3-part verbs NEVER split", explanation: "3-part phrasal verbs (verb + adverb + preposition) must stay together. Object goes after." },
-                { topic: "Must-separate", question: "'Show around' - where does the object go?", options: ["Between 'show' and 'around'", "After 'around'", "Before 'show'"], correctAnswer: "Between 'show' and 'around'", explanation: "'Show around' is must-separate. Say 'show my friends around', NOT 'show around my friends'." },
-                { topic: "Similar verbs", question: "To find a word in a dictionary, you...", options: ["look up", "look for", "look after"], correctAnswer: "look up", explanation: "'Look up' = search for information. 'Look for' = try to find something lost." }
+                { topic: "Get on/off", question: "We say 'get on' a bus, plane, ship or train.", options: ["True", "False"], correctAnswer: "True", explanation: "Public transport: get on / get off." },
+                { topic: "Get into/out of", question: "We say 'get into' a car or taxi.", options: ["True", "False"], correctAnswer: "True", explanation: "Cars/taxis: get into / get out of." },
+                { topic: "Choose the right one", question: "Which is correct for a taxi?", options: ["Get into the taxi", "Get on the taxi"], correctAnswer: "Get into the taxi", explanation: "We use 'get into' for cars and taxis." }
             ];
 
             const errorItems = [
-                { sentence: "I'm really looking forward our vacation to.", hasError: true, errorType: "wrong_order", explanation: "Three-part phrasal verbs cannot be separated!", correction: "I'm really looking forward to our vacation." },
-                { sentence: "Sarah eventually gave up and bought her son a bicycle.", hasError: true, errorType: "wrong_verb", explanation: "'Give in' means to finally agree. 'Give up' means to stop doing something.", correction: "Sarah eventually gave in and bought her son a bicycle." },
-                { sentence: "I'm looking for my keys.", hasError: false, errorType: "correct", explanation: "'Look for' means to try to find something. This is correct!" },
-                { sentence: "Look the word for in your dictionary.", hasError: true, errorType: "wrong_verb", explanation: "'Look up' means to search for information. 'Look for' means to try to find something lost.", correction: "Look the word up in your dictionary." },
-                { sentence: "I'm going to show around my friends my new house.", hasError: true, errorType: "wrong_separation", explanation: "'Show around' must be separated - the object goes between show and around.", correction: "I'm going to show my friends around my new house." }
+                { sentence: "We got into the bus.", hasError: true, errorType: "wrong_preposition", explanation: "We say 'get on' a bus, plane, ship or train.", correction: "We got on the bus." },
+                { sentence: "Hurry up and get on the car now.", hasError: true, errorType: "wrong_preposition", explanation: "We say 'get into' a car or taxi.", correction: "Hurry up and get into the car now." },
+                { sentence: "Everyone was excited when they got out of the ship.", hasError: true, errorType: "wrong_preposition", explanation: "We say 'get off' a ship, plane or train.", correction: "Everyone was excited when they got off the ship." },
+                { sentence: "The cat is jumping off the sofa.", hasError: false, errorType: "correct", explanation: "Correct: 'off' shows movement away from a surface." },
+                { sentence: "Andy is walking past the bakery.", hasError: false, errorType: "correct", explanation: "Correct: 'past' means going by a place." }
             ];
 
             const finalizeUnit = (quizScore, quizTotal) => {
@@ -2285,44 +2212,25 @@
 
             const renderContent = () => {
                 switch (step) {
-                    case 0: // Learn - clean
+                    case 0: // Learn
                         return (
                             <div className="space-y-6 fade-in">
-                                <h2 className="text-2xl font-bold text-slate-800">Common Errors</h2>
-                                <p className="text-lg text-slate-600">
-                                    Avoid these common mistakes with phrasal verbs!
-                                </p>
+                                <h2 className="text-2xl font-bold text-slate-800">Common Movement Errors</h2>
+                                <p className="text-lg text-slate-600">Be careful with these common mistakes.</p>
 
-                                {/* Error 1 */}
                                 <div className="bg-red-50 p-4 rounded-xl border border-red-200">
-                                    <h3 className="font-bold text-red-900 mb-2">Error 1: Separating 3-part verbs</h3>
+                                    <h3 className="font-bold text-red-900 mb-2">Error 1: Get on vs Get into</h3>
                                     <div className="bg-white p-3 rounded-lg text-sm">
-                                        <p className="text-red-600">✗ "I'm looking forward our vacation to."</p>
-                                        <p className="text-green-700">✓ "I'm looking forward to our vacation."</p>
+                                        <p className="text-red-600">? We got into the bus.</p>
+                                        <p className="text-green-700">? We got <strong>on</strong> the bus.</p>
                                     </div>
                                 </div>
 
-                                {/* Error 2 */}
                                 <div className="bg-red-50 p-4 rounded-xl border border-red-200">
-                                    <h3 className="font-bold text-red-900 mb-2">Error 2: Not separating must-separate verbs</h3>
+                                    <h3 className="font-bold text-red-900 mb-2">Error 2: Get off vs Get out of</h3>
                                     <div className="bg-white p-3 rounded-lg text-sm">
-                                        <p className="text-red-600">✗ "Show around my friends."</p>
-                                        <p className="text-green-700">✓ "Show my friends around."</p>
-                                    </div>
-                                </div>
-
-                                {/* Error 3 */}
-                                <div className="bg-red-50 p-4 rounded-xl border border-red-200">
-                                    <h3 className="font-bold text-red-900 mb-2">Error 3: Confusing similar verbs</h3>
-                                    <div className="grid md:grid-cols-2 gap-3 text-sm">
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <p><strong>give in</strong> = finally agree</p>
-                                            <p><strong>give up</strong> = stop doing</p>
-                                        </div>
-                                        <div className="bg-white p-3 rounded-lg">
-                                            <p><strong>look for</strong> = find lost thing</p>
-                                            <p><strong>look up</strong> = search info</p>
-                                        </div>
+                                        <p className="text-red-600">? Everyone got out of the ship.</p>
+                                        <p className="text-green-700">? Everyone got <strong>off</strong> the ship.</p>
                                     </div>
                                 </div>
 
@@ -2337,26 +2245,20 @@
                     case 1: // Model
                         return (
                             <div className="space-y-6 fade-in">
-                                <TeacherModel title="Spotting and Fixing Errors" icon="check-circle">
+                                <TeacherModel title="Choosing the Right Transport Preposition" icon="bus">
                                     <div className="space-y-4">
                                         <div className="bg-white p-4 rounded-xl">
-                                            <p className="font-bold text-slate-700 mb-2">Example 1: "Lawrence gave in drinking."</p>
-                                            <p className="text-slate-600 mb-2">Think: What does "give in" mean? (= finally agree)</p>
-                                            <p className="text-slate-600 mb-2">Does that make sense? No! He stopped drinking.</p>
-                                            <p className="text-green-700">✓ Fix: "Lawrence <strong>gave up</strong> drinking."</p>
+                                            <p className="font-bold text-slate-700 mb-2">Example 1</p>
+                                            <p className="text-slate-600 mb-2">"We got into the bus."</p>
+                                            <p className="text-red-600 mb-2">? Wrong: buses use <strong>on/off</strong>.</p>
+                                            <p className="text-green-700">? Correct: "We got <strong>on</strong> the bus."</p>
                                         </div>
 
                                         <div className="bg-white p-4 rounded-xl">
-                                            <p className="font-bold text-slate-700 mb-2">Example 2: "Look the word for in your dictionary."</p>
-                                            <p className="text-slate-600 mb-2">Think: "Look for" = try to find something lost</p>
-                                            <p className="text-slate-600 mb-2">Is the word lost? No! We're searching for information.</p>
-                                            <p className="text-green-700">✓ Fix: "<strong>Look up</strong> the word in your dictionary."</p>
-                                        </div>
-
-                                        <div className="bg-white p-4 rounded-xl">
-                                            <p className="font-bold text-slate-700 mb-2">Example 3: "I'm looking our trip forward to."</p>
-                                            <p className="text-slate-600 mb-2">Think: "Look forward to" has 3 parts = NEVER separate!</p>
-                                            <p className="text-green-700">✓ Fix: "I'm <strong>looking forward to</strong> our trip."</p>
+                                            <p className="font-bold text-slate-700 mb-2">Example 2</p>
+                                            <p className="text-slate-600 mb-2">"Hurry up and get on the car."</p>
+                                            <p className="text-red-600 mb-2">? Wrong: cars use <strong>into/out of</strong>.</p>
+                                            <p className="text-green-700">? Correct: "Hurry up and get <strong>into</strong> the car."</p>
                                         </div>
                                     </div>
                                 </TeacherModel>
@@ -2417,8 +2319,8 @@
 
             return (
                 <ModuleWrapper
-                    title="Common Errors"
-                    subtitle="Module 5: Avoid these mistakes!"
+                    title="Common Movement Errors"
+                    subtitle="Module 5: Transport and movement mistakes"
                     icon="alert-triangle"
                     color="bg-gradient-to-r from-red-500 to-rose-500"
                     onBack={onBack}
@@ -2438,7 +2340,7 @@
             return (
                 <ModuleWrapper
                     title="Final Challenge"
-                    subtitle="Test your mastery of all phrasal verb rules!"
+                    subtitle="Test your mastery of location and movement prepositions!"
                     icon="trophy"
                     color="bg-gradient-to-r from-slate-800 to-slate-900"
                     onBack={onBack}
@@ -2460,7 +2362,7 @@
             const [screen, setScreen] = useState('menu');
             const [scores, setScores] = useState(() => {
                 try {
-                    const stored = localStorage.getItem('s3-phrasal-scores');
+                    const stored = localStorage.getItem('s1-prepositions-scores');
                     if (stored) {
                         const parsed = JSON.parse(stored);
                         const normalized = { m1: {}, m2: {}, m3: {}, m4: {}, m5: {}, final: {} };
@@ -2507,18 +2409,18 @@
 
             useEffect(() => {
                 try {
-                    localStorage.setItem('s3-phrasal-scores', JSON.stringify(scores));
+                    localStorage.setItem('s1-prepositions-scores', JSON.stringify(scores));
                 } catch (err) {
                     // ignore storage failures
                 }
             }, [scores]);
 
             const modules = [
-                { id: 'm1', title: "Types of Phrasal Verbs", desc: "Verb + adverb, verb + preposition, and three-part verbs", icon: "layers", color: "from-blue-500 to-indigo-500" },
-                { id: 'm2', title: "Transitive & Intransitive", desc: "Does the phrasal verb need an object?", icon: "git-branch", color: "from-emerald-500 to-teal-500" },
-                { id: 'm3', title: "Separable vs Inseparable", desc: "Where does the object go?", icon: "split", color: "from-violet-500 to-purple-500" },
-                { id: 'm4', title: "Formal vs Informal", desc: "Phrasal verbs and their formal equivalents", icon: "toggle-left", color: "from-orange-500 to-amber-500" },
-                { id: 'm5', title: "Common Errors", desc: "Avoid these frequent mistakes", icon: "alert-triangle", color: "from-red-500 to-rose-500" }
+                { id: 'm1', title: "Prepositions of Location", desc: "Where things are: in front of, behind, above, between", icon: "map-pin", color: "from-blue-500 to-indigo-500" },
+                { id: 'm2', title: "At, In & On", desc: "Addresses, areas and surfaces", icon: "compass", color: "from-emerald-500 to-teal-500" },
+                { id: 'm3', title: "Tricky Location Errors", desc: "Opposite vs in front of, in/on the tree, at vs in", icon: "alert-octagon", color: "from-violet-500 to-purple-500" },
+                { id: 'm4', title: "Prepositions of Movement", desc: "Into, onto, across, through, towards and more", icon: "route", color: "from-orange-500 to-amber-500" },
+                { id: 'm5', title: "Movement Errors", desc: "Get on/off vs get into/out of", icon: "alert-triangle", color: "from-red-500 to-rose-500" }
             ];
 
             if (screen === 'menu') {
@@ -2529,8 +2431,8 @@
                                 <div className="inline-flex p-6 bg-indigo-100 text-indigo-600 rounded-full mb-6">
                                     <Icon name="book-open" size={64} />
                                 </div>
-                                <h1 className="text-4xl sm:text-5xl font-black text-slate-900 mb-3">Phrasal Verbs</h1>
-                                <p className="text-xl text-slate-500">Unit 16 • Interactive Grammar Training</p>
+                                <h1 className="text-4xl sm:text-5xl font-black text-slate-900 mb-3">Prepositions of Location & Movement</h1>
+                                <p className="text-xl text-slate-500">Unit 7 • Interactive Grammar Training</p>
                             </header>
 
                             <div className="space-y-4 mb-8">
@@ -2597,7 +2499,7 @@
                             </button>
 
                             <footer className="text-center mt-12 text-slate-400">
-                                S.3 English • Unit 16
+                                S.1 English • Unit 7
                             </footer>
                         </div>
                     </div>
