@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3 Speaking: Dream School & Signposts</title>
+    <style>
+        :root {
+            --primary: #2563eb;       /* Royal Blue */
+            --secondary: #f97316;     /* Orange */
+            --accent: #8b5cf6;        /* Purple */
+            --success: #22c55e;       /* Green */
+            --bg: #f0f9ff;           /* Light Blue Bg */
+            --text: #1e293b;          /* Dark Slate */
+            --card-bg: #ffffff;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Navigation Bar --- */
+        .nav-bar {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            z-index: 100;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .lesson-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-indicator {
+            font-weight: bold;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .nav-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .nav-btn:active { transform: translateY(0); }
+        .nav-btn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* --- Main Slide Area --- */
+        .slide-container {
+            flex: 1;
+            position: relative;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; 
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.4s ease-out;
+            padding-bottom: 120px; /* Space for timer */
+        }
+
+        .slide.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { font-size: 2.8rem; margin: 0 0 1rem 0; color: var(--primary); text-align: center; }
+        h2 { font-size: 1.8rem; margin: 0 0 1.5rem 0; color: var(--text); text-align: center; }
+        p { font-size: 1.5rem; line-height: 1.6; text-align: center; max-width: 800px; margin-bottom: 1.5rem; }
+        
+        .instruction-box {
+            background: #e0f2fe;
+            border-left: 5px solid var(--primary);
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .model-badge {
+            background: var(--accent);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        /* --- Chat Bubbles for Models --- */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 700px;
+            margin: 20px 0;
+        }
+        .bubble {
+            padding: 15px 25px;
+            border-radius: 20px;
+            font-size: 1.3rem;
+            max-width: 80%;
+            position: relative;
+        }
+        .bubble-left {
+            background: #f1f5f9;
+            color: var(--text);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        .bubble-right {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        .bubble-highlight {
+            background: var(--secondary);
+            color: white;
+            font-weight: bold;
+        }
+
+        /* --- Components --- */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--primary);
+            border: 2px solid #e2e8f0;
+            transition: transform 0.2s;
+        }
+        
+        .card:hover { transform: scale(1.02); border-color: var(--primary); }
+
+        /* Formula Box */
+        .formula-box {
+            background: #1e293b;
+            color: #fbbf24;
+            font-family: 'Courier New', monospace;
+            padding: 2rem;
+            border-radius: 12px;
+            font-size: 1.8rem;
+            text-align: center;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+            margin: 2rem 0;
+            width: 100%;
+        }
+
+        /* Gap Fill */
+        .cloze-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            font-size: 1.3rem;
+            line-height: 2.2;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #e2e8f0;
+        }
+
+        select {
+            font-size: 1.1rem;
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 2px solid #cbd5e1;
+            background: #f8fafc;
+            color: var(--primary);
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        select.correct { border-color: var(--success); background-color: #dcfce7; color: #15803d; }
+        select.wrong { border-color: #ef4444; background-color: #fee2e2; color: #991b1b; }
+
+        /* Mind Map */
+        .mindmap-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .mm-node {
+            background: white;
+            border: 3px solid var(--accent);
+            color: var(--accent);
+            padding: 1rem;
+            border-radius: 50px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .mm-center {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            aspect-ratio: 1;
+            border-radius: 50%;
+        }
+        .crazy-idea-box {
+            grid-column: 1 / -1;
+            margin-top: 15px;
+            background: repeating-linear-gradient(45deg, #fff7ed, #fff7ed 10px, #ffedd5 10px, #ffedd5 20px);
+            border: 3px dashed var(--secondary);
+            padding: 1rem;
+            text-align: center;
+            border-radius: 12px;
+        }
+
+        /* Timer */
+        .timer-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0f172a;
+            color: #22d3ee;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 2.5rem;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+        }
+        .timer-btn {
+            background: #334155;
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-action {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <div class="lesson-title">
+            <span>🎓</span>
+            Week 3: Dream School Presentation
+        </div>
+        <div class="controls">
+            <span class="page-indicator" id="page-indicator">1 / 10</span>
+            <button class="nav-btn" onclick="prevSlide()" id="btn-prev">Previous</button>
+            <button class="nav-btn" onclick="nextSlide()" id="btn-next">Next</button>
+        </div>
+    </div>
+
+    <!-- Timer (Always Visible) -->
+    <div class="timer-float">
+        <div id="timer-display">00:00</div>
+        <div style="display:flex; gap:5px;">
+            <button class="timer-btn" onclick="startTimer(60)" title="1 Min">1m</button>
+            <button class="timer-btn" onclick="startTimer(120)" title="2 Mins">2m</button>
+            <button class="timer-btn" onclick="startTimer(180)" title="3 Mins">3m</button>
+            <button class="timer-btn" onclick="resetTimer()" title="Reset" style="background:#ef4444;">×</button>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        
+        <!-- SLIDE 1: MODEL - Signpost Tennis -->
+        <div class="slide active">
+            <span class="model-badge">Teacher Model</span>
+            <h1>🎾 Signpost Tennis: How to Play</h1>
+            <p><strong>Goal:</strong> Catch the "Signpost Word" and finish the sentence.</p>
+            
+            <div class="chat-container">
+                <div class="bubble bubble-left">
+                    <strong>Student A:</strong> "I love ice cream."
+                </div>
+                <div class="bubble bubble-right bubble-highlight">
+                    <strong>Student B:</strong> "FIRST OF ALL..."
+                </div>
+                <div class="bubble bubble-left">
+                    <strong>Student A:</strong> "...it is sweet and delicious."
+                </div>
+                <div class="bubble bubble-right bubble-highlight">
+                    <strong>Student B:</strong> "ALSO..."
+                </div>
+                <div class="bubble bubble-left">
+                    <strong>Student A:</strong> "...it cools you down in summer."
+                </div>
+            </div>
+            <p><em>Now, let's play with a real topic!</em></p>
+        </div>
+
+        <!-- SLIDE 2: ACTIVITY - Signpost Tennis -->
+        <div class="slide">
+            <h1>🎾 Signpost Tennis</h1>
+            <div class="instruction-box">
+                <strong>Activity:</strong> In pairs. Use the signposts below to interrupt your partner!
+            </div>
+
+            <div class="card-grid">
+                <div class="card">First of all...</div>
+                <div class="card">Moving on to my next point...</div>
+                <div class="card">Another thing is...</div>
+                <div class="card">To sum up...</div>
+            </div>
+
+            <div style="margin-top: 3rem; text-align: center;">
+                <h3 style="color: #64748b;">Current Topic:</h3>
+                <h2 style="font-size: 2.5rem; color: var(--secondary);" id="warm-topic">Why I love McDonald's 🍔</h2>
+                <button class="btn-action" style="background: var(--primary);" onclick="nextTopic()">Next topic... ➡</button>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: MODEL - Gap Fill -->
+        <div class="slide">
+            <span class="model-badge">Teacher Model</span>
+            <h1>📝 Choosing the Right Signpost</h1>
+            <p>How do we know which word goes in the blank?</p>
+            
+            <div class="cloze-container" style="border-left: 5px solid var(--accent);">
+                <p><strong>Example:</strong> "__________ my friends are nice."</p>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 10px;">❌ <strong>To sum up:</strong> No, this is the first point.</li>
+                    <li style="margin-bottom: 10px;">❌ <strong>However:</strong> No, I am not disagreeing.</li>
+                    <li style="color: var(--success);">✅ <strong>First of all:</strong> Yes! It introduces the first idea.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: ACTIVITY - Gap Fill -->
+        <div class="slide">
+            <h1>📝 Activity 2: Connect it!</h1>
+            <p>Fill in the blanks for the "Chinese New Year" presentation.</p>
+            
+            <div class="cloze-container">
+                <span style="color: #64748b; font-size: 1rem; display:block; margin-bottom:10px;">Topic: My Favourite Festival</span>
+                
+                (1) <select id="q1"><option value="">Select...</option><option value="wrong">To sum up</option><option value="correct">Good morning</option><option value="wrong">Next</option></select> 
+                everyone. Today, I am going to talk about my favourite festival.<br>
+
+                (2) <select id="q2"><option value="">Select...</option><option value="correct">First of all</option><option value="wrong">To sum up</option><option value="wrong">Finally</option></select>
+                , I love the food. My family eats a big dinner together.<br>
+
+                (3) <select id="q3"><option value="">Select...</option><option value="wrong">Good morning</option><option value="correct">Moving on to my next point</option><option value="wrong">Because</option></select>
+                , I get to see my relatives. My cousins come to my house.<br>
+
+                (4) <select id="q4"><option value="">Select...</option><option value="correct">Another thing is</option><option value="wrong">First of all</option><option value="wrong">However</option></select>
+                receiving red packets! I save the money.<br>
+
+                (5) <select id="q5"><option value="">Select...</option><option value="wrong">Also</option><option value="wrong">First of all</option><option value="correct">To sum up</option></select>
+                , Chinese New Year is the best time of the year. Thank you.
+            </div>
+
+            <button class="btn-action" style="background: var(--success);" onclick="checkAnswers()">Check Answers</button>
+            <p id="feedback-msg" style="height: 30px; font-weight: bold; text-align:center;"></p>
+        </div>
+
+        <!-- SLIDE 5: MODEL - Formula -->
+        <div class="slide">
+            <span class="model-badge">Teacher Model</span>
+            <h1>🧪 The "Ending" Formula</h1>
+            <p>Don't just stop talking! Use this structure:</p>
+
+            <div class="formula-box">
+                "To sum up,"<br>
+                + (Repeat Point 1)<br>
+                + (Repeat Point 2)<br>
+                + "Thank you."
+            </div>
+
+            <div class="card" style="width: 100%; text-align: left;">
+                <h3 style="margin-top:0;">Example: Keeping a Dog 🐶</h3>
+                <p><strong>Point 1:</strong> Loyal friends.<br><strong>Point 2:</strong> Cute.</p>
+                <hr style="border: 1px dashed #cbd5e1; margin: 15px 0;">
+                <p style="font-size: 1.4rem; color: var(--success); font-weight: bold; margin:0;">
+                    "To sum up, keeping a dog is good because they are <span style="text-decoration: underline;">loyal friends</span> and they are <span style="text-decoration: underline;">cute</span>. Thank you."
+                </p>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: ACTIVITY - Summary Sprint -->
+        <div class="slide">
+            <h1>🚀 Extension: Summary Sprint</h1>
+            <div class="instruction-box">
+                <strong>Challenge:</strong> Look at the points. Create the Summary Sentence instantly!
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 12px; border: 2px solid var(--accent); text-align: center; width: 80%; margin-top:20px;">
+                <div id="summary-prompt" style="font-size: 1.5rem; margin-bottom: 15px; min-height: 120px; display:flex; flex-direction:column; justify-content:center;">
+                    Topic: <strong>Virtual Reality</strong><br>
+                    <span style="color:#64748b; font-size:1.1rem; margin-top:10px;">1. It is fun.<br>2. It hurts your eyes.</span>
+                </div>
+                <button class="btn-action" style="background: var(--accent);" onclick="nextSummary()">Next Summary Prompt 🎲</button>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: MODEL - Dream School -->
+        <div class="slide">
+            <span class="model-badge">Teacher Model</span>
+            <h1>🏫 Teacher's Dream School</h1>
+            <p>Before you plan, look at my plan!</p>
+            
+            <div class="mindmap-container">
+                <div class="mm-node" style="opacity:0.5;">Library</div>
+                <div class="mm-node" style="border-color:var(--success); color:var(--text);">Point 1:<br>McDonald's Canteen 🍟</div>
+                <div class="mm-node" style="opacity:0.5;">Gym</div>
+                
+                <div class="mm-center">Teacher's<br>School</div>
+                
+                <div class="mm-node" style="border-color:var(--success); color:var(--text);">Point 2:<br>Nap Room 😴</div>
+                <div class="mm-node" style="opacity:0.5;">Art Room</div>
+                <div class="mm-node" style="opacity:0.5;">Labs</div>
+                
+                <div class="crazy-idea-box" style="border-color: var(--primary); background: #e0f2fe;">
+                    <strong>Teacher's Crazy Idea:</strong><br>
+                    "Teleporters to go home instantly!"
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: ACTIVITY - Dream School Plan -->
+        <div class="slide">
+            <h1>🏫 Your Turn: Design It</h1>
+            <div class="instruction-box">
+                <strong>Task:</strong> Choose 2 ideas. Add 1 "Crazy Idea". Plan your speech (3 mins).
+            </div>
+
+            <div class="mindmap-container">
+                <div class="mm-node">Swimming Pool</div>
+                <div class="mm-node">No Homework</div>
+                <div class="mm-node">Cinema</div>
+                
+                <div class="mm-center">Dream<br>School</div>
+                
+                <div class="mm-node">VR Classroom</div>
+                <div class="mm-node">Pet Zoo</div>
+                <div class="mm-node">Gaming Room</div>
+                
+                <div class="crazy-idea-box">
+                    <h3 style="margin:0 0 10px 0; color: var(--secondary);">✨ Your Crazy Idea ✨</h3>
+                    <p style="margin:0; font-size: 1.2rem;">(e.g., Robots serve lunch, Slide to get to class...)</p>
+                    <button class="btn-action" style="margin-top:10px; font-size:1rem;" onclick="nextIdea()">Need an Idea? 💡</button>
+                    <div id="random-idea-output" style="margin-top:10px; font-weight:bold; color:var(--text); min-height: 1.5em;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: MODEL - Eyes Up Rule -->
+        <div class="slide">
+            <span class="model-badge">Technique Model</span>
+            <h1>👀 The "Eyes Up" Rule</h1>
+            <p>You have notes. That is okay. But you must follow this rule:</p>
+            
+            <div style="display:flex; gap:20px; width:100%; justify-content:center; margin-top:20px;">
+                <div style="background:#fee2e2; padding:20px; border-radius:15px; width:45%; border:2px solid #ef4444;">
+                    <h2 style="color:#b91c1c; margin-top:0;">🚫 RED LIGHT</h2>
+                    <p><strong>Looking Down (At Notes)</strong></p>
+                    <p style="font-size:2rem;">Silence 🤐</p>
+                    <p>You can READ, but you cannot SPEAK.</p>
+                </div>
+                <div style="background:#dcfce7; padding:20px; border-radius:15px; width:45%; border:2px solid #22c55e;">
+                    <h2 style="color:#15803d; margin-top:0;">✅ GREEN LIGHT</h2>
+                    <p><strong>Looking Up (At Partner)</strong></p>
+                    <p style="font-size:2rem;">Speak 🗣️</p>
+                    <p>You can only speak when your eyes are UP.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: CHALLENGE - Timer -->
+        <div class="slide">
+            <h1>🎤 Speaking Challenge</h1>
+            <div class="instruction-box">
+                <strong>Partner's Job:</strong> If they speak while looking down, raise your hand ✋ to stop them.
+            </div>
+
+            <h2 style="font-size:3rem; margin-top:2rem;">Ready?</h2>
+            <p>Use your notes. Use the Signposts. Use the Formula.</p>
+            <p style="color: var(--primary); font-weight:bold;">Keep your eyes up!</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- State ---
+        let currentSlide = 0;
+        const totalSlides = 10;
+        const slides = document.querySelectorAll('.slide');
+        const pageIndicator = document.getElementById('page-indicator');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        // --- Navigation ---
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+            pageIndicator.innerText = `${currentSlide + 1} / ${totalSlides}`;
+            btnPrev.disabled = currentSlide === 0;
+            btnNext.disabled = currentSlide === totalSlides - 1;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateSlides();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlides();
+            }
+        }
+
+        // --- Cyclical Lists (No Randoms) ---
+        
+        // 1. Warmer Topics
+        const warmTopics = [
+            "Why I love McDonald's 🍔",
+            "Why cats are better than dogs 🐱",
+            "Why summer is the best season ☀️",
+            "Why homework should be banned 🚫",
+            "Why playing games is good for you 🎮",
+            "Why we should sleep in school 😴"
+        ];
+        let topicIndex = 0;
+        function nextTopic() {
+            topicIndex = (topicIndex + 1) % warmTopics.length;
+            document.getElementById('warm-topic').innerText = warmTopics[topicIndex];
+        }
+
+        // 2. Summary Prompts
+        const summaryPrompts = [
+            { t: "Robots", p1: "They help clean", p2: "They are scary" },
+            { t: "Summer Holiday", p1: "No homework", p2: "Too hot outside" },
+            { t: "Pizza", p1: "Delicious cheese", p2: "Very unhealthy" },
+            { t: "Mobile Phones", p1: "Connect with friends", p2: "Hurts your eyes" },
+            { t: "Being Famous", p1: "Lots of money", p2: "No privacy" },
+            { t: "Cats", p1: "Very cute", p2: "They scratch furniture" }
+        ];
+        let summaryIndex = 0;
+        function nextSummary() {
+            summaryIndex = (summaryIndex + 1) % summaryPrompts.length;
+            const item = summaryPrompts[summaryIndex];
+            const el = document.getElementById('summary-prompt');
+            el.innerHTML = `
+                Topic: <strong>${item.t}</strong><br>
+                <span style="color:#64748b; font-size:1.1rem; margin-top:10px;">1. ${item.p1}<br>2. ${item.p2}</span>
+            `;
+            el.classList.add('shake');
+            setTimeout(() => el.classList.remove('shake'), 500);
+        }
+
+        // 3. Crazy Ideas
+        const crazyIdeas = [
+            "Escalators instead of stairs",
+            "Classes start at 12:00 PM",
+            "Free bubble tea in the canteen",
+            "A nap room for students",
+            "Teachers must wear costumes",
+            "Robots do the cleaning",
+            "Every Friday is a party"
+        ];
+        let ideaIndex = 0;
+        function nextIdea() {
+            ideaIndex = (ideaIndex + 1) % crazyIdeas.length;
+            const el = document.getElementById('random-idea-output');
+            el.innerText = `💡 ${crazyIdeas[ideaIndex]}`;
+        }
+
+        // --- Validation ---
+        function checkAnswers() {
+            const selects = document.querySelectorAll('select');
+            let allCorrect = true;
+            let count = 0;
+
+            selects.forEach(select => {
+                select.classList.remove('correct', 'wrong');
+                if (select.value === 'correct') {
+                    select.classList.add('correct');
+                    count++;
+                } else {
+                    select.classList.add('wrong');
+                    allCorrect = false;
+                    select.parentElement.classList.add('shake');
+                    setTimeout(() => select.parentElement.classList.remove('shake'), 500);
+                }
+            });
+
+            const feedback = document.getElementById('feedback-msg');
+            if (allCorrect) {
+                feedback.style.color = 'var(--success)';
+                feedback.innerText = "🎉 Perfect! You are a Presentation Master!";
+            } else {
+                feedback.style.color = '#ef4444';
+                feedback.innerText = `You got ${count}/5 right. Try again!`;
+            }
+        }
+
+        // --- Timer Logic ---
+        let timerInterval;
+        let timeLeft = 0;
+        const timerDisplay = document.getElementById('timer-display');
+
+        function startTimer(seconds) {
+            clearInterval(timerInterval);
+            timeLeft = seconds;
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    timerDisplay.style.color = '#ef4444';
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.innerText = `${m}:${s}`;
+            timerDisplay.style.color = timeLeft < 10 ? '#ef4444' : '#22d3ee';
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 0;
+            updateTimerDisplay();
+        }
+
+        // Initialize
+        updateSlides();
+    </script>
+</body>
+</html>

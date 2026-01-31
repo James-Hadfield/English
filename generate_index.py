@@ -204,6 +204,7 @@ def generate_index():
         for f in files:
             # URL encode the file path parts
             safe_dir = urllib.parse.quote(link_dir)
+            safe_dir = urllib.parse.quote(link_dir).replace("%2F", "/")
             safe_file = urllib.parse.quote(f)
             # Build valid href, handling potentially empty directory
             href = f"{safe_dir}{safe_file}"

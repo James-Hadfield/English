@@ -19,7 +19,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <style>
+  <style type="text/tailwindcss">
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f0f4f8;
@@ -44,22 +44,66 @@
     }
 
     .btn-primary {
-      @apply bg-blue-600 text-white px-6 py-2 rounded-full hover: bg-blue-700 transition shadow-lg font-bold flex items-center gap-2;
+      background-color: #2563eb;
+      color: #ffffff;
+      padding: 0.5rem 1.5rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2), 0 4px 6px -4px rgba(15, 23, 42, 0.2);
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .btn-secondary {
-      @apply bg-gray-600 text-white px-6 py-2 rounded-full hover: bg-gray-700 transition shadow-lg font-bold flex items-center gap-2;
+      background-color: #4b5563;
+      color: #ffffff;
+      padding: 0.5rem 1.5rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2), 0 4px 6px -4px rgba(15, 23, 42, 0.2);
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-secondary:hover {
+      background-color: #374151;
     }
 
     .card {
-      @apply bg-white rounded-2xl shadow-xl p-8 max-w-5xl mx-auto w-full border border-gray-200;
+      background-color: #ffffff;
+      border-radius: 1rem;
+      box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.15);
+      padding: 2rem;
+      max-width: 64rem;
+      margin: 0 auto;
+      width: 100%;
+      border: 1px solid #e5e7eb;
       min-height: 70vh;
       display: flex;
       flex-direction: column;
     }
 
     .teacher-badge {
-      @apply bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 inline-block border border-yellow-500 shadow-sm;
+      background-color: #facc15;
+      color: #713f12;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+      border: 1px solid #eab308;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.1);
     }
 
     .timer-bar {
@@ -412,15 +456,15 @@ const SlideModelActivity4 = () => {
                             </div>
                             <div className="border-b border-gray-300 pb-2">
                                 <span className="font-bold text-gray-500 text-sm block">Point 1 (First of all):</span> 
-                                Japan -> Food (Sushi / Ramen)
+                                Japan -&gt; Food (Sushi / Ramen)
                             </div>
                             <div className="border-b border-gray-300 pb-2">
                                 <span className="font-bold text-gray-500 text-sm block">Point 2 (Also):</span> 
-                                Tokyo Disneyland -> Rides
+                                Tokyo Disneyland -&gt; Rides
                             </div>
                             <div>
                                 <span className="font-bold text-gray-500 text-sm block">Conclusion (To sum up):</span> 
-                                Food + Fun -> Thank you.
+                                Food + Fun -&gt; Thank you.
                             </div>
                             <div className="mt-6 p-2 bg-green-100 text-green-700 text-center font-bold rounded">
                                 ✅ KEYWORDS ONLY!
